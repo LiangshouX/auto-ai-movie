@@ -1,0 +1,28 @@
+# Server configuration
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api
+
+# Spring configuration
+spring:
+  application:
+    name: auto-ai-movie
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+# Logging configuration
+logging:
+  level:
+    com.liangshou: debug
+    org.springframework: info
+
+# Custom application properties
+app:
+  version: 1.0.0
+  description: Auto AI Movie Generation Platform
+  modules:
+    launcher: main application entry point

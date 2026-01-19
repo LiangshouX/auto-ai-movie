@@ -1,0 +1,17 @@
+# Script module configuration
+spring:
+  application:
+    name: ai-movie-scripts
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+# Script-specific properties
+script:
+  generation:
+    default-template: basic
+    output-dir: ./scripts/output
+    max-length: 10000
+
+logging:
+  level:
+    com.liangshou.scripts: debug
