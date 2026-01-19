@@ -25,3 +25,7 @@ replay_pid*
 
 # IDEA
 /.idea
+
+# Target && Node_Modules
+*/target
+*/node_modules
