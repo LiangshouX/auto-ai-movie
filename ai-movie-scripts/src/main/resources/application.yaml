@@ -4,6 +4,65 @@ spring:
     name: ai-movie-scripts
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  
+  # Database Configuration
+  datasource:
+    url: jdbc:mysql://localhost:3306/ai_movie_scripts?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update  # 在开发环境中自动更新表结构
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+  
+  # Redis Configuration
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+  
+  # AI Configuration - OpenAI
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:your-openai-api-key}
+      base-url: https://api.openai.com/v1
+      chat:
+        options:
+          model: gpt-4o-mini
+          temperature: 0.7
+      connection-timeout: 10s
+      read-timeout: 60s
+    
+    # Azure OpenAI Configuration
+    azure:
+      openai:
+        endpoint: ${AZURE_OPENAI_ENDPOINT:your-azure-openai-endpoint}
+        api-key: ${AZURE_OPENAI_API_KEY:your-azure-openai-api-key}
+        api-version: 2024-06-01
+        chat:
+          options:
+            deployment-name: gpt-4
+            temperature: 0.7
+    
+    # Anthropic Configuration
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:your-anthropic-api-key}
+      chat:
+        options:
+          model: claude-3-haiku
+          temperature: 0.7
 
 # Script-specific properties
 script:
@@ -12,6 +71,10 @@ script:
     output-dir: ./scripts/output
     max-length: 10000
 
+server:
+  port: 8082  # 使用不同端口避免与launcher模块冲突
+
 logging:
   level:
     com.liangshou.scripts: debug
+    org.springframework.ai: debug
