@@ -1,5 +1,8 @@
 # Script module configuration
 spring:
+  output:
+    ansi:
+      enabled: always
   application:
     name: ai-movie-scripts
   profiles:
@@ -12,15 +15,25 @@ spring:
     password: 
     driver-class-name: com.mysql.cj.jdbc.Driver
   
-  # JPA Configuration
-  jpa:
-    hibernate:
-      ddl-auto: update  # 在开发环境中自动更新表结构
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
-        format_sql: true
+  # MyBatis Configuration
+  sql:
+    init:
+      schema-locations: classpath*:sql/schema.sql
+      mode: always
+      continue-on-error: true
+  
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      id-type: assign_uuid
+  mapper-locations: classpath*:mapper/*.xml
+  type-aliases-package: com.liangshou.movie.scripts.infrastructure.entity
   
   # Redis Configuration
   redis:
@@ -75,6 +88,10 @@ server:
   port: 8082  # 使用不同端口避免与launcher模块冲突
 
 logging:
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"
   level:
     com.liangshou.scripts: debug
     org.springframework.ai: debug
+  color:
+    enabled: true

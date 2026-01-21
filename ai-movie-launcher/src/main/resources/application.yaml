@@ -6,6 +6,9 @@ server:
 
 # Spring configuration
 spring:
+  output:
+    ansi:
+      enabled: always
   application:
     name: auto-ai-movie
   profiles:
@@ -13,12 +16,83 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
+  # Database Configuration
+  datasource:
+    url: jdbc:mysql://localhost:3306/ai_movie_scripts?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  # MyBatis Configuration
+  sql:
+    init:
+      schema-locations: classpath*:sql/schema.sql
+      mode: always
+      continue-on-error: true
+  
+  # Redis Configuration
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+
+# MyBatis Plus Configuration
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      id-type: assign_uuid
+  mapper-locations: classpath*:mapper/*.xml
+  type-aliases-package: com.liangshou.movie.scripts.infrastructure.entity
+
+# AI Configuration - OpenAI
+ai:
+  openai:
+    api-key: ${OPENAI_API_KEY:your-openai-api-key}
+    base-url: https://api.openai.com/v1
+    chat:
+      options:
+        model: gpt-4o-mini
+        temperature: 0.7
+    connection-timeout: 10s
+    read-timeout: 60s
+  
+  # Anthropic Configuration
+  anthropic:
+    api-key: ${ANTHROPIC_API_KEY:your-anthropic-api-key}
+    chat:
+      options:
+        model: claude-3-haiku
+        temperature: 0.7
+
+# Script-specific properties
+script:
+  generation:
+    default-template: basic
+    output-dir: ./scripts/output
+    max-length: 10000
 
 # Logging configuration
 logging:
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"
   level:
     com.liangshou: debug
+    com.liangshou.movie.scripts: debug
     org.springframework: info
+    org.springframework.ai: debug
+  color:
+    enabled: true
 
 # Custom application properties
 app:
@@ -26,3 +100,4 @@ app:
   description: Auto AI Movie Generation Platform
   modules:
     launcher: main application entry point
+    scripts: ai-powered script creation module
