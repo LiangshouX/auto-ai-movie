@@ -1,0 +1,90 @@
+package com.liangshou.movie.scripts.infrastructure.datasource.support.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.liangshou.movie.scripts.infrastructure.datasource.po.ScriptCharacterPO;
+import com.liangshou.movie.scripts.infrastructure.datasource.mapper.ScriptCharacterMapper;
+import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptCharacterSupport;
+import com.liangshou.movie.scripts.service.dto.ScriptCharacterDTO;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * 角色信息服务实现类
+ */
+@Service
+public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMapper, ScriptCharacterPO> implements IScriptCharacterSupport {
+
+    @Override
+    public ScriptCharacterDTO createCharacter(ScriptCharacterDTO characterDTO) {
+        ScriptCharacterPO entity = new ScriptCharacterPO();
+        BeanUtils.copyProperties(characterDTO, entity);
+        entity.setCreatedAt(LocalDateTime.now());
+        entity.setUpdatedAt(LocalDateTime.now());
+        this.save(entity);
+
+        ScriptCharacterDTO result = new ScriptCharacterDTO();
+        BeanUtils.copyProperties(entity, result);
+        return result;
+    }
+
+    @Override
+    public ScriptCharacterDTO findById(String id) {
+        ScriptCharacterPO entity = this.getById(id);
+        if (entity == null) {
+            return null;
+        }
+
+        ScriptCharacterDTO dto = new ScriptCharacterDTO();
+        BeanUtils.copyProperties(entity, dto);
+        return dto;
+    }
+
+    @Override
+    public List<ScriptCharacterDTO> findByProjectId(String projectId) {
+        QueryWrapper<ScriptCharacterPO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("project_id", projectId);
+        List<ScriptCharacterPO> entities = this.list(queryWrapper);
+        
+        return entities.stream().map(entity -> {
+            ScriptCharacterDTO dto = new ScriptCharacterDTO();
+            BeanUtils.copyProperties(entity, dto);
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public ScriptCharacterDTO updateCharacter(String id, ScriptCharacterDTO characterDTO) {
+        ScriptCharacterPO entity = this.getById(id);
+        if (entity == null) {
+            return null;
+        }
+
+        BeanUtils.copyProperties(characterDTO, entity);
+        entity.setId(id); // 确保ID不变
+        entity.setUpdatedAt(LocalDateTime.now());
+        this.updateById(entity);
+
+        ScriptCharacterDTO result = new ScriptCharacterDTO();
+        BeanUtils.copyProperties(entity, result);
+        return result;
+    }
+
+    @Override
+    public void deleteCharacter(String id) {
+        this.removeById(id);
+    }
+
+    @Override
+    public List<ScriptCharacterDTO> findAll() {
+        List<ScriptCharacterPO> entities = this.list();
+        return entities.stream().map(entity -> {
+            ScriptCharacterDTO dto = new ScriptCharacterDTO();
+            BeanUtils.copyProperties(entity, dto);
+            return dto;
+        }).collect(Collectors.toList());
+    }
+}

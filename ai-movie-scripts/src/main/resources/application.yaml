@@ -1,8 +1,4 @@
-# Script module configuration
 spring:
-  output:
-    ansi:
-      enabled: always
   application:
     name: ai-movie-scripts
   profiles:
@@ -88,10 +84,6 @@ server:
   port: 8082  # 使用不同端口避免与launcher模块冲突
 
 logging:
-  pattern:
-    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"
   level:
     com.liangshou.scripts: debug
     org.springframework.ai: debug
-  color:
-    enabled: true
