@@ -83,10 +83,36 @@ java -jar target/ai-movie-scripts-1.0-SNAPSHOT.jar
 
 ## 架构设计
 
-系统采用经典的三层架构：
+系统采用经典的三层架构，分层分包说明如下：
 
-1. **Controller层** - 提供RESTful API接口
-2. **Service层** - 实现业务逻辑
-3. **Infrastructure层** - 数据访问和实体定义
+```txt
+ai-movie-scripts/
+├── adapter/                          # 适配器层：负责外部请求的接入与协议转换
+│   └── controller/                   # 控制器层：接收 HTTP 请求，调用 Service 层，返回响应
+├── common/                           # 公共模块：存放项目中通用的工具、配置和常量
+│   ├── enums/                        # 枚举类目录：按业务分包存放各类枚举（如状态码、类型等）
+│   ├── constants/                    # 常量类目录：按功能分包存放全局常量值（如系统标识、默认值等）
+│   └── config/                       # 配置类目录：集中管理 Spring Boot 相关配置
+│       ├── aimodelconfig/            # AI 模型相关配置
+│       │   ├── properties/           # 利用 @ConfigurationProperties 读取 application.yaml 中的 AI 模型参数
+│       │   └── modelclientconfig/    # 基于 properties 创建 Spring AI 的 Model 和 Client Bean
+│       ├── mybatisconfig/            # MyBatis-Plus 配置：如分页插件、SQL 日志、类型处理器等
+│       └── redisconfig/              # Redis 客户端配置：连接池、序列化方式、自定义 RedisTemplate 等
+├── service/                          # 业务逻辑层：封装核心业务规则
+│   ├── dto/                          # Data Transfer Object：用于服务间或层间数据传输的模型
+│   ├── vo/                           # View Object：封装返回给前端的数据结构，避免暴露内部字段
+│   └── impl/                         # Service 接口的具体实现类目录
+├── utils/                            # 工具类模块：提供通用辅助功能
+│   └── prompt/                       # Prompt 资源管理：加载并处理存放在 resources/prompt/ 下的提示词模板
+└── infrastructure/                   # 基础设施层：提供技术支撑能力，解耦业务与底层实现
+    ├── datasource/                   # 数据访问基础设施
+    │   ├── po/                       # Persistent Object：与数据库表一一对应的实体类（通常由 MyBatis Plus 使用）
+    │   ├── mapper/                   # MyBatis Mapper 接口：定义数据库操作方法
+    │   └── support/                  # 数据库相关辅助类：如自定义 TypeHandler、MetaObjectHandler 等
+    └── agentsupport/                 # AI Agent 基础设施支持
+        ├── context/                  # 上下文管理：维护 Agent 执行过程中的会话、状态、记忆等
+        ├── tools/                    # 自定义 Tool 实现：供 Agent 调用的函数工具（如查询数据库、调用 API）
+        └── mcp/                      # Model Context Protocol 相关实现（待定）：可能用于多模型协作或上下文协议
+```
 
 同时集成了Spring AI框架，支持多种AI供应商，并实现了完善的上下文管理。

@@ -45,15 +45,16 @@ public enum ErrorCodeEnum {
     OUTLINE_DELETE_FAILED("SRP-OTL-3104", "剧情大纲删除失败"),
 
     // 章节相关错误码 : SRP-CHP-XXXX (修正前缀)
-    CHAPTER_NOT_FOUND("SRP-CHP-4101", "章节不存在"),
-    CHAPTER_CREATE_FAILED("SRP-CHP-4102", "章节创建失败"),
-    CHAPTER_UPDATE_FAILED("SRP-CHP-4103", "章节更新失败"),
-    CHAPTER_DELETE_FAILED("SRP-CHP-4104", "章节删除失败"),
+    CHAPTER_NOT_FOUND("SRP-CHAP-4101", "章节不存在"),
+    CHAPTER_CREATE_FAILED("SRP-CHAP-4102", "章节创建失败"),
+    CHAPTER_UPDATE_FAILED("SRP-CHAP-4103", "章节更新失败"),
+    CHAPTER_DELETE_FAILED("SRP-CHAP-4104", "章节删除失败"),
 
     // AI生成相关错误码 : SRP-AIG-XXXX
     AI_GENERATION_FAILED("SRP-AIG-5101", "AI生成失败"),
     AI_MODEL_CONFIG_ERROR("SRP-AIG-5102", "AI模型配置错误"),
     PROMPT_TEMPLATE_ERROR("SRP-AIG-5103", "提示词模板错误"),
+    PROMPT_LOADER_ERROR("SRP-AIG-5104", "提示词加载错误"),
 
     // 数据访问相关错误码 : SRP-DAT-XXXX (修正前缀)
     DATABASE_ACCESS_ERROR("SRP-DAT-6001", "数据库访问错误"),
