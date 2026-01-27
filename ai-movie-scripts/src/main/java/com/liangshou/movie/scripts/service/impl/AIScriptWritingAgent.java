@@ -26,10 +26,6 @@ public class AIScriptWritingAgent {
     private ChatModel azureOpenAiChatModel;
     */
 
-    @Autowired
-    @Qualifier("anthropicChatModel")
-    private ChatModel anthropicChatModel;
-
     /**
      * 生成创意
      */
@@ -101,13 +97,14 @@ public class AIScriptWritingAgent {
     public String generateWithSpecificModel(String prompt, String modelName) {
         ChatClient specificChatClient;
         ChatModel modelToUse = null;
-        
+
         if ("openai".equalsIgnoreCase(modelName) && openAiChatModel != null) {
             modelToUse = openAiChatModel;
-        } else if ("anthropic".equalsIgnoreCase(modelName) && anthropicChatModel != null) {
-            modelToUse = anthropicChatModel;
         }
-        
+//        else if ("anthropic".equalsIgnoreCase(modelName) && anthropicChatModel != null) {
+//            modelToUse = anthropicChatModel;
+//        }
+
         if (modelToUse != null) {
             specificChatClient = ChatClient.create(modelToUse);
             return specificChatClient.prompt(prompt)

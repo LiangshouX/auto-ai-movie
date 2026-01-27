@@ -17,8 +17,17 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/ai_movie_scripts?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
     username: root
-    password: 
+    password: ${LOCAL_MYSQL_PWD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  # AI Configuration - OpenAI
+  ai:
+    openai:
+      api-key: ${QWEN_API_KEY}
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/
+      chat:
+        options:
+          model: qwen-plus
+          temperature: 0.7
   
   # MyBatis Configuration
   sql:
@@ -52,6 +61,18 @@ mybatis-plus:
   mapper-locations: classpath*:mapper/*.xml
   type-aliases-package: com.liangshou.movie.scripts.infrastructure.entity
 
+# 自定义模型配置
+custom-model:
+  deepseek:
+    api-key: ${DEEPSEEK_API_KEY}
+    model: deepseek-chat
+    base-url: https://api.deepseek.com
+    temperature: 0.7
+  qwen:
+    api-key: ${QWEN_API_KEY}
+    model: qwen-plus
+    base-url: https://dashscope.aliyuncs.com/compatible-mode/
+    temperature: 0.7
 
 # Logging configuration
 logging:

@@ -29,3 +29,5 @@ replay_pid*
 # Target && Node_Modules
 */target
 */node_modules
+*/.idea
+*/package-lock.json
