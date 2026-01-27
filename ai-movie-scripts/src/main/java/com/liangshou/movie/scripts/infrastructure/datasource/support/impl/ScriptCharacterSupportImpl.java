@@ -8,6 +8,7 @@ import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptChar
 import com.liangshou.movie.scripts.service.dto.ScriptCharacterDTO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 @Service
 public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMapper, ScriptCharacterPO> implements IScriptCharacterSupport {
 
+    @Transactional
     @Override
     public ScriptCharacterDTO createCharacter(ScriptCharacterDTO characterDTO) {
         ScriptCharacterPO entity = new ScriptCharacterPO();
@@ -31,6 +33,7 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
         return result;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public ScriptCharacterDTO findById(String id) {
         ScriptCharacterPO entity = this.getById(id);
@@ -43,6 +46,7 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
         return dto;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ScriptCharacterDTO> findByProjectId(String projectId) {
         QueryWrapper<ScriptCharacterPO> queryWrapper = new QueryWrapper<>();
@@ -56,6 +60,7 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
         }).collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public ScriptCharacterDTO updateCharacter(String id, ScriptCharacterDTO characterDTO) {
         ScriptCharacterPO entity = this.getById(id);
@@ -73,11 +78,13 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
         return result;
     }
 
+    @Transactional
     @Override
     public void deleteCharacter(String id) {
         this.removeById(id);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ScriptCharacterDTO> findAll() {
         List<ScriptCharacterPO> entities = this.list();

@@ -1,15 +1,16 @@
 package com.liangshou.movie.scripts.infrastructure.datasource.support.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.liangshou.movie.scripts.infrastructure.datasource.po.ScriptProjectPO;
 import com.liangshou.movie.scripts.infrastructure.datasource.mapper.ScriptProjectMapper;
+import com.liangshou.movie.scripts.infrastructure.datasource.po.ScriptProjectPO;
 import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptProjectSupport;
 import com.liangshou.movie.scripts.service.dto.ScriptProjectDTO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 剧本项目服务实现类
@@ -49,7 +50,7 @@ public class ScriptProjectSupportImpl extends ServiceImpl<ScriptProjectMapper, S
             ScriptProjectDTO dto = new ScriptProjectDTO();
             BeanUtils.copyProperties(entity, dto);
             return dto;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     @Override
@@ -106,6 +107,7 @@ public class ScriptProjectSupportImpl extends ServiceImpl<ScriptProjectMapper, S
         return dto;
     }
 
+    @Transactional
     @Override
     public ScriptProjectDTO updateProjectStatus(String id, String status) {
         ScriptProjectPO entity = this.getById(id);

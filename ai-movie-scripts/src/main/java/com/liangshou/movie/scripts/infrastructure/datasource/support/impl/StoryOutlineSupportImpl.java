@@ -8,6 +8,7 @@ import com.liangshou.movie.scripts.infrastructure.datasource.support.IStoryOutli
 import com.liangshou.movie.scripts.service.dto.StoryOutlineDTO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -17,6 +18,7 @@ import java.util.Optional;
 @Service
 public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, StoryOutlinePO> implements IStoryOutlineSupport {
 
+    @Transactional
     @Override
     public StoryOutlineDTO createOutline(StoryOutlineDTO outlineDTO) {
         StoryOutlinePO entity = new StoryOutlinePO();
@@ -30,6 +32,7 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
         return result;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Optional<StoryOutlineDTO> findByProjectId(String projectId) {
         QueryWrapper<StoryOutlinePO> queryWrapper = new QueryWrapper<>();
@@ -45,6 +48,7 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
         }
     }
 
+    @Transactional
     @Override
     public StoryOutlineDTO updateOutline(String id, StoryOutlineDTO outlineDTO) {
         StoryOutlinePO entity = this.getById(id);
@@ -62,6 +66,7 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
         return result;
     }
 
+    @Transactional
     @Override
     public void deleteOutline(String id) {
         this.removeById(id);

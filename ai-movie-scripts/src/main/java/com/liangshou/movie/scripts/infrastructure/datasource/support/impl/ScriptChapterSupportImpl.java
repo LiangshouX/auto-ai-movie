@@ -8,6 +8,7 @@ import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptChap
 import com.liangshou.movie.scripts.service.dto.ScriptChapterDTO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 @Service
 public class ScriptChapterSupportImpl extends ServiceImpl<ScriptChapterMapper, ScriptChapterPO> implements IScriptChapterSupport {
 
+    @Transactional
     @Override
     public ScriptChapterDTO createChapter(ScriptChapterDTO chapterDTO) {
         ScriptChapterPO entity = new ScriptChapterPO();
@@ -31,6 +33,7 @@ public class ScriptChapterSupportImpl extends ServiceImpl<ScriptChapterMapper, S
         return result;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public ScriptChapterDTO findById(String id) {
         ScriptChapterPO entity = this.getById(id);
@@ -43,6 +46,7 @@ public class ScriptChapterSupportImpl extends ServiceImpl<ScriptChapterMapper, S
         return dto;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ScriptChapterDTO> findByProjectId(String projectId) {
         QueryWrapper<ScriptChapterPO> queryWrapper = new QueryWrapper<>();
@@ -56,6 +60,7 @@ public class ScriptChapterSupportImpl extends ServiceImpl<ScriptChapterMapper, S
         }).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ScriptChapterDTO> findByProjectIdAndChapterNumber(String projectId, Integer chapterNumber) {
         QueryWrapper<ScriptChapterPO> queryWrapper = new QueryWrapper<>();
@@ -72,6 +77,7 @@ public class ScriptChapterSupportImpl extends ServiceImpl<ScriptChapterMapper, S
         }).collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public ScriptChapterDTO updateChapter(String id, ScriptChapterDTO chapterDTO) {
         ScriptChapterPO entity = this.getById(id);
@@ -89,6 +95,7 @@ public class ScriptChapterSupportImpl extends ServiceImpl<ScriptChapterMapper, S
         return result;
     }
 
+    @Transactional
     @Override
     public void deleteChapter(String id) {
         this.removeById(id);

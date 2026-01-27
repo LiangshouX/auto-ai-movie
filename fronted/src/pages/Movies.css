@@ -1,0 +1,19 @@
+.movies-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: calc(100vh - 120px); /* 减去头部和底部的高度 */
+}
+
+.movies-container h1 {
+  color: #333;
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.movies-container p {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #666;
+}
