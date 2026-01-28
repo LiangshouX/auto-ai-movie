@@ -20,7 +20,7 @@ const ScriptManager = () => {
     const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [newProjectName, setNewProjectName] = useState<string>('');
-    const [newProjectSummary, setNewProjectSummary] = useState<string>('');
+    const [newProjectDescription, setNewProjectDescription] = useState<string>('');
     const [operationLoading, setOperationLoading] = useState<boolean>(false);
 
     useEffect(() => {
@@ -108,7 +108,7 @@ const ScriptManager = () => {
         try {
             const newProject = {
                 title: newProjectName,
-                description: newProjectSummary,
+                description: newProjectDescription,
                 status: 'DRAFT' as ProjectStatus // 使用大写状态值，与ProjectStatus保持一致
             };
 
@@ -116,7 +116,7 @@ const ScriptManager = () => {
                 newProject,
                 () => {
                     setNewProjectName('');
-                    setNewProjectSummary('');
+                    setNewProjectDescription('');
                     setShowCreateModal(false);
                     fetchProjects(); // 重新获取项目列表
                 },
@@ -252,7 +252,7 @@ const ScriptManager = () => {
                                     <div className="book-shape">
                                         <div className="book-cover">
                                             <h3>{project.title || '未命名项目'}</h3>
-                                            <p className="project-summary">{project.summary || '暂无摘要'}</p>
+                                            <p className="project-description">{project.description || '暂无描述'}</p>
                                             <span className="project-status">状态: {project.status || '未知'}</span>
                                         </div>
                                         <div className="book-spine"></div>
@@ -329,11 +329,11 @@ const ScriptManager = () => {
                             />
                         </div>
                         <div className="form-group">
-                            <label>项目摘要:</label>
+                            <label>项目描述:</label>
                             <textarea
-                                value={newProjectSummary}
-                                onChange={(e) => setNewProjectSummary(e.target.value)}
-                                placeholder="输入项目摘要"
+                                value={newProjectDescription}
+                                onChange={(e) => setNewProjectDescription(e.target.value)}
+                                placeholder="输入项目描述"
                                 className="form-textarea"
                                 disabled={operationLoading || apiLoading}
                             />
