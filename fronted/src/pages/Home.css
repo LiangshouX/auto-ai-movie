@@ -1,38 +1,49 @@
 .home-container {
+  display: flex;
+  height: calc(100vh - 40px);
   padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
   font-family: 'Arial', sans-serif;
+  overflow: hidden;
 }
 
 .hero-section {
+  flex: 0 0 250px;
   text-align: center;
-  margin-bottom: 40px;
-  padding: 40px 20px;
+  padding: 30px 20px;
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
   border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .hero-section h1 {
   margin: 0 0 15px 0;
-  font-size: 2.5em;
+  font-size: 1.5em;
+  word-wrap: break-word;
 }
 
 .hero-section p {
-  font-size: 1.2em;
+  font-size: 0.9em;
   opacity: 0.9;
-  max-width: 600px;
-  margin: 0 auto;
+  line-height: 1.4;
 }
 
 .feature-grid {
+  flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 25px;
-  max-width: 1000px;
-  margin: 40px auto;
+  align-self: center;
+  grid-template-columns: 400px 400px;
+  grid-auto-flow: row;
+  column-gap: 25px;
+  row-gap: 1em;
   padding: 0 20px;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 40px);
+  align-content: flex-start;
 }
 
 .feature-card {
@@ -46,6 +57,21 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   text-align: center;
   border: 1px solid #eaeaea;
+  width: 320px;
+  height: 100px;
+  animation: slideInFromLeft 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .feature-card:hover {

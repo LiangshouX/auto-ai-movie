@@ -2,6 +2,15 @@ import {Link} from 'react-router-dom';
 import './Home.css'; // 引入样式文件
 
 const Home = () => {
+    const features = [
+        { to: "/scripts", emoji: "📝", title: "剧本管理", desc: "创建和编辑您的电影剧本" },
+        { to: "/movies", emoji: "🎬", title: "电影制作", desc: "开始制作您的AI电影" },
+        { to: "/search", emoji: "🔍", title: "内容搜索", desc: "搜索相关内容和素材" },
+        // { to: "/scripts", emoji: "📝", title: "剧本管理", desc: "创建和编辑您的电影剧本" },
+        // { to: "/movies", emoji: "🎬", title: "电影制作", desc: "开始制作您的AI电影" },
+        // { to: "/search", emoji: "🔍", title: "内容搜索", desc: "搜索相关内容和素材" }
+    ];
+
     return (
         <div className="home-container">
             <div className="hero-section">
@@ -10,20 +19,17 @@ const Home = () => {
             </div>
             
             <div className="feature-grid">
-                <Link to="/scripts" className="feature-card">
-                    <h2>📝 剧本管理</h2>
-                    <p>创建和编辑您的电影剧本</p>
-                </Link>
-                
-                <Link to="/movies" className="feature-card">
-                    <h2>🎬 电影制作</h2>
-                    <p>开始制作您的AI电影</p>
-                </Link>
-                
-                <Link to="/search" className="feature-card">
-                    <h2>🔍 内容搜索</h2>
-                    <p>搜索相关内容和素材</p>
-                </Link>
+                {features.map((feature, index) => (
+                    <Link 
+                        key={feature.to} 
+                        to={feature.to} 
+                        className="feature-card"
+                        style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                        <h2>{feature.emoji} {feature.title}</h2>
+                        <p>{feature.desc}</p>
+                    </Link>
+                ))}
             </div>
         </div>
     );
