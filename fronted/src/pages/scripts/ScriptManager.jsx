@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useProjectApi } from '../../hooks/useApi.js';
 import './style/ScriptManager.css';
 
 const ScriptManager = () => {
+  const navigate = useNavigate();
   const { 
     loading: apiLoading, 
     error: apiError, 
@@ -121,6 +122,9 @@ const ScriptManager = () => {
     return (
       <div className="script-manager-container">
         <div className="header-section">
+          <div className="navigation-buttons">
+            <button className="nav-btn" onClick={() => navigate('/')}>⌂ 首页</button>
+          </div>
           <h2>AI 剧本项目管理</h2>
         </div>
         <div className="loading-state">
@@ -136,6 +140,9 @@ const ScriptManager = () => {
     return (
       <div className="script-manager-container">
         <div className="header-section">
+          <div className="navigation-buttons">
+            <button className="nav-btn" onClick={() => navigate('/')}>⌂ 首页</button>
+          </div>
           <h2>AI 剧本项目管理</h2>
           <div className="controls">
             <button className="btn btn-danger" onClick={() => {
@@ -155,6 +162,9 @@ const ScriptManager = () => {
   return (
     <div className="script-manager-container">
       <div className="header-section">
+        <div className="navigation-buttons">
+          <button className="nav-btn" onClick={() => navigate('/')}>⌂ 首页</button>
+        </div>
         <h2>AI 剧本项目管理</h2>
         <div className="controls">
           <input 

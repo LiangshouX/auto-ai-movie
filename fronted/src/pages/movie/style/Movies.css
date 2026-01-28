@@ -2,18 +2,53 @@
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  min-height: calc(100vh - 120px); /* 减去头部和底部的高度 */
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
-.movies-container h1 {
-  color: #333;
-  font-size: 2rem;
-  text-align: center;
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.movies-container p {
+.navigation-buttons {
+  display: flex;
+  gap: 10px;
+  flex-grow: 1;
+}
+
+.nav-btn {
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  color: #333;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  min-width: 60px;
   text-align: center;
-  font-size: 1.2rem;
-  color: #666;
+}
+
+.nav-btn:hover {
+  background-color: #e9ecef;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .navigation-buttons {
+    order: -1;
+    margin-bottom: 15px;
+  }
 }

@@ -1,59 +1,96 @@
 .script-editor-container {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
 .editor-header {
-  background: #fff;
-  padding: 15px 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.editor-header h1 {
-  margin: 0;
-  font-size: 1.5em;
+.navigation-buttons {
+  display: flex;
+  gap: 10px;
+  flex-grow: 1;
+}
+
+.nav-btn {
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
   color: #333;
-}
-
-.save-btn {
-  background-color: #667eea;
-  color: white;
-  border: none;
-  padding: 8px 16px;
+  padding: 8px 12px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+  transition: all 0.2s;
+  min-width: 60px;
+  text-align: center;
+}
+
+.nav-btn:hover {
+  background-color: #e9ecef;
+  transform: translateY(-1px);
+}
+
+.save-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
 }
 
 .save-btn:hover {
-  background-color: #5a67d8;
+  background-color: #0056b3;
 }
 
 .editor-content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
   background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 20px;
+  min-height: 500px;
 }
 
 .editor-placeholder {
-  background: white;
-  border-radius: 8px;
-  padding: 40px;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 40px 20px;
 }
 
 .editor-placeholder h3 {
-  color: #333;
+  color: #495057;
   margin-bottom: 15px;
 }
 
 .editor-placeholder p {
-  color: #666;
+  color: #6c757d;
   margin: 10px 0;
+}
+
+@media (max-width: 768px) {
+  .editor-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .navigation-buttons {
+    order: -1;
+    margin-bottom: 15px;
+  }
+
+  .editor-header h1 {
+    font-size: 1.5rem;
+  }
 }
