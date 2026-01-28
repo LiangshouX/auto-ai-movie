@@ -26,22 +26,13 @@
   margin: 0 auto;
 }
 
-.feature-section {
-  text-align: center;
-}
-
-.feature-section h2 {
-  font-size: 1.8em;
-  color: #333;
-  margin-bottom: 30px;
-}
-
-.button-grid {
+.feature-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  max-width: 900px;
-  margin: 0 auto;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 20px;
 }
 
 .feature-card {
@@ -49,32 +40,29 @@
   text-decoration: none;
   color: inherit;
   background: white;
-  padding: 30px 20px;
-  border-radius: 10px;
+  padding: 30px;
+  border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   text-align: center;
-  border: 1px solid #eee;
+  border: 1px solid #eaeaea;
 }
 
 .feature-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  border-color: #667eea;
 }
 
-.card-icon {
-  font-size: 3em;
-  margin-bottom: 15px;
-}
-
-.feature-card h3 {
-  margin: 15px 0 10px 0;
+.feature-card h2 {
+  margin: 0 0 15px 0;
   color: #333;
-  font-size: 1.4em;
+  font-size: 1.6em;
 }
 
 .feature-card p {
   color: #666;
   margin: 0;
   line-height: 1.5;
+  font-size: 1em;
 }

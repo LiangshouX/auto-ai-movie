@@ -3,8 +3,8 @@ import App from '../App.jsx';
 import Home from '../pages/Home.jsx';
 import ScriptManager from '../pages/scripts/index.jsx';
 import ScriptEditor from '../pages/scripts/ScriptEditor.jsx';
-import Movies from '../pages/Movies.jsx';
-import Search from '../pages/Search.jsx';
+import Movies from '../pages/movie/Movies.jsx';
+import Search from '../pages/search/Search.jsx';
 import NotFound from '../pages/NotFound.jsx';
 
 const router = createBrowserRouter([
