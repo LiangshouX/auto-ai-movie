@@ -65,11 +65,11 @@ export const API_ENDPOINTS = {
     BASE: '/v1/projects',
     GET_ALL: '/v1/projects',
     CREATE: '/v1/projects',
-    GET_BY_ID: (id) => `/v1/projects/${id}`,
-    UPDATE: (id) => `/v1/projects/${id}`,
-    DELETE: (id) => `/v1/projects/${id}`,
-    UPDATE_THEME: (id) => `/v1/projects/${id}/theme`,
-    UPDATE_SUMMARY: (id) => `/v1/projects/${id}/summary`,
-    UPDATE_STATUS: (id) => `/v1/projects/${id}/status`
+    GET_BY_ID: (id: string): string => `/v1/projects/${id}`,
+    UPDATE: (id: string): string => `/v1/projects/${id}`,
+    DELETE: (id: string): string => `/v1/projects/${id}`,
+    UPDATE_THEME: (id: string): string => `/v1/projects/${id}/theme`,
+    UPDATE_SUMMARY: (id: string): string => `/v1/projects/${id}/summary`,
+    UPDATE_STATUS: (id: string): string => `/v1/projects/${id}/status`
   }
 };

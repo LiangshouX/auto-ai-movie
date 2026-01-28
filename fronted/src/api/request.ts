@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 // 根据环境变量设置 API 基础 URL
 const API_BASE_URL = process.env.NODE_ENV === 'production'
@@ -6,7 +6,7 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
     : '/api'; // 开发环境使用代理，Vite代理会将/api转发到http://localhost:8080/api
 
 // 创建 axios 实例
-const apiClient = axios.create({
+const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
@@ -16,31 +16,33 @@ const apiClient = axios.create({
 
 // 统一请求拦截器
 apiClient.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     // 添加认证token（如果存在）
     const token = localStorage.getItem('authToken');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers!.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
+  (error: any) => {
     return Promise.reject(error);
   }
 );
 
 // 统一响应拦截器
 apiClient.interceptors.response.use(
-  (response) => {
+  (response: AxiosResponse) => {
     // 直接返回响应数据，保持一致的数据结构
     return {
       success: true,
       data: response.data,
       status: response.status,
-      headers: response.headers
+      statusText: response.statusText,
+      headers: response.headers,
+      config: response.config
     };
   },
-  (error) => {
+  (error: any) => {
     // 统一处理错误响应
     const errorResponse = {
       success: false,
@@ -69,19 +71,24 @@ apiClient.interceptors.response.use(
 export default apiClient;
 
 // API响应结果包装类
-export class ApiResponse {
-  constructor(success, data, message = '', status = null) {
+export class ApiResponse<T = any> {
+  success: boolean;
+  data: T;
+  message?: string;
+  status?: number | null;
+
+  constructor(success: boolean, data: T, message?: string, status?: number | null) {
     this.success = success;
     this.data = data;
     this.message = message;
     this.status = status;
   }
 
-  static success(data, message = '请求成功', status = null) {
-    return new ApiResponse(true, data, message, status);
+  static success<T>(data: T, message = '请求成功', status?: number | null) {
+    return new ApiResponse<T>(true, data, message, status);
   }
 
-  static error(message = '请求失败', error = null, status = null) {
+  static error(message = '请求失败', error: any = null, status?: number | null) {
     return new ApiResponse(false, error, message, status);
   }
 }

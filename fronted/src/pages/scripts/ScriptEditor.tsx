@@ -1,19 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../../api/index.js';
+import api from '../../api/index';
+import { ScriptProject } from '../../api/types/project-types';
 import './style/ScriptEditor.css';
 
 const ScriptEditor = () => {
-  const { projectId } = useParams();
+  const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
-  const [project, setProject] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [project, setProject] = useState<ScriptProject | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
 
   // 监听浏览器的 beforeunload 事件，防止意外离开页面
   useEffect(() => {
-    const handleBeforeUnload = (event) => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         event.preventDefault();
         event.returnValue = '您有未保存的更改，确定要离开吗？';
@@ -30,10 +31,17 @@ const ScriptEditor = () => {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const response = await api.projectApi.getProjectById(projectId);
-        setProject(response.data || response);
+        const response: any = await api.projectApi.getProjectById(projectId!);
+        // 确保response.data是一个有效的ScriptProject对象
+        if (response.data) {
+          // 我们将直接使用响应数据，但确保它符合ScriptProject接口
+          setProject(response.data as ScriptProject);
+        } else {
+          // 如果没有返回有效数据，设置为null
+          setProject(null);
+        }
         setLoading(false);
-      } catch (err) {
+      } catch (err: any) {
         setError(err.message || '获取项目信息失败');
         setLoading(false);
         console.error('Error fetching project:', err);
@@ -114,7 +122,7 @@ const ScriptEditor = () => {
           <button className="nav-btn" onClick={handleBackClick}>← 返回</button>
           <button className="nav-btn" onClick={handleGoHome}>⌂ 首页</button>
         </div>
-        <h1>编辑项目: {project?.name || project?.title || '未命名项目'}</h1>
+        <h1>编辑项目: {project?.title || '未命名项目'}</h1>
         <button className="save-btn" onClick={handleSave}>保存</button>
       </header>
       
@@ -123,7 +131,7 @@ const ScriptEditor = () => {
         <div className="editor-placeholder">
           <h3>AI 剧本编辑器</h3>
           <p>项目 ID: {projectId}</p>
-          <p>项目名称: {project?.name || project?.title || '未命名项目'}</p>
+          <p>项目名称: {project?.title || '未命名项目'}</p>
           <p>这是一个预留的编辑界面，您可以在此处添加具体的剧本编辑功能</p>
         </div>
       </div>

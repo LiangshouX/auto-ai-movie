@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useProjectApi } from '../../hooks/useApi.js';
+import { useProjectApi } from '../../hooks/useApi';
+import { ScriptProject, ProjectStatus } from '../../api/types/project-types';
 import './style/ScriptManager.css';
 
 const ScriptManager = () => {
@@ -13,14 +14,14 @@ const ScriptManager = () => {
     deleteProject 
   } = useProjectApi();
   
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [newProjectName, setNewProjectName] = useState('');
-  const [newProjectSummary, setNewProjectSummary] = useState('');
-  const [operationLoading, setOperationLoading] = useState(false);
+  const [projects, setProjects] = useState<ScriptProject[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [newProjectName, setNewProjectName] = useState<string>('');
+  const [newProjectSummary, setNewProjectSummary] = useState<string>('');
+  const [operationLoading, setOperationLoading] = useState<boolean>(false);
 
   useEffect(() => {
     fetchProjects();
@@ -32,15 +33,26 @@ const ScriptManager = () => {
     
     try {
       await getAllProjects(
-        (data) => {
+        (data: any) => {
           // 正确处理API响应数据
-          setProjects(Array.isArray(data) ? data : []);
+          const projectList = Array.isArray(data) ? data : (data.items || []);
+          setProjects(projectList.map((item: any) => ({
+            id: item.id || '',
+            title: item.title || item.name || '未命名项目',
+            description: item.description || item.summary || '',
+            theme: item.theme || '',
+            summary: item.summary || '',
+            status: item.status || 'DRAFT',
+            authorId: item.authorId || item.userId || null,
+            createdAt: item.createdAt || item.created_at || new Date().toISOString(),
+            updatedAt: item.updatedAt || item.updated_at || new Date().toISOString()
+          })));
         },
-        (error) => {
+        (error: any) => {
           setError(error.message || '获取项目列表失败');
         }
       );
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || '获取项目列表失败');
       console.error('Error fetching projects:', err);
     } finally {
@@ -61,7 +73,7 @@ const ScriptManager = () => {
       const newProject = {
         title: newProjectName,
         description: newProjectSummary,
-        status: 'DRAFT' // 使用大写状态值，与ProjectStatus保持一致
+        status: 'DRAFT' as ProjectStatus // 使用大写状态值，与ProjectStatus保持一致
       };
       
       await createProject(
@@ -72,11 +84,11 @@ const ScriptManager = () => {
           setShowCreateModal(false);
           fetchProjects(); // 重新获取项目列表
         },
-        (error) => {
+        (error: any) => {
           setError(error.message || '创建项目失败');
         }
       );
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || '创建项目失败');
       console.error('Error creating project:', err);
     } finally {
@@ -84,7 +96,7 @@ const ScriptManager = () => {
     }
   };
   
-  const handleDeleteProject = async (id, projectName) => {
+  const handleDeleteProject = async (id: string, projectName: string) => {
     if (!window.confirm(`确定要删除项目 "${projectName}" 吗？此操作不可撤销。`)) {
       return;
     }
@@ -98,11 +110,11 @@ const ScriptManager = () => {
         () => {
           fetchProjects(); // 重新获取项目列表
         },
-        (error) => {
+        (error: any) => {
           setError(error.message || '删除项目失败');
         }
       );
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || '删除项目失败');
       console.error('Error deleting project:', err);
     } finally {
@@ -113,7 +125,7 @@ const ScriptManager = () => {
   // 过滤项目列表
   const filteredProjects = projects.filter(project => 
     (project.title && project.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (project.name && project.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (project.title && project.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (project.summary && project.summary.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -196,7 +208,7 @@ const ScriptManager = () => {
                 <div className="project-card">
                   <div className="book-shape">
                     <div className="book-cover">
-                      <h3>{project.title || project.name || '未命名项目'}</h3>
+                      <h3>{project.title || '未命名项目'}</h3>
                       <p className="project-summary">{project.summary || '暂无摘要'}</p>
                       <span className="project-status">状态: {project.status || '未知'}</span>
                     </div>
@@ -204,7 +216,7 @@ const ScriptManager = () => {
                     <div className="book-page"></div>
                   </div>
                   <div className="project-info">
-                    <small>更新时间: {new Date(project.updatedAt || project.createdAt || project.created_at).toLocaleString()}</small>
+                    <small>更新时间: {new Date(project.updatedAt || project.createdAt || '').toLocaleString()}</small>
                   </div>
                 </div>
               </Link>
@@ -214,7 +226,7 @@ const ScriptManager = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  handleDeleteProject(project.id, project.name || project.title || '未命名项目');
+                  handleDeleteProject(project.id!, project.title || '未命名项目');
                 }}
                 disabled={operationLoading || apiLoading}
               >
