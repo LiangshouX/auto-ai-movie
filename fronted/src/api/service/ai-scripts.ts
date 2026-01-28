@@ -1,8 +1,8 @@
 // AI 剧本相关API
-import apiClient from './request';
-import {ApiUtils} from './utils';
-import {API_ENDPOINTS} from './constants';
-import { ScriptProject, CreateScriptProjectData, ProjectStatus } from './types/project-types';
+import apiClient from '../request.ts';
+import {ApiUtils} from '../utils.ts';
+import {API_ENDPOINTS} from '../constants.ts';
+import { ScriptProject, CreateScriptProjectData, ProjectStatus } from '../types/project-types.ts';
 
 // 项目管理接口
 class ProjectService {
