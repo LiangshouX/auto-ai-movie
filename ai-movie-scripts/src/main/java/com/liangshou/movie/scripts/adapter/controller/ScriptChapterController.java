@@ -22,7 +22,7 @@ public class ScriptChapterController {
      */
     @PostMapping
     public ResponseEntity<ScriptChapterDTO> createChapter(
-            @PathVariable String projectId,
+            @PathVariable("projectId") String projectId,
             @RequestBody ScriptChapterDTO chapterDTO) {
         // 设置项目ID
         chapterDTO.setProjectId(projectId);
@@ -34,7 +34,7 @@ public class ScriptChapterController {
      * 根据ID获取章节
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ScriptChapterDTO> getChapterById(@PathVariable String id) {
+    public ResponseEntity<ScriptChapterDTO> getChapterById(@PathVariable("id") String id) {
         ScriptChapterDTO chapter = scriptChapterService.findById(id);
         if (chapter != null) {
             return ResponseEntity.ok(chapter);
@@ -47,7 +47,7 @@ public class ScriptChapterController {
      * 获取项目的所有章节
      */
     @GetMapping
-    public ResponseEntity<List<ScriptChapterDTO>> getChaptersByProjectId(@PathVariable String projectId) {
+    public ResponseEntity<List<ScriptChapterDTO>> getChaptersByProjectId(@PathVariable("projectId") String projectId) {
         List<ScriptChapterDTO> chapters = scriptChapterService.findByProjectId(projectId);
         return ResponseEntity.ok(chapters);
     }
@@ -57,8 +57,8 @@ public class ScriptChapterController {
      */
     @GetMapping("/number/{chapterNumber}")
     public ResponseEntity<List<ScriptChapterDTO>> getChaptersByProjectIdAndChapterNumber(
-            @PathVariable String projectId,
-            @PathVariable Integer chapterNumber) {
+            @PathVariable("projectId") String projectId,
+            @PathVariable("chapterNumber") Integer chapterNumber) {
         List<ScriptChapterDTO> chapters = scriptChapterService.findByProjectIdAndChapterNumber(projectId, chapterNumber);
         return ResponseEntity.ok(chapters);
     }
@@ -68,7 +68,7 @@ public class ScriptChapterController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<ScriptChapterDTO> updateChapter(
-            @PathVariable String id,
+            @PathVariable("id") String id,
             @RequestBody ScriptChapterDTO chapterDTO) {
         ScriptChapterDTO updatedChapter = scriptChapterService.updateChapter(id, chapterDTO);
         if (updatedChapter != null) {
@@ -82,7 +82,7 @@ public class ScriptChapterController {
      * 删除章节
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteChapter(@PathVariable String id) {
+    public ResponseEntity<Void> deleteChapter(@PathVariable("id") String id) {
         scriptChapterService.deleteChapter(id);
         return ResponseEntity.noContent().build();
     }

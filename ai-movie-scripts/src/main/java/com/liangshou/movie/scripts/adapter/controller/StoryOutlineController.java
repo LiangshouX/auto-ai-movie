@@ -21,7 +21,7 @@ public class StoryOutlineController {
      * 获取项目的大纲
      */
     @GetMapping
-    public ResponseEntity<StoryOutlineDTO> getOutlineByProjectId(@PathVariable String projectId) {
+    public ResponseEntity<StoryOutlineDTO> getOutlineByProjectId(@PathVariable("projectId") String projectId) {
         Optional<StoryOutlineDTO> outline = storyOutlineService.findByProjectId(projectId);
         if (outline.isPresent()) {
             return ResponseEntity.ok(outline.get());
@@ -35,7 +35,7 @@ public class StoryOutlineController {
      */
     @PostMapping
     public ResponseEntity<StoryOutlineDTO> createOrUpdateOutline(
-            @PathVariable String projectId,
+            @PathVariable("projectId") String projectId,
             @RequestBody StoryOutlineDTO outlineDTO) {
         // 设置项目ID
         outlineDTO.setProjectId(projectId);
@@ -58,7 +58,7 @@ public class StoryOutlineController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<StoryOutlineDTO> updateOutline(
-            @PathVariable String id,
+            @PathVariable("id") String id,
             @RequestBody StoryOutlineDTO outlineDTO) {
         StoryOutlineDTO updatedOutline = storyOutlineService.updateOutline(id, outlineDTO);
         if (updatedOutline != null) {
@@ -72,7 +72,7 @@ public class StoryOutlineController {
      * 删除项目大纲
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOutline(@PathVariable String id) {
+    public ResponseEntity<Void> deleteOutline(@PathVariable("id") String id) {
         storyOutlineService.deleteOutline(id);
         return ResponseEntity.noContent().build();
     }

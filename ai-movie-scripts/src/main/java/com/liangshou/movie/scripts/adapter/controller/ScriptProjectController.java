@@ -33,7 +33,7 @@ public class ScriptProjectController {
      * 根据ID获取项目
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ScriptProjectDTO> getProjectById(@PathVariable String id) {
+    public ResponseEntity<ScriptProjectDTO> getProjectById(@PathVariable("id") String id) {
         ScriptProjectDTO project = scriptProjectService.findById(id);
         if (project != null) {
             return ResponseEntity.ok(project);
@@ -56,7 +56,7 @@ public class ScriptProjectController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<ScriptProjectDTO> updateProject(
-            @PathVariable String id,
+            @PathVariable("id") String id,
             @RequestBody ScriptProjectDTO projectDTO) {
         ScriptProjectDTO updatedProject = scriptProjectService.updateProject(id, projectDTO);
         if (updatedProject != null) {
@@ -70,7 +70,7 @@ public class ScriptProjectController {
      * 删除项目
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProject(@PathVariable String id) {
+    public ResponseEntity<Void> deleteProject(@PathVariable("id") String id) {
         scriptProjectService.deleteProject(id);
         return ResponseEntity.noContent().build();
     }
@@ -80,7 +80,7 @@ public class ScriptProjectController {
      */
     @PatchMapping("/{id}/theme")
     public ResponseEntity<ScriptProjectDTO> updateProjectTheme(
-            @PathVariable String id,
+            @PathVariable("id") String id,
             @RequestBody Map<String, String> requestBody) {
         String theme = requestBody.get("theme");
         ScriptProjectDTO updatedProject = scriptProjectService.updateProjectTheme(id, theme);
@@ -96,7 +96,7 @@ public class ScriptProjectController {
      */
     @PatchMapping("/{id}/summary")
     public ResponseEntity<ScriptProjectDTO> updateProjectSummary(
-            @PathVariable String id,
+            @PathVariable("id") String id,
             @RequestBody Map<String, String> requestBody) {
         String summary = requestBody.get("summary");
         ScriptProjectDTO updatedProject = scriptProjectService.updateProjectSummary(id, summary);
@@ -112,7 +112,7 @@ public class ScriptProjectController {
      */
     @PatchMapping("/{id}/status")
     public ResponseEntity<ScriptProjectDTO> updateProjectStatus(
-            @PathVariable String id,
+            @PathVariable("id") String id,
             @RequestBody Map<String, String> requestBody) {
         String status = requestBody.get("status");
         ScriptProjectDTO updatedProject = scriptProjectService.updateProjectStatus(id, status);

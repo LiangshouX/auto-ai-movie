@@ -22,7 +22,7 @@ public class ScriptCharacterController {
      */
     @PostMapping
     public ResponseEntity<ScriptCharacterDTO> createCharacter(
-            @PathVariable String projectId,
+            @PathVariable("projectId") String projectId,
             @RequestBody ScriptCharacterDTO characterDTO) {
         // 设置项目ID
         characterDTO.setProjectId(projectId);
@@ -34,7 +34,7 @@ public class ScriptCharacterController {
      * 根据ID获取角色
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ScriptCharacterDTO> getCharacterById(@PathVariable String id) {
+    public ResponseEntity<ScriptCharacterDTO> getCharacterById(@PathVariable("id") String id) {
         ScriptCharacterDTO character = scriptCharacterService.findById(id);
         if (character != null) {
             return ResponseEntity.ok(character);
@@ -47,7 +47,7 @@ public class ScriptCharacterController {
      * 获取项目的所有角色
      */
     @GetMapping
-    public ResponseEntity<List<ScriptCharacterDTO>> getCharactersByProjectId(@PathVariable String projectId) {
+    public ResponseEntity<List<ScriptCharacterDTO>> getCharactersByProjectId(@PathVariable("projectId") String projectId) {
         List<ScriptCharacterDTO> characters = scriptCharacterService.findByProjectId(projectId);
         return ResponseEntity.ok(characters);
     }
@@ -57,7 +57,7 @@ public class ScriptCharacterController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<ScriptCharacterDTO> updateCharacter(
-            @PathVariable String id,
+            @PathVariable("id") String id,
             @RequestBody ScriptCharacterDTO characterDTO) {
         ScriptCharacterDTO updatedCharacter = scriptCharacterService.updateCharacter(id, characterDTO);
         if (updatedCharacter != null) {
@@ -71,7 +71,7 @@ public class ScriptCharacterController {
      * 删除角色
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCharacter(@PathVariable String id) {
+    public ResponseEntity<Void> deleteCharacter(@PathVariable("id") String id) {
         scriptCharacterService.deleteCharacter(id);
         return ResponseEntity.noContent().build();
     }
