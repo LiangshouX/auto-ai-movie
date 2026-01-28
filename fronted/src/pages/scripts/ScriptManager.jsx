@@ -161,6 +161,7 @@ const ScriptManager = () => {
 
   return (
     <div className="script-manager-container">
+
       <div className="header-section">
         <div className="navigation-buttons">
           <button className="nav-btn" onClick={() => navigate('/')}>⌂ 首页</button>
@@ -207,6 +208,7 @@ const ScriptManager = () => {
                   </div>
                 </div>
               </Link>
+
               <button 
                 className="btn btn-danger btn-small" 
                 onClick={(e) => {
