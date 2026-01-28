@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useProjectApi } from '../../hooks/useApi.js';
-import './ScriptManager.css';
+import './style/ScriptManager.css';
 
 const ScriptManager = () => {
   const { 

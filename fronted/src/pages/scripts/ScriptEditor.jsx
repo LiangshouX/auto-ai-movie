@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../api/index.js';
-import './ScriptEditor.css';
+import './style/ScriptEditor.css';
 
 const ScriptEditor = () => {
   const { projectId } = useParams();
