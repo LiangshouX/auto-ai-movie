@@ -248,10 +248,14 @@ const ScriptEditor = () => {
           activeTab={activeTab} 
           onTabChange={setActiveTab} 
         />
+        {/*fixme: 小心，这里会缩起来*/}
         <Content style={{ 
-          flex: 1, 
-          overflowY: 'auto', 
-          padding: 24, 
+          flex: 1,
+          overflowY: 'auto',
+          overflowX: 'auto',
+          padding: 24,
+          display: 'flex',
+          width: '100%',
           backgroundColor: '#f9f9f9',
           minHeight: 'calc(100vh - 64px)'
         }}>

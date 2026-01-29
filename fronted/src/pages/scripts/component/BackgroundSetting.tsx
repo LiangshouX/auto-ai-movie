@@ -67,126 +67,137 @@ const BackgroundSetting: React.FC<BackgroundSettingProps> = ({ project, onConten
   };
 
   return (
-    <Row gutter={[24, 24]}>
-      {/* 左侧文本编辑区 */}
-      <Col xs={24} md={12}>
-        <Card 
-          title={
-            <div>
-              <Title level={4} style={{ margin: 0 }}>背景设定</Title>
-              <Text type="secondary">请在此处编写剧本的背景设定内容</Text>
-            </div>
-          }
-          style={{ height: '100%' }}
-        >
-          <TextArea
-            value={leftContent}
-            onChange={handleLeftContentChange}
-            placeholder="请输入剧本背景设定..."
-            rows={15}
-            style={{ minHeight: 400 }}
-            aria-label="背景设定编辑区域"
-          />
-        </Card>
-      </Col>
-
-      {/* 右侧AI对话区 */}
-      <Col xs={24} md={12}>
-        <Card 
-          title={
-            <Flex justify="space-between" align="center">
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Row gutter={[24, 24]} style={{ flex: 1, width: '100%' }}>
+        {/* 左侧文本编辑区 */}
+        <Col xs={24} md={12} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Card
+            title={
               <div>
-                <Title level={4} style={{ margin: 0 }}>AI助手</Title>
-                <Text type="secondary">与AI助手讨论背景设定</Text>
+                <Title level={4} style={{ margin: 0 }}>背景设定</Title>
+                <Text type="secondary">请在此处编写剧本的背景设定内容</Text>
               </div>
-              {sessionId && (
-                <Text type="secondary" code>会话ID: {sessionId}</Text>
-              )}
-            </Flex>
-          }
-          style={{ height: '100%' }}
-        >
-          <Flex vertical style={{ 
-            height: 'calc(100% - 80px)', 
-            justifyContent: 'space-between'
-          }}>
-            <div style={{ 
-              flex: 1, 
-              overflowY: 'auto', 
-              marginBottom: 16,
-              maxHeight: 'calc(100vh - 300px)'
+            }
+            style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+            bodyStyle={{ flex: 1, padding: 0, display: 'flex' }}
+          >
+            <TextArea
+              value={leftContent}
+              onChange={handleLeftContentChange}
+              placeholder="请输入剧本背景设定..."
+              rows={15}
+              style={{
+                flex: 1,
+                border: 'none',
+                borderRadius: 0,
+                padding: '12px',
+                minHeight: 400,
+                minWidth: 300,
+              }}
+              aria-label="背景设定编辑区域"
+            />
+          </Card>
+        </Col>
+
+        {/* 右侧AI对话区 */}
+        <Col xs={24} md={12} style={{ height: '100%' }}>
+          <Card
+            title={
+              <Flex justify="space-between" align="center">
+                <div>
+                  <Title level={4} style={{ margin: 0 }}>AI助手</Title>
+                  <Text type="secondary">与AI助手讨论背景设定</Text>
+                </div>
+                {sessionId && (
+                  <Text type="secondary" code>会话ID: {sessionId}</Text>
+                )}
+              </Flex>
+            }
+            style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+          >
+            <Flex vertical style={{
+              height: '100%',
+              justifyContent: 'space-between',
+              paddingTop: 16
             }}>
-              {aiMessages.length === 0 ? (
-                <Flex vertical align="center" justify="center" style={{ height: '100%', textAlign: 'center', color: '#bfbfbf' }}>
-                  <RobotOutlined style={{ fontSize: 48, marginBottom: 16 }} />
-                  <Title level={5}>欢迎使用AI助手！</Title>
-                  <Text type="secondary">您可以输入问题或想法，AI将为您提供创作建议。</Text>
-                </Flex>
-              ) : (
-                <List
-                  dataSource={aiMessages}
-                  renderItem={(message) => (
-                    <List.Item style={{
-                      padding: '8px 0',
-                      justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start'
-                    }}>
-                      <List.Item.Meta
-                        avatar={
-                          message.role === 'assistant' ? (
-                            <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
-                          ) : (
-                            <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#52c41a' }} />
-                          )
-                        }
-                        title={
-                          <Text strong>
-                            {message.role === 'assistant' ? 'AI助手' : '您'}
-                          </Text>
-                        }
-                        description={
-                          <div style={{
-                            padding: '8px 12px',
-                            borderRadius: 6,
-                            backgroundColor: message.role === 'assistant' ? '#f0f5ff' : '#f6ffed',
-                            border: message.role === 'assistant' ? '1px solid #d6e4ff' : '1px solid #b7eb8f',
-                            maxWidth: '90%'
-                          }}>
-                            {message.text}
-                          </div>
-                        }
-                      />
-                    </List.Item>
-                  )}
+              <div style={{
+                flex: 1,
+                overflowY: 'auto',
+                marginBottom: 16,
+                maxHeight: 'calc(100vh - 200px)'
+              }}>
+                {aiMessages.length === 0 ? (
+                  <Flex vertical align="center" justify="center" style={{ height: '100%', textAlign: 'center', color: '#bfbfbf' }}>
+                    <RobotOutlined style={{ fontSize: 48, marginBottom: 16 }} />
+                    <Title level={5}>欢迎使用AI助手！</Title>
+                    <Text type="secondary">您可以输入问题或想法，AI将为您提供创作建议。</Text>
+                  </Flex>
+                ) : (
+                  <List
+                    dataSource={aiMessages}
+                    renderItem={(message) => (
+                      <List.Item style={{
+                        padding: '8px 0',
+                        justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start'
+                      }}>
+                        <List.Item.Meta
+                          avatar={
+                            message.role === 'assistant' ? (
+                              <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#1890ff' }} />
+                            ) : (
+                              <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#52c41a' }} />
+                            )
+                          }
+                          title={
+                            <Text strong>
+                              {message.role === 'assistant' ? 'AI助手' : '您'}
+                            </Text>
+                          }
+                          description={
+                            <div style={{
+                              padding: '8px 12px',
+                              borderRadius: 6,
+                              backgroundColor: message.role === 'assistant' ? '#f0f5ff' : '#f6ffed',
+                              border: message.role === 'assistant' ? '1px solid #d6e4ff' : '1px solid #b7eb8f',
+                              maxWidth: '90%'
+                            }}>
+                              {message.text}
+                            </div>
+                          }
+                        />
+                      </List.Item>
+                    )}
+                  />
+                )}
+              </div>
+
+              <Divider style={{ margin: '8px 0' }} />
+
+              <Space.Compact style={{ width: '100%' }}>
+                <TextArea
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="输入您的问题或想法..."
+                  rows={2}
+                  style={{ flexGrow: 1 }}
+                  aria-label="AI对话输入框"
                 />
-              )}
-            </div>
-            
-            <Divider style={{ margin: '8px 0' }} />
-            
-            <Space.Compact style={{ width: '100%' }}>
-              <TextArea
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="输入您的问题或想法..."
-                rows={2}
-                style={{ flexGrow: 1 }}
-                aria-label="AI对话输入框"
-              />
-              <Button 
-                type="primary" 
-                icon={<SendOutlined />}
-                onClick={handleSendToAI}
-                disabled={!inputMessage.trim()}
-                style={{ height: 'auto', padding: '8px 12px' }}
-              >
-                发送
-              </Button>
-            </Space.Compact>
-          </Flex>
-        </Card>
-      </Col>
-    </Row>
+                <Button
+                  type="primary"
+                  icon={<SendOutlined />}
+                  onClick={handleSendToAI}
+                  disabled={!inputMessage.trim()}
+                  style={{ height: 'auto', padding: '8px 12px' }}
+                >
+                  发送
+                </Button>
+              </Space.Compact>
+            </Flex>
+          </Card>
+        </Col>
+      </Row>
+    </div>
   );
 };
 

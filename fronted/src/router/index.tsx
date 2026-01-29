@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import {createBrowserRouter} from 'react-router-dom';
 import Home from '../pages/Home.tsx';
 import ScriptManager from '../pages/scripts/index.tsx';
 import ScriptEditor from '../pages/scripts/ScriptEditor.tsx';
