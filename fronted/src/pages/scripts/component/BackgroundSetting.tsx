@@ -23,7 +23,7 @@ const BackgroundSetting: React.FC<BackgroundSettingProps> = ({ project, onConten
   // 当左侧内容变化时，通知父组件
   useEffect(() => {
     onContentChange(leftContent);
-  }, [leftContent, onContentChange]);
+  }, [leftContent]);
 
   const handleLeftContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
@@ -54,7 +54,7 @@ const BackgroundSetting: React.FC<BackgroundSettingProps> = ({ project, onConten
     }, 1000);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendToAI();

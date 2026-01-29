@@ -1,16 +1,20 @@
 import { Link } from 'react-router-dom';
+import { Layout, Typography } from 'antd';
 import './Header.css';
 
-const Header = () => {
+const { Header } = Layout;
+const { Title } = Typography;
+
+const HeaderComponent = () => {
   return (
-    <header className="header">
+    <Header className="header">
       <div className="header-content">
         <Link to="/" className="logo-link">
-          <h1>Auto AI Movie</h1>
+          <Title level={1} className="logo-title">Auto AI Movie</Title>
         </Link>
       </div>
-    </header>
+    </Header>
   );
 };
 
-export default Header;
+export default HeaderComponent;

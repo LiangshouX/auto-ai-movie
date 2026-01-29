@@ -153,13 +153,16 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({ project }) => {
                 <p>暂无关系</p>
               ) : (
                 <ul>
-                  {selectedCharacter.relationships?.map((rel: any, index: number) => (
-                    <li key={index}>
-                      <span>{rel.relatedCharacterName}</span>
-                      <span className="relationship-type">{rel.relationshipType}</span>
-                      <span>{rel.description}</span>
-                    </li>
-                  ))}
+                  {selectedCharacter.relationships?.map((rel: any, index: number) => {
+                    const key = rel.id || `${selectedCharacter.id}-rel-${index}`;
+                    return (
+                      <li key={key}>
+                        <span>{rel.relatedCharacterName}</span>
+                        <span className="relationship-type">{rel.relationshipType}</span>
+                        <span>{rel.description}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>

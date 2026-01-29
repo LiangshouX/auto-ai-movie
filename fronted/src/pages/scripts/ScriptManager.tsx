@@ -1,8 +1,26 @@
-import {useState, useEffect} from 'react';
-import {Link, useNavigate} from 'react-router-dom';
-import {useProjectApi} from '../../hooks/useApi';
-import {ScriptProject, ProjectStatus, ScriptProjectType} from '../../api/types/project-types';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useProjectApi } from '../../hooks/useApi';
+import { ScriptProject, ProjectStatus, ScriptProjectType } from '../../api/types/project-types';
+import { 
+  Button, 
+  Input, 
+  Card, 
+  Row, 
+  Col, 
+  Modal, 
+  Form, 
+  Typography, 
+  Space, 
+  Tag, 
+  message,
+  Spin,
+  Empty
+} from 'antd';
 import './style/ScriptManager.css';
+
+const { Title, Text } = Typography;
+const { Search } = Input;
 
 const ScriptManager = () => {
     const navigate = useNavigate();
@@ -22,6 +40,7 @@ const ScriptManager = () => {
     const [newProjectName, setNewProjectName] = useState<string>('');
     const [newProjectDescription, setNewProjectDescription] = useState<string>('');
     const [operationLoading, setOperationLoading] = useState<boolean>(false);
+    const [form] = Form.useForm();
 
     useEffect(() => {
         fetchProjects();
@@ -118,14 +137,18 @@ const ScriptManager = () => {
                     setNewProjectName('');
                     setNewProjectDescription('');
                     setShowCreateModal(false);
+                    form.resetFields(); // 重置表单
                     fetchProjects(); // 重新获取项目列表
+                    message.success('项目创建成功！');
                 },
                 (error: any) => {
                     setError(error.message || '创建项目失败');
+                    message.error(error.message || '创建项目失败');
                 }
             );
         } catch (err: any) {
             setError(err.message || '创建项目失败');
+            message.error(err.message || '创建项目失败');
             console.error('Error creating project:', err);
         } finally {
             setOperationLoading(false);
@@ -133,34 +156,40 @@ const ScriptManager = () => {
     };
 
     const handleDeleteProject = async (id: string, projectName: string) => {
-        if (!window.confirm(`确定要删除项目 "${projectName}" 吗？此操作不可撤销。`)) {
-            return;
-        }
+        Modal.confirm({
+            title: '确认删除',
+            content: `确定要删除项目 "${projectName}" 吗？此操作不可撤销。`,
+            okText: '确定',
+            cancelText: '取消',
+            onOk: async () => {
+                setOperationLoading(true);
+                setError(null);
 
-        setOperationLoading(true);
-        setError(null);
-
-        try {
-            await deleteProject(
-                id,
-                () => {
-                    fetchProjects(); // 重新获取项目列表
-                },
-                (error: any) => {
-                    setError(error.message || '删除项目失败');
+                try {
+                    await deleteProject(
+                        id,
+                        () => {
+                            fetchProjects(); // 重新获取项目列表
+                            message.success('项目删除成功！');
+                        },
+                        (error: any) => {
+                            setError(error.message || '删除项目失败');
+                            message.error(error.message || '删除项目失败');
+                        }
+                    );
+                } catch (err: any) {
+                    setError(err.message || '删除项目失败');
+                    message.error(err.message || '删除项目失败');
+                    console.error('Error deleting project:', err);
+                } finally {
+                    setOperationLoading(false);
                 }
-            );
-        } catch (err: any) {
-            setError(err.message || '删除项目失败');
-            console.error('Error deleting project:', err);
-        } finally {
-            setOperationLoading(false);
-        }
+            }
+        });
     };
 
     // 过滤项目列表
     const filteredProjects = projects.filter(project =>
-        (project.title && project.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (project.title && project.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (project.summary && project.summary.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -170,14 +199,19 @@ const ScriptManager = () => {
         return (
             <div className="script-manager-container">
                 <div className="header-section">
-                    <div className="navigation-buttons">
-                        <button className="nav-btn" onClick={() => navigate('/')}>⌂ 首页</button>
-                    </div>
-                    <h2>AI 剧本项目管理</h2>
-                </div>
-                <div className="loading-state">
-                    <div className="spinner"></div>
-                    <p>加载中...</p>
+                    <Row justify="space-between" align="middle" style={{ width: '100%', marginBottom: 24 }}>
+                        <Col>
+                            <Button onClick={() => navigate('/')} type="text" size="large">⌂ 首页</Button>
+                        </Col>
+                        <Col>
+                            <Title level={2} style={{ margin: 0 }}>AI 剧本项目管理</Title>
+                        </Col>
+                        <Col>
+                            <div className="controls">
+                                <Spin size="large" />
+                            </div>
+                        </Col>
+                    </Row>
                 </div>
             </div>
         );
@@ -188,21 +222,25 @@ const ScriptManager = () => {
         return (
             <div className="script-manager-container">
                 <div className="header-section">
-                    <div className="navigation-buttons">
-                        <button className="nav-btn" onClick={() => navigate('/')}>⌂ 首页</button>
-                    </div>
-                    <h2>AI 剧本项目管理</h2>
-                    <div className="controls">
-                        <button className="btn btn-danger" onClick={() => {
-                            setError(null);
-                            // 如果是apiError，我们可能需要额外处理
-                        }}>关闭错误
-                        </button>
-                    </div>
+                    <Row justify="space-between" align="middle" style={{ width: '100%', marginBottom: 24 }}>
+                        <Col>
+                            <Button onClick={() => navigate('/')} type="text" size="large">⌂ 首页</Button>
+                        </Col>
+                        <Col>
+                            <Title level={2} style={{ margin: 0 }}>AI 剧本项目管理</Title>
+                        </Col>
+                        <Col>
+                            <div className="controls">
+                                <Button danger onClick={() => {
+                                    setError(null);
+                                }}>关闭错误</Button>
+                            </div>
+                        </Col>
+                    </Row>
                 </div>
                 <div className="error-message">
-                    <p>错误: {displayError}</p>
-                    <button className="btn btn-primary" onClick={fetchProjects}>重试</button>
+                    <Text type="danger">错误: {displayError}</Text>
+                    <Button type="primary" onClick={fetchProjects} style={{ marginTop: 16 }}>重试</Button>
                 </div>
             </div>
         );
@@ -210,80 +248,26 @@ const ScriptManager = () => {
 
     return (
         <div className="script-manager-container">
-
             <div className="header-section">
-                <div className="header-left">
-                    <div className="navigation-buttons">
-                        <button className="nav-btn" onClick={() => navigate('/')}>⌂ 首页</button>
-                    </div>
-                </div>
-                <div className="header-center">
-                    <h2>AI 剧本项目管理</h2>
-                </div>
-                <div className="header-right">
-                    <div className="controls">
-                        <input
-                            type="text"
-                            placeholder="搜索项目..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="search-input"
-                        />
-                        <button
-                            className="btn btn-primary"
-                            onClick={() => {
-                                setShowCreateModal(true);
-                                setError(null); // 清除错误状态
-                            }}
-                            disabled={operationLoading || apiLoading}
-                        >
-                            {operationLoading || apiLoading ? '处理中...' : '+ 新建项目'}
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="projects-grid">
-                {filteredProjects.length > 0 ? (
-                    filteredProjects.map((project) => (
-                        <div key={project.id} className="project-card-wrapper">
-                            <Link to={`/scripts/editor/${project.id}`} className="project-card-link">
-                                <div className="project-card">
-                                    <div className="book-shape">
-                                        <div className="book-cover">
-                                            <h3>{project.title || '未命名项目'}</h3>
-                                            <p className="project-description">{project.description || '暂无描述'}</p>
-                                            <span className="project-status">状态: {project.status || '未知'}</span>
-                                        </div>
-                                        <div className="book-spine"></div>
-                                        <div className="book-page"></div>
-                                    </div>
-                                    <div className="project-info">
-                                        <small>更新时间: {new Date(project.updatedAt || project.createdAt || '').toLocaleString()}</small>
-                                    </div>
-                                </div>
-                            </Link>
-
-                            <button
-                                className="btn btn-danger btn-small"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleDeleteProject(project.id!, project.title || '未命名项目');
-                                }}
-                                disabled={operationLoading || apiLoading}
-                            >
-                                {operationLoading || apiLoading ? '...' : '删除'}
-                            </button>
-                        </div>
-                    ))
-                ) : (
-                    <div className="empty-state">
-                        <h3>暂无剧本项目</h3>
-                        <p>{searchTerm ? '没有找到匹配的项目' : '点击新建按钮创建您的第一个AI剧本项目'}</p>
-                        {!searchTerm && (
-                            <button
-                                className="btn btn-primary"
+                <Row justify="space-between" align="middle" style={{ width: '100%', marginBottom: 24 }}>
+                    <Col>
+                        <Button onClick={() => navigate('/')} type="text" size="large">⌂ 首页</Button>
+                    </Col>
+                    <Col>
+                        <Title level={2} style={{ margin: 0 }}>AI 剧本项目管理</Title>
+                    </Col>
+                    <Col>
+                        <Space>
+                            <Search
+                                placeholder="搜索项目..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                style={{ width: 250 }}
+                                allowClear
+                            />
+                            <Button
+                                type="primary"
+                                size="large"
                                 onClick={() => {
                                     setShowCreateModal(true);
                                     setError(null); // 清除错误状态
@@ -291,75 +275,191 @@ const ScriptManager = () => {
                                 disabled={operationLoading || apiLoading}
                             >
                                 {operationLoading || apiLoading ? '处理中...' : '+ 新建项目'}
-                            </button>
-                        )}
-                    </div>
-                )}
+                            </Button>
+                        </Space>
+                    </Col>
+                </Row>
             </div>
 
-            {/* 创建项目模态框 */}
-            {showCreateModal && (
-                <div className="modal-overlay" onClick={() => {
-                    setShowCreateModal(false);
-                    setError(null); // 关闭模态框时清除错误状态
-                }}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <h3>创建新项目</h3>
-
-                        {(error || apiError) && (
-                            <div className="error-message">
-                                <p>错误: {error || apiError}</p>
-                            </div>
-                        )}
-
-                        <div className="form-group">
-                            <label>项目名称:</label>
-                            <input
-                                type="text"
-                                value={newProjectName}
-                                onChange={(e) => {
-                                    setNewProjectName(e.target.value);
-                                    if ((error || apiError) && newProjectName.trim()) {
-                                        setError(null); // 输入变化时清除错误状态
+            {filteredProjects.length > 0 ? (
+                <Row gutter={[24, 24]} style={{ marginBottom: 30 }}>
+                    {filteredProjects.map((project) => (
+                        <Col xs={24} sm={12} md={8} lg={6} key={project.id}>
+                            <Card 
+                                hoverable
+                                className="project-card"
+                                onClick={() => navigate(`/scripts/editor/${project.id}`)}
+                                cover={
+                                    <div className="book-cover-placeholder">
+                                        <div className="book-spine"></div>
+                                        <div className="book-page"></div>
+                                    </div>
+                                }
+                                styles={{
+                                    body: { 
+                                        padding: '20px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        height: '200px'
                                     }
                                 }}
-                                placeholder="输入项目名称"
-                                className="form-input"
-                                disabled={operationLoading || apiLoading}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>项目描述:</label>
-                            <textarea
-                                value={newProjectDescription}
-                                onChange={(e) => setNewProjectDescription(e.target.value)}
-                                placeholder="输入项目描述"
-                                className="form-textarea"
-                                disabled={operationLoading || apiLoading}
-                            />
-                        </div>
-                        <div className="modal-actions">
-                            <button
-                                className="btn btn-secondary"
-                                onClick={() => {
-                                    setShowCreateModal(false);
-                                    setError(null); // 关闭模态框时清除错误状态
-                                }}
-                                disabled={operationLoading || apiLoading}
                             >
-                                取消
-                            </button>
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleCreateProject}
-                                disabled={operationLoading || apiLoading || !newProjectName.trim()}
-                            >
-                                {operationLoading || apiLoading ? '创建中...' : '创建'}
-                            </button>
-                        </div>
-                    </div>
+                                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                                    <Title level={4} style={{ margin: '0 0 10px 0', whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                                        {project.title || '未命名项目'}
+                                    </Title>
+                                    <Text 
+                                        style={{ 
+                                            marginBottom: 10, 
+                                            flex: 1, 
+                                            display: '-webkit-box', 
+                                            WebkitLineClamp: 2, 
+                                            WebkitBoxOrient: 'vertical', 
+                                            overflow: 'hidden',
+                                            lineHeight: '1.4em'
+                                        }}
+                                        ellipsis={{ tooltip: project.description }}
+                                    >
+                                        {project.description || '暂无描述'}
+                                    </Text>
+                                    <Tag 
+                                        color={
+                                            project.status === ProjectStatus.COMPLETED ? 'green' : 
+                                            project.status === ProjectStatus.IN_PROGRESS ? 'blue' : 
+                                            project.status === ProjectStatus.ARCHIVED ? 'orange' : 
+                                            'default'
+                                        }
+                                        style={{ marginBottom: 10 }}
+                                    >
+                                        状态: {project.status || '未知'}
+                                    </Tag>
+                                </div>
+                                
+                                <div style={{ borderTop: '1px solid #eee', paddingTop: 10, marginTop: 'auto' }}>
+                                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                                        更新时间: {new Date(project.updatedAt || project.createdAt || '').toLocaleString()}
+                                    </Text>
+                                </div>
+                                
+                                <div style={{ marginTop: 10 }}>
+                                    <Button 
+                                        danger
+                                        size="small"
+                                        loading={operationLoading}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteProject(project.id!, project.title || '未命名项目');
+                                        }}
+                                    >
+                                        {operationLoading ? '...' : '删除'}
+                                    </Button>
+                                </div>
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
+            ) : (
+                <div className="empty-state">
+                    <Empty 
+                        description={
+                            <div>
+                                <Title level={3}>暂无剧本项目</Title>
+                                <Text type="secondary">{searchTerm ? '没有找到匹配的项目' : '点击新建按钮创建您的第一个AI剧本项目'}</Text>
+                            </div>
+                        }
+                    />
+                    {!searchTerm && (
+                        <Button
+                            type="primary"
+                            size="large"
+                            onClick={() => {
+                                setShowCreateModal(true);
+                                setError(null); // 清除错误状态
+                            }}
+                            disabled={operationLoading || apiLoading}
+                            style={{ marginTop: 16 }}
+                        >
+                            {operationLoading || apiLoading ? '处理中...' : '+ 新建项目'}
+                        </Button>
+                    )}
                 </div>
             )}
+
+            {/* 创建项目模态框 */}
+            <Modal
+                title="创建新项目"
+                open={showCreateModal}
+                onCancel={() => {
+                    setShowCreateModal(false);
+                    setError(null); // 关闭模态框时清除错误状态
+                    form.resetFields(); // 重置表单
+                }}
+                footer={[
+                    <Button
+                        key="back"
+                        onClick={() => {
+                            setShowCreateModal(false);
+                            setError(null); // 关闭模态框时清除错误状态
+                            form.resetFields(); // 重置表单
+                        }}
+                        disabled={operationLoading || apiLoading}
+                    >
+                        取消
+                    </Button>,
+                    <Button
+                        key="submit"
+                        type="primary"
+                        onClick={handleCreateProject}
+                        loading={operationLoading || apiLoading}
+                        disabled={!newProjectName.trim()}
+                    >
+                        {operationLoading || apiLoading ? '创建中...' : '创建'}
+                    </Button>,
+                ]}
+            >
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={handleCreateProject}
+                >
+                    {(error || apiError) && (
+                        <div className="error-message" style={{ marginBottom: 16 }}>
+                            <Text type="danger">错误: {error || apiError}</Text>
+                        </div>
+                    )}
+
+                    <Form.Item
+                        label="项目名称"
+                        name="projectName"
+                        rules={[{ required: true, message: '请输入项目名称!' }]}
+                    >
+                        <Input
+                            value={newProjectName}
+                            onChange={(e) => {
+                                setNewProjectName(e.target.value);
+                                if ((error || apiError) && newProjectName.trim()) {
+                                    setError(null); // 输入变化时清除错误状态
+                                }
+                            }}
+                            placeholder="输入项目名称"
+                            disabled={operationLoading || apiLoading}
+                        />
+                    </Form.Item>
+                    
+                    <Form.Item
+                        label="项目描述"
+                        name="projectDescription"
+                    >
+                        <Input.TextArea
+                            value={newProjectDescription}
+                            onChange={(e) => setNewProjectDescription(e.target.value)}
+                            placeholder="输入项目描述"
+                            rows={4}
+                            disabled={operationLoading || apiLoading}
+                        />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };

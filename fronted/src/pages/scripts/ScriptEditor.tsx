@@ -61,8 +61,9 @@ const ScriptEditor = () => {
         setLoading(false);
       } catch (err: any) {
         setError(err.message || '获取项目信息失败');
-        setLoading(false);
         console.error('Error fetching project:', err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -82,7 +83,7 @@ const ScriptEditor = () => {
     }
   };
 
-  const handleGoHome = () => {
+  const handleGoHome = useCallback(() => {
     if (hasUnsavedChanges) {
       const confirmLeave = window.confirm('您有未保存的更改，确定要离开吗？');
       if (confirmLeave) {
@@ -91,9 +92,9 @@ const ScriptEditor = () => {
     } else {
       navigate('/');
     }
-  };
+  }, [hasUnsavedChanges, navigate]);
 
-  const handleCancelClick = () => {
+  const handleCancelClick = useCallback(() => {
     if (hasUnsavedChanges) {
       const confirmCancel = window.confirm('您有未保存的更改，确定要取消吗？取消后所有更改将丢失。');
       if (confirmCancel) {
@@ -106,11 +107,11 @@ const ScriptEditor = () => {
         setHasUnsavedChanges(false);
       }
     }
-  };
+  }, [hasUnsavedChanges, project]);
 
-  const handleExportClick = () => {
+  const handleExportClick = useCallback(() => {
     alert('导出功能暂未实现');
-  };
+  }, []);
 
   const handleSave = useCallback(async () => {
     if (!project || !hasUnsavedChanges) return;
@@ -140,10 +141,10 @@ const ScriptEditor = () => {
     }
   }, [project, hasUnsavedChanges, activeTab, contentData]);
 
-  const handleContentChange = (tab: string, content: string) => {
+  const handleContentChange = useCallback((tab: string, content: string) => {
     setContentData(prev => ({ ...prev, [tab]: content }));
     setHasUnsavedChanges(true);
-  };
+  }, []);
 
   const renderContent = () => {
     switch (activeTab) {
