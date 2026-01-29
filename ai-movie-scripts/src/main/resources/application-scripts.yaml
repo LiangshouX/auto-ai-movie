@@ -1,28 +1,22 @@
-# Server configuration
-server:
-  port: ${SERVER_PORT:8080}
-
-# Spring configuration
 spring:
   application:
-    name: auto-ai-movie
+    name: ai-movie-scripts
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
-    include: scripts
-    group:
-      dev:
-        - scripts-dev
-      prod:
-        - scripts-prod
-  jackson:
-    date-format: yyyy-MM-dd HH:mm:ss
-    time-zone: GMT+8
+  
   # Database Configuration
   datasource:
     url: jdbc:mysql://localhost:3306/ai_movie_scripts?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
     username: root
     password: ${LOCAL_MYSQL_PWD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  # MyBatis Configuration
+  sql:
+    init:
+      schema-locations: classpath*:sql/schema.sql
+      mode: always
+      continue-on-error: true
   # AI Configuration - OpenAI
   ai:
     openai:
@@ -33,25 +27,6 @@ spring:
           model: qwen-plus
           temperature: 0.7
   
-  # MyBatis Configuration
-  sql:
-    init:
-      schema-locations: classpath*:sql/schema.sql
-      mode: always
-      continue-on-error: true
-  
-  # Redis Configuration
-  redis:
-    host: localhost
-    port: 6379
-    timeout: 2000ms
-    lettuce:
-      pool:
-        max-active: 8
-        max-idle: 8
-        min-idle: 0
-
-# MyBatis Plus Configuration
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
@@ -65,6 +40,11 @@ mybatis-plus:
   mapper-locations: classpath*:mapper/*.xml
   type-aliases-package: com.liangshou.movie.scripts.infrastructure.entity
 
+logging:
+  level:
+    com.liangshou.scripts: debug
+    org.springframework.ai: debug
+
 # 自定义模型配置
 custom-model:
   deepseek:
@@ -77,11 +57,3 @@ custom-model:
     model: qwen-plus
     base-url: https://dashscope.aliyuncs.com/compatible-mode/
     temperature: 0.7
-
-# Logging configuration
-logging:
-  level:
-    com.liangshou: debug
-    com.liangshou.movie.scripts: debug
-    org.springframework: info
-    org.springframework.ai: debug
