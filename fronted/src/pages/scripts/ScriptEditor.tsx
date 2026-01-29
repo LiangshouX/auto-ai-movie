@@ -242,12 +242,19 @@ const ScriptEditor = () => {
         onExportClick={handleExportClick}
       />
       
-      <Layout style={{ marginTop: '64px', overflow: 'hidden' }}>
+      {/* 使用标准的Layout结构 - 修复布局问题 */}
+      <Layout style={{ marginTop: 64 }}>
         <SidebarNav 
           activeTab={activeTab} 
           onTabChange={setActiveTab} 
         />
-        <Content style={{ flex: 1, overflowY: 'auto', padding: 24, backgroundColor: '#f9f9f9' }}>
+        <Content style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: 24, 
+          backgroundColor: '#f9f9f9',
+          minHeight: 'calc(100vh - 64px)'
+        }}>
           {renderContent()}
         </Content>
       </Layout>

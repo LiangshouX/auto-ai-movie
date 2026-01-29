@@ -24,16 +24,25 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
   onExportClick
 }) => {
   return (
-    <Header className="editor-header" style={{ 
-      backgroundColor: '#fff', 
-      padding: '0 24px',
-      boxShadow: '0 2px 8px #f0f0f0',
-      zIndex: 1,
-      width: '100%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between'
-    }}>
+    <Header 
+      className="editor-header"
+      style={{ 
+        backgroundColor: '#fff', 
+        padding: '0 24px',
+        boxShadow: '0 2px 8px #f0f0f0',
+        zIndex: 100,
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        height: 64,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        borderBottom: '1px solid #e0e0e0'
+      }}
+    >
       <Space size="middle">
         <Button 
           onClick={onBackClick}

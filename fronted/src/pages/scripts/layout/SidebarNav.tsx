@@ -6,6 +6,7 @@ import {
   UsergroupAddOutlined, 
   OrderedListOutlined 
 } from '@ant-design/icons';
+import Sider from "antd/es/layout/Sider";
 
 interface SidebarNavProps {
   activeTab: string;
@@ -25,17 +26,18 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onTabChange }) => {
   };
 
   return (
-    <div style={{ 
-      width: 240, 
-      backgroundColor: '#fff', 
-      borderRight: '1px solid #f0f0f0',
-      height: 'calc(100vh - 64px)',
-      position: 'fixed',
-      left: 0,
-      top: 64,
-      zIndex: 1,
-      overflow: 'auto'
-    }}>
+    <Sider 
+      width={240}
+      theme="light"
+      style={{ 
+        backgroundColor: '#fff',
+        borderRight: '1px solid #f0f0f0',
+        height: 'calc(100vh - 64px)',
+        position: 'relative',
+        zIndex: 1,
+        overflowY: 'auto'
+      }}
+    >
       <div style={{ padding: '16px 0' }}>
         <div style={{
           fontSize: 16,
@@ -58,7 +60,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onTabChange }) => {
           style={{ borderInlineEnd: 'none' }}
         />
       </div>
-    </div>
+    </Sider>
   );
 };
 
