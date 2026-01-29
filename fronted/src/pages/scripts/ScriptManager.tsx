@@ -217,7 +217,7 @@ const ScriptManager = () => {
                         <button className="nav-btn" onClick={() => navigate('/')}>⌂ 首页</button>
                     </div>
                 </div>
-                <div className="header-center" align={"center"}>
+                <div className="header-center">
                     <h2>AI 剧本项目管理</h2>
                 </div>
                 <div className="header-right">

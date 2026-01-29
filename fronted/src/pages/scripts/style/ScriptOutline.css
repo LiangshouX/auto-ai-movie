@@ -1,0 +1,93 @@
+/* 剧本大纲页面样式 */
+.script-outline-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.outline-header {
+  margin-bottom: 24px;
+}
+
+.outline-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.outline-canvas {
+  flex: 1;
+  padding: 24px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.outline-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.outline-node {
+  width: 100%;
+  max-width: 600px;
+  margin: 16px 0;
+  text-align: center;
+}
+
+.outline-node.level-0 .node-content {
+  background: white;
+  border: 2px solid #1890ff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
+}
+
+.outline-node.level-1 .node-content {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 24px;
+}
+
+.node-content h4 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.node-description {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.node-children {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px dashed #e0e0e0;
+}
+
+.outline-instructions {
+  margin-top: 32px;
+  padding: 24px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.outline-instructions p {
+  margin: 0 0 12px 0;
+}
+
+.outline-instructions ul {
+  padding-left: 24px;
+  margin: 12px 0;
+}
+
+.outline-instructions li {
+  margin-bottom: 8px;
+  line-height: 1.5;
+}

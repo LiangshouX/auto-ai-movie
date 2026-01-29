@@ -8,7 +8,7 @@ class CharacterRoleService {
   // 创建角色
   async createCharacter(projectId: string, characterData: CreateCharacterRoleData) {
     return ApiUtils.createResource(
-      (data: CreateCharacterRoleData) => apiClient.post(`/api/v1/projects/${projectId}/characters`, data),
+      (data: CreateCharacterRoleData) => apiClient.post(`/v1/projects/${projectId}/characters`, data),
       characterData
     );
   }
@@ -16,7 +16,7 @@ class CharacterRoleService {
   // 根据ID获取角色
   async getCharacterById(projectId: string, id: string) {
     return ApiUtils.getResource(
-      (characterId: string) => apiClient.get(`/api/v1/projects/${projectId}/characters/${characterId}`),
+      (characterId: string) => apiClient.get(`/v1/projects/${projectId}/characters/${characterId}`),
       id
     );
   }
@@ -24,14 +24,14 @@ class CharacterRoleService {
   // 获取项目的所有角色
   async getAllCharacters(projectId: string) {
     return ApiUtils.listResources(
-      () => apiClient.get(`/api/v1/projects/${projectId}/characters`)
+      () => apiClient.get(`/v1/projects/${projectId}/characters`)
     );
   }
 
   // 更新角色
   async updateCharacter(projectId: string, id: string, characterData: Partial<CharacterRole>) {
     return ApiUtils.updateResource(
-      (characterId: string, data: Partial<CharacterRole>) => apiClient.put(`/api/v1/projects/${projectId}/characters/${characterId}`, data),
+      (characterId: string, data: Partial<CharacterRole>) => apiClient.put(`/v1/projects/${projectId}/characters/${characterId}`, data),
       id,
       characterData
     );
@@ -40,7 +40,7 @@ class CharacterRoleService {
   // 删除角色
   async deleteCharacter(projectId: string, id: string) {
     return ApiUtils.deleteResource(
-      (characterId: string) => apiClient.delete(`/api/v1/projects/${projectId}/characters/${characterId}`),
+      (characterId: string) => apiClient.delete(`/v1/projects/${projectId}/characters/${characterId}`),
       id
     );
   }

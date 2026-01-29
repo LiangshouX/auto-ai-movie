@@ -1,0 +1,195 @@
+/* 角色设计页面样式 */
+.character-design-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.canvas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.canvas-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.canvas-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.canvas-area {
+  flex: 1;
+  display: flex;
+  gap: 24px;
+}
+
+.characters-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 24px;
+  padding: 16px;
+}
+
+.character-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.character-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.character-card.selected {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.character-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.character-card h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.gender-tag {
+  background: #f5f5f5;
+  color: #666;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.character-card .card-content p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.character-card .card-footer {
+  margin-top: 12px;
+  text-align: right;
+}
+
+.relationship-count {
+  font-size: 12px;
+  color: #999;
+}
+
+.character-detail-panel {
+  width: 320px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.detail-header {
+  padding: 16px;
+  background: #f5f5f5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detail-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+}
+
+.detail-content {
+  padding: 16px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.detail-content p {
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+.relationships-section h5 {
+  margin: 16px 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.relationships-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.relationships-section li {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.relationships-section li:last-child {
+  border-bottom: none;
+}
+
+.relationship-type {
+  display: inline-block;
+  background: #e6f7ff;
+  color: #1890ff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin: 0 8px;
+  font-size: 12px;
+}
+
+.empty-canvas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+  text-align: center;
+  padding: 40px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #1890ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

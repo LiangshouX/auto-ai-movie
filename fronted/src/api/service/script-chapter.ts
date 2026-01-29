@@ -31,8 +31,8 @@ class ScriptChapterService {
   // 根据章节号获取特定章节
   async getChapterByNumber(projectId: string, chapterNumber: number) {
     return ApiUtils.getResource(
-      (num: number) => apiClient.get(`/api/v1/projects/${projectId}/chapters/number/${num}`),
-      chapterNumber
+      (numStr: string) => apiClient.get(`/api/v1/projects/${projectId}/chapters/number/${numStr}`),
+      chapterNumber.toString()
     );
   }
 

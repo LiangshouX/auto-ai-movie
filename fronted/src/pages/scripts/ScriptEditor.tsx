@@ -1,8 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/index';
 import { ScriptProject } from '../../api/types/project-types';
-import './style/ScriptEditor.css';
+import { projectApi } from '../../api/service/ai-scripts';
+import EditorHeader from './layout/EditorHeader';
+import SidebarNav from './layout/SidebarNav';
+import BackgroundSetting from './component/BackgroundSetting';
+import PlotSummary from './component/PlotSummary';
+import CharacterDesign from './component/CharacterDesign';
+import ScriptOutline from './component/ScriptOutline';
+import './style/EditorLayout.css';
+import './style/CharacterDesign.css';
+import './style/ScriptOutline.css';
 
 const ScriptEditor = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -11,8 +20,14 @@ const ScriptEditor = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>('background');
+  // 存储各部分的内容
+  const [contentData, setContentData] = useState({
+    background: '',
+    summary: ''
+  });
 
-  // 监听浏览器的 beforeunload 事件，防止意外离开页面
+  // 监听浏览器的 beforeunload 事件
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
@@ -32,12 +47,15 @@ const ScriptEditor = () => {
     const fetchProject = async () => {
       try {
         const response: any = await api.projectApi.getProjectById(projectId!);
-        // 确保response.data是一个有效的ScriptProject对象
         if (response.data) {
-          // 我们将直接使用响应数据，但确保它符合ScriptProject接口
-          setProject(response.data as ScriptProject);
+          const fetchedProject = response.data as ScriptProject;
+          setProject(fetchedProject);
+          // 初始化内容数据
+          setContentData({
+            background: fetchedProject.theme || '',
+            summary: fetchedProject.summary || ''
+          });
         } else {
-          // 如果没有返回有效数据，设置为null
           setProject(null);
         }
         setLoading(false);
@@ -57,10 +75,10 @@ const ScriptEditor = () => {
     if (hasUnsavedChanges) {
       const confirmLeave = window.confirm('您有未保存的更改，确定要离开吗？');
       if (confirmLeave) {
-        navigate('/scripts'); // 返回剧本管理页面
+        navigate('/scripts');
       }
     } else {
-      navigate('/scripts'); // 直接返回剧本管理页面
+      navigate('/scripts');
     }
   };
 
@@ -68,34 +86,117 @@ const ScriptEditor = () => {
     if (hasUnsavedChanges) {
       const confirmLeave = window.confirm('您有未保存的更改，确定要离开吗？');
       if (confirmLeave) {
-        navigate('/'); // 返回首页
+        navigate('/');
       }
     } else {
-      navigate('/'); // 直接返回首页
+      navigate('/');
     }
   };
 
-  const handleSave = () => {
-    // 这里应该添加实际的保存逻辑
-    alert('保存成功！');
-    setHasUnsavedChanges(false);
+  const handleCancelClick = () => {
+    if (hasUnsavedChanges) {
+      const confirmCancel = window.confirm('您有未保存的更改，确定要取消吗？取消后所有更改将丢失。');
+      if (confirmCancel) {
+        if (project) {
+          setContentData({
+            background: project.theme || '',
+            summary: project.summary || ''
+          });
+        }
+        setHasUnsavedChanges(false);
+      }
+    }
   };
 
-  // 模拟编辑行为，实际上这里应该监听实际的编辑操作
-  const handleContentChange = () => {
+  const handleExportClick = () => {
+    alert('导出功能暂未实现');
+  };
+
+  const handleSave = useCallback(async () => {
+    if (!project || !hasUnsavedChanges) return;
+
+    try {
+      let updateData: Partial<ScriptProject> = {};
+      
+      switch (activeTab) {
+        case 'background':
+          updateData.theme = contentData.background;
+          break;
+        case 'summary':
+          updateData.summary = contentData.summary;
+          break;
+        default:
+          break;
+      }
+
+      await projectApi.updateProject(project.id!, updateData);
+      
+      setProject(prev => prev ? { ...prev, ...updateData } : null);
+      setHasUnsavedChanges(false);
+      alert('保存成功！');
+    } catch (err: any) {
+      console.error('保存失败:', err);
+      alert(`保存失败: ${err.message || '未知错误'}`);
+    }
+  }, [project, hasUnsavedChanges, activeTab, contentData]);
+
+  const handleContentChange = (tab: string, content: string) => {
+    setContentData(prev => ({ ...prev, [tab]: content }));
     setHasUnsavedChanges(true);
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'background':
+        return (
+          <BackgroundSetting 
+            project={project} 
+            onContentChange={(content) => handleContentChange('background', content)} 
+          />
+        );
+      case 'summary':
+        return (
+          <PlotSummary 
+            project={project} 
+            onContentChange={(content) => handleContentChange('summary', content)} 
+          />
+        );
+      case 'characters':
+        return (
+          <CharacterDesign project={project} />
+        );
+      case 'outline':
+        return (
+          <ScriptOutline projectTitle={project?.title || '未命名项目'} />
+        );
+      default:
+        return (
+          <div className="placeholder-content">
+            <h3>请选择左侧菜单项</h3>
+            <p>点击左侧菜单中的选项来开始编辑相应内容。</p>
+          </div>
+        );
+    }
   };
 
   if (loading) {
     return (
       <div className="script-editor-container">
-        <header className="editor-header">
-          <div className="navigation-buttons">
-            <button className="nav-btn" onClick={handleBackClick}>← 返回</button>
-            <button className="nav-btn" onClick={handleGoHome}>⌂ 首页</button>
+        <EditorHeader
+          title="剧本创作"
+          projectTitle={project?.title || '加载中...'}
+          onBackClick={handleBackClick}
+          onHomeClick={handleGoHome}
+          onSaveClick={handleSave}
+          onCancelClick={handleCancelClick}
+          onExportClick={handleExportClick}
+        />
+        <div className="editor-content">
+          <div className="loading-placeholder">
+            <h3>加载中...</h3>
+            <p>正在获取项目信息，请稍候</p>
           </div>
-          <h2>加载中...</h2>
-        </header>
+        </div>
       </div>
     );
   }
@@ -103,36 +204,45 @@ const ScriptEditor = () => {
   if (error) {
     return (
       <div className="script-editor-container">
-        <header className="editor-header">
-          <div className="navigation-buttons">
-            <button className="nav-btn" onClick={handleBackClick}>← 返回</button>
-            <button className="nav-btn" onClick={handleGoHome}>⌂ 首页</button>
+        <EditorHeader
+          title="剧本创作"
+          projectTitle={project?.title || '错误'}
+          onBackClick={handleBackClick}
+          onHomeClick={handleGoHome}
+          onSaveClick={handleSave}
+          onCancelClick={handleCancelClick}
+          onExportClick={handleExportClick}
+        />
+        <div className="editor-content">
+          <div className="error-placeholder">
+            <h3>错误</h3>
+            <p>{error}</p>
+            <button onClick={handleBackClick}>返回剧本管理</button>
           </div>
-          <h2>错误</h2>
-        </header>
-        <p>{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="script-editor-container">
-      <header className="editor-header">
-        <div className="navigation-buttons">
-          <button className="nav-btn" onClick={handleBackClick}>← 返回</button>
-          <button className="nav-btn" onClick={handleGoHome}>⌂ 首页</button>
-        </div>
-        <h1>编辑项目: {project?.title || '未命名项目'}</h1>
-        <button className="save-btn" onClick={handleSave}>保存</button>
-      </header>
+      <EditorHeader
+        title="剧本创作"
+        projectTitle={project?.title || '未命名项目'}
+        onBackClick={handleBackClick}
+        onHomeClick={handleGoHome}
+        onSaveClick={handleSave}
+        onCancelClick={handleCancelClick}
+        onExportClick={handleExportClick}
+      />
       
-      <div className="editor-content" onClick={handleContentChange}>
-        {/* 这里是空的编辑器区域，后续可以根据需求填充具体的设计内容 */}
-        <div className="editor-placeholder">
-          <h3>AI 剧本编辑器</h3>
-          <p>项目 ID: {projectId}</p>
-          <p>项目名称: {project?.title || '未命名项目'}</p>
-          <p>这是一个预留的编辑界面，您可以在此处添加具体的剧本编辑功能</p>
+      <div className="editor-main-layout">
+        <SidebarNav 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+        />
+        <div className="main-content">
+          {renderContent()}
         </div>
       </div>
     </div>

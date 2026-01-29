@@ -1,14 +1,12 @@
 import {Link} from 'react-router-dom';
-import './Home.css'; // 引入样式文件
+import './Home.css';
 
 const Home = () => {
     const features = [
         { to: "/scripts", emoji: "📝", title: "剧本管理", desc: "创建和编辑您的电影剧本" },
+        { to: "/scripts", emoji: '👤', title: "角色管理", desc: "创建和编辑您的人物角色" },
         { to: "/movies", emoji: "🎬", title: "电影制作", desc: "开始制作您的AI电影" },
         { to: "/search", emoji: "🔍", title: "内容搜索", desc: "搜索相关内容和素材" },
-        // { to: "/scripts", emoji: "📝", title: "剧本管理", desc: "创建和编辑您的电影剧本" },
-        // { to: "/movies", emoji: "🎬", title: "电影制作", desc: "开始制作您的AI电影" },
-        // { to: "/search", emoji: "🔍", title: "内容搜索", desc: "搜索相关内容和素材" }
     ];
 
     return (
