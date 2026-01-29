@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Layout, Button, Typography, Card, Alert, Spin, message, Flex } from 'antd';
 import api from '../../api/index';
 import { ScriptProject } from '../../api/types/project-types';
 import { projectApi } from '../../api/service/ai-scripts';
@@ -9,9 +10,9 @@ import BackgroundSetting from './component/BackgroundSetting';
 import PlotSummary from './component/PlotSummary';
 import CharacterDesign from './component/CharacterDesign';
 import ScriptOutline from './component/ScriptOutline';
-import './style/EditorLayout.css';
-import './style/CharacterDesign.css';
-import './style/ScriptOutline.css';
+
+const { Content } = Layout;
+const { Title, Text } = Typography;
 
 const ScriptEditor = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -134,10 +135,10 @@ const ScriptEditor = () => {
       
       setProject(prev => prev ? { ...prev, ...updateData } : null);
       setHasUnsavedChanges(false);
-      alert('保存成功！');
+      message.success('保存成功！');
     } catch (err: any) {
       console.error('保存失败:', err);
-      alert(`保存失败: ${err.message || '未知错误'}`);
+      message.error(`保存失败: ${err.message || '未知错误'}`);
     }
   }, [project, hasUnsavedChanges, activeTab, contentData]);
 
@@ -172,17 +173,17 @@ const ScriptEditor = () => {
         );
       default:
         return (
-          <div className="placeholder-content">
-            <h3>请选择左侧菜单项</h3>
-            <p>点击左侧菜单中的选项来开始编辑相应内容。</p>
-          </div>
+          <Card>
+            <Title level={3}>请选择左侧菜单项</Title>
+            <Text>点击左侧菜单中的选项来开始编辑相应内容。</Text>
+          </Card>
         );
     }
   };
 
   if (loading) {
     return (
-      <div className="script-editor-container">
+      <Layout style={{ height: '100vh' }}>
         <EditorHeader
           title="剧本创作"
           projectTitle={project?.title || '加载中...'}
@@ -192,19 +193,19 @@ const ScriptEditor = () => {
           onCancelClick={handleCancelClick}
           onExportClick={handleExportClick}
         />
-        <div className="editor-content">
-          <div className="loading-placeholder">
-            <h3>加载中...</h3>
-            <p>正在获取项目信息，请稍候</p>
-          </div>
-        </div>
-      </div>
+        <Content style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 24 }}>
+          <Flex vertical align="center" justify="center" style={{ height: '100%', padding: 24 }}>
+            <Spin size="large" tip="加载中..." />
+            <Title level={3}>正在获取项目信息，请稍候</Title>
+          </Flex>
+        </Content>
+      </Layout>
     );
   }
 
   if (error) {
     return (
-      <div className="script-editor-container">
+      <Layout style={{ height: '100vh' }}>
         <EditorHeader
           title="剧本创作"
           projectTitle={project?.title || '错误'}
@@ -214,19 +215,23 @@ const ScriptEditor = () => {
           onCancelClick={handleCancelClick}
           onExportClick={handleExportClick}
         />
-        <div className="editor-content">
-          <div className="error-placeholder">
-            <h3>错误</h3>
-            <p>{error}</p>
-            <button onClick={handleBackClick}>返回剧本管理</button>
-          </div>
-        </div>
-      </div>
+        <Content style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 24 }}>
+          <Alert
+            message="错误"
+            description={error}
+            type="error"
+            showIcon
+            action={
+              <Button onClick={handleBackClick}>返回剧本管理</Button>
+            }
+          />
+        </Content>
+      </Layout>
     );
   }
 
   return (
-    <div className="script-editor-container">
+    <Layout style={{ height: '100vh' }}>
       <EditorHeader
         title="剧本创作"
         projectTitle={project?.title || '未命名项目'}
@@ -237,16 +242,16 @@ const ScriptEditor = () => {
         onExportClick={handleExportClick}
       />
       
-      <div className="editor-main-layout">
+      <Layout style={{ marginTop: '64px', overflow: 'hidden' }}>
         <SidebarNav 
           activeTab={activeTab} 
           onTabChange={setActiveTab} 
         />
-        <div className="main-content">
+        <Content style={{ flex: 1, overflowY: 'auto', padding: 24, backgroundColor: '#f9f9f9' }}>
           {renderContent()}
-        </div>
-      </div>
-    </div>
+        </Content>
+      </Layout>
+    </Layout>
   );
 };
 

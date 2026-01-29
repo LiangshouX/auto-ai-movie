@@ -1,62 +1,127 @@
 import React from 'react';
+import { Card, Typography, Tree, Space, Flex } from 'antd';
+import { 
+  FundProjectionScreenOutlined, 
+  NodeIndexOutlined,
+  InfoCircleOutlined 
+} from '@ant-design/icons';
+
+const { Text, Paragraph } = Typography;
 
 interface ScriptOutlineProps {
   projectTitle: string;
 }
 
+// 定义树节点的数据类型
+interface TreeNode {
+  title: string;
+  key: string;
+  icon?: React.ReactNode;
+  nodeDescription?: string;
+  children?: TreeNode[];
+}
+
 const ScriptOutline: React.FC<ScriptOutlineProps> = ({ projectTitle }) => {
   // 大纲结构数据
-  const outlineStructure = [
+  const treeData: TreeNode[] = [
     {
-      id: 'root',
       title: projectTitle || '剧本大纲',
+      key: 'root',
       children: [
-        { id: 'intro', title: '引', type: 'intro' },
-        { id: 'rise', title: '起', type: 'rise' },
-        { id: 'development', title: '承', type: 'development' },
-        { id: 'turn', title: '转', type: 'turn' },
-        { id: 'conclusion', title: '合', type: 'conclusion' }
+        { 
+          title: '引 (Introduction)', 
+          key: 'intro', 
+          icon: <NodeIndexOutlined />,
+          nodeDescription: '故事的开端，介绍背景和人物'
+        },
+        { 
+          title: '起 (Rising Action)', 
+          key: 'rise', 
+          icon: <NodeIndexOutlined />,
+          nodeDescription: '故事发展的开端，冲突初现'
+        },
+        { 
+          title: '承 (Development)', 
+          key: 'development', 
+          icon: <NodeIndexOutlined />,
+          nodeDescription: '故事继续发展，冲突加深'
+        },
+        { 
+          title: '转 (Climax)', 
+          key: 'turn', 
+          icon: <NodeIndexOutlined />,
+          nodeDescription: '故事高潮，转折点'
+        },
+        { 
+          title: '合 (Conclusion)', 
+          key: 'conclusion', 
+          icon: <NodeIndexOutlined />,
+          nodeDescription: '故事结局，矛盾解决'
+        }
       ]
     }
   ];
 
-  const renderNode = (node: any, level: number = 0) => (
-    <div key={node.id} className={`outline-node level-${level}`}>
-      <div className="node-content">
-        <h4>{node.title}</h4>
-        <p className="node-description">点击编辑内容</p>
-      </div>
-      {node.children && node.children.length > 0 && (
-        <div className="node-children">
-          {node.children.map((child: any) => renderNode(child, level + 1))}
-        </div>
-      )}
-    </div>
-  );
-
   return (
-    <div className="script-outline-container">
-      <div className="outline-header">
-        <h3>剧本大纲</h3>
-        <p>以思维导图形式呈现剧本结构</p>
-      </div>
-      
-      <div className="outline-canvas">
-        <div className="outline-root">
-          {outlineStructure.map(node => renderNode(node))}
-        </div>
-      </div>
-      
-      <div className="outline-instructions">
-        <p>说明：</p>
-        <ul>
-          <li>根节点为剧本项目名称</li>
-          <li>一级子节点为经典叙事结构：引 -&gt; 起 -&gt; 承 -&gt; 转 -&gt; 合</li>
-          <li>每个节点可点击进行编辑</li>
-          <li>后续将完善拖拽、连线等交互功能</li>
-        </ul>
-      </div>
-    </div>
+    <Card 
+      title={
+        <Space>
+          <FundProjectionScreenOutlined />
+          <span>剧本大纲</span>
+        </Space>
+      }
+      extra={
+        <Text type="secondary">以思维导图形式呈现剧本结构</Text>
+      }
+    >
+      <Flex style={{ gap: '24px', minHeight: 400 }}>
+        <Flex flex={2} vertical>
+          <Tree
+            defaultExpandAll
+            showLine
+            showIcon
+            treeData={treeData}
+            titleRender={(nodeData) => (
+              <div style={{ 
+                padding: '8px 12px', 
+                border: '1px solid #f0f0f0', 
+                borderRadius: '4px',
+                backgroundColor: '#fafafa',
+                minWidth: 200
+              }}>
+                <div style={{ fontWeight: 'bold' }}>{nodeData.title}</div>
+                {nodeData.nodeDescription && (
+                  <div style={{ fontSize: '12px', color: '#666', marginTop: 4 }}>
+                    {nodeData.nodeDescription}
+                  </div>
+                )}
+              </div>
+            )}
+          />
+        </Flex>
+        
+        <Flex flex={1} vertical>
+          <Card 
+            title={
+              <Space>
+                <InfoCircleOutlined />
+                <span>说明</span>
+              </Space>
+            }
+            size="small"
+          >
+            <Paragraph>
+              <ul>
+                <li>根节点为剧本项目名称</li>
+                <li>一级子节点为经典叙事结构：引 -&gt; 起 -&gt; 承 -&gt; 转 -&gt; 合</li>
+                <li>每个节点可点击进行编辑</li>
+                <li>后续将完善拖拽、连线等交互功能</li>
+              </ul>
+            </Paragraph>
+          </Card>
+        </Flex>
+      </Flex>
+    </Card>
   );
 };
 

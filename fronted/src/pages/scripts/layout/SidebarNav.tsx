@@ -1,4 +1,11 @@
 import React from 'react';
+import { Menu } from 'antd';
+import { 
+  SettingOutlined, 
+  FileTextOutlined, 
+  UsergroupAddOutlined, 
+  OrderedListOutlined 
+} from '@ant-design/icons';
 
 interface SidebarNavProps {
   activeTab: string;
@@ -7,27 +14,50 @@ interface SidebarNavProps {
 
 const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onTabChange }) => {
   const tabs = [
-    { id: 'background', label: '背景设定' },
-    { id: 'summary', label: '剧情梗概' },
-    { id: 'characters', label: '角色设计' },
-    { id: 'outline', label: '剧本大纲' }
+    { key: 'background', label: '背景设定', icon: <SettingOutlined /> },
+    { key: 'summary', label: '剧情梗概', icon: <FileTextOutlined /> },
+    { key: 'characters', label: '角色设计', icon: <UsergroupAddOutlined /> },
+    { key: 'outline', label: '剧本大纲', icon: <OrderedListOutlined /> }
   ];
 
+  const handleMenuClick = (e: { key: string }) => {
+    onTabChange(e.key);
+  };
+
   return (
-    <div className="sidebar-nav">
-      <h3 className="sidebar-title">编辑内容</h3>
-      <nav className="sidebar-menu">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            className={`sidebar-item ${activeTab === tab.id ? 'active' : ''}`}
-            onClick={() => onTabChange(tab.id)}
-            aria-current={activeTab === tab.id ? 'page' : undefined}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
+    <div style={{ 
+      width: 240, 
+      backgroundColor: '#fff', 
+      borderRight: '1px solid #f0f0f0',
+      height: 'calc(100vh - 64px)',
+      position: 'fixed',
+      left: 0,
+      top: 64,
+      zIndex: 1,
+      overflow: 'auto'
+    }}>
+      <div style={{ padding: '16px 0' }}>
+        <div style={{
+          fontSize: 16,
+          fontWeight: 600,
+          padding: '0 24px 16px',
+          color: '#333'
+        }}>
+          编辑内容
+        </div>
+        
+        <Menu
+          mode="inline"
+          selectedKeys={[activeTab]}
+          onClick={handleMenuClick}
+          items={tabs.map(tab => ({
+            key: tab.key,
+            icon: tab.icon,
+            label: tab.label
+          }))}
+          style={{ borderInlineEnd: 'none' }}
+        />
+      </div>
     </div>
   );
 };

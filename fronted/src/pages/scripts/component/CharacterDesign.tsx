@@ -1,8 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+import { 
+  Card, 
+  Row, 
+  Col, 
+  Typography, 
+  Button, 
+  Space, 
+  List, 
+  Tag, 
+  Divider, 
+  Empty, 
+  Spin, 
+  Descriptions,
+  Badge,
+  Flex
+} from 'antd';
+import { RobotOutlined, UserOutlined, CloseOutlined } from '@ant-design/icons';
 import { CharacterRole } from '../../../api/types/character-role-types';
 import { characterRoleApi } from '../../../api/service/character-role';
 import { ScriptProject } from '../../../api/types/project-types';
+
+const { Title, Text } = Typography;
 
 interface CharacterDesignProps {
   project: ScriptProject | null;
@@ -60,116 +79,200 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({ project }) => {
 
   // 角色卡片组件
   const CharacterCard = ({ character }: { character: CharacterRole }) => (
-    <div 
-      className={`character-card ${selectedCharacter?.id === character.id ? 'selected' : ''}`}
+    <Card 
+      hoverable
+      style={{ height: '100%' }}
       onClick={() => setSelectedCharacter(character)}
+      styles={{
+        body: {
+          padding: '16px'
+        }
+      }}
     >
-      <h4>{character.name}</h4>
-      <p><strong>年龄:</strong> {character.age || '未知'}</p>
-      <p><strong>身份:</strong> {character.roleInStory}</p>
-      <p><strong>关系:</strong> {character.relationships?.length ?? 0}个</p>
-    </div>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ 
+          width: 64, 
+          height: 64, 
+          borderRadius: '50%', 
+          backgroundColor: '#f0f0f0', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          margin: '0 auto 12px' 
+        }}>
+          <UserOutlined style={{ fontSize: 24, color: '#666' }} />
+        </div>
+        <Title level={5} style={{ margin: '8px 0' }}>{character.name}</Title>
+        <div style={{ marginBottom: 8 }}>
+          <Tag color="blue">{character.age ? `${character.age}岁` : '年龄未知'}</Tag>
+        </div>
+        <Text type="secondary" style={{ display: 'block' }}>
+          {character.roleInStory}
+        </Text>
+        <div style={{ marginTop: 8 }}>
+          <Badge 
+            count={`${character.relationships?.length ?? 0}个关系`} 
+            overflowCount={99}
+          />
+        </div>
+      </div>
+    </Card>
   );
 
   if (loading) {
     return (
-      <div className="character-design-container">
-        <div className="canvas-header">
-          <h3>角色设计</h3>
-          <p>正在加载角色数据...</p>
-        </div>
-        <div className="loading-placeholder">
-          <div className="spinner"></div>
-          <p>加载中...</p>
-        </div>
-      </div>
+      <Flex vertical style={{ width: '100%' }}>
+        <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
+          <Title level={3}>角色设计</Title>
+          <Text type="secondary">正在加载角色数据...</Text>
+        </Flex>
+        <Flex align="center" justify="center" style={{ padding: 40 }}>
+          <Spin size="large" tip="加载中..." />
+        </Flex>
+      </Flex>
     );
   }
 
   if (error) {
     return (
-      <div className="character-design-container">
-        <div className="canvas-header">
-          <h3>角色设计</h3>
-          <p>角色数据加载失败</p>
-        </div>
-        <div className="error-placeholder">
-          <p>{error}</p>
-          <button onClick={fetchCharacters}>重试</button>
-        </div>
-      </div>
+      <Flex vertical style={{ width: '100%' }}>
+        <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
+          <Title level={3}>角色设计</Title>
+          <Text type="secondary">角色数据加载失败</Text>
+        </Flex>
+        <Card>
+          <Empty 
+            description={error}
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          />
+          <Flex justify="center" style={{ marginTop: 16 }}>
+            <Button onClick={fetchCharacters} type="primary">重试</Button>
+          </Flex>
+        </Card>
+      </Flex>
     );
   }
 
   return (
-    <div className="character-design-container">
+    <Flex vertical style={{ width: '100%' }}>
       {/* 画布头部 */}
-      <div className="canvas-header">
-        <h3>角色设计</h3>
-        <div className="canvas-actions">
-          <button 
-            className="btn btn-ai"
+      <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
+        <Title level={3} style={{ margin: 0 }}>角色设计</Title>
+        <Space>
+          <Button 
+            type="primary"
+            icon={<RobotOutlined />}
+            loading={isAIGenerating}
             onClick={handleAIDesign}
-            disabled={isAIGenerating}
           >
             {isAIGenerating ? 'AI创建角色中...' : 'AI设计'}
-          </button>
-        </div>
-      </div>
+          </Button>
+        </Space>
+      </Flex>
 
-      {/* 画布区域 */}
-      <div className="canvas-area">
-        <div className="characters-grid">
-          {characters.map(character => (
-            <CharacterCard key={character.id} character={character} />
-          ))}
-        </div>
-        
-        {characters.length === 0 && (
-          <div className="empty-canvas">
-            <p>暂无角色，请点击"AI设计"按钮创建角色，或手动添加角色。</p>
-          </div>
-        )}
-      </div>
+      <Row gutter={[24, 24]}>
+        <Col xs={24} lg={selectedCharacter ? 16 : 24}>
+          <Card style={{ minHeight: 400 }}>
+            {characters.length > 0 ? (
+              <Row gutter={[24, 24]}>
+                {characters.map(character => (
+                  <Col xs={24} sm={12} md={8} lg={6} key={character.id}>
+                    <CharacterCard key={character.id} character={character} />
+                  </Col>
+                ))}
+              </Row>
+            ) : (
+              <Flex align="center" justify="center" style={{ height: 300 }}>
+                <Empty 
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description="暂无角色，请点击‘AI设计’按钮创建角色"
+                />
+              </Flex>
+            )}
+          </Card>
+        </Col>
 
-      {/* 右侧详情面板 */}
-      {selectedCharacter && (
-        <div className="character-detail-panel">
-          <div className="detail-header">
-            <h4>角色详情: {selectedCharacter.name}</h4>
-            <button className="close-btn" onClick={() => setSelectedCharacter(null)}>×</button>
-          </div>
-          <div className="detail-content">
-            <p><strong>年龄:</strong> {selectedCharacter.age || '未知'}</p>
-            <p><strong>性别:</strong> {selectedCharacter.gender || '未知'}</p>
-            <p><strong>性格标签:</strong> {Array.isArray(selectedCharacter.personalityTags) ? selectedCharacter.personalityTags.join(', ') : selectedCharacter.personalityTags || '无'}</p>
-            <p><strong>角色定位:</strong> {selectedCharacter.roleInStory}</p>
-            <p><strong>技能:</strong> {Array.isArray(selectedCharacter.skills) ? selectedCharacter.skills.join(', ') : selectedCharacter.skills || '无'}</p>
-            <p><strong>背景设定:</strong> {selectedCharacter.characterSetting || '无'}</p>
-            
-            <div className="relationships-section">
-              <h5>角色关系</h5>
+        {/* 右侧详情面板 */}
+        {selectedCharacter && (
+          <Col xs={24} lg={8}>
+            <Card 
+              title={
+                <Flex justify="space-between" align="center">
+                  <span>角色详情: {selectedCharacter.name}</span>
+                  <Button 
+                    type="text" 
+                    icon={<CloseOutlined />} 
+                    onClick={() => setSelectedCharacter(null)}
+                  />
+                </Flex>
+              }
+              style={{ height: 'fit-content' }}
+            >
+              <Descriptions 
+                bordered 
+                column={1}
+                size="small"
+              >
+                <Descriptions.Item label="姓名">
+                  {selectedCharacter.name}
+                </Descriptions.Item>
+                <Descriptions.Item label="年龄">
+                  {selectedCharacter.age ? `${selectedCharacter.age}岁` : '未知'}
+                </Descriptions.Item>
+                <Descriptions.Item label="性别">
+                  {selectedCharacter.gender || '未知'}
+                </Descriptions.Item>
+                <Descriptions.Item label="角色定位">
+                  {selectedCharacter.roleInStory}
+                </Descriptions.Item>
+                <Descriptions.Item label="性格标签">
+                  {Array.isArray(selectedCharacter.personalityTags) ? 
+                    selectedCharacter.personalityTags.map(tag => (
+                      <Tag key={tag} color="blue">{tag}</Tag>
+                    )) : 
+                    selectedCharacter.personalityTags || '无'}
+                </Descriptions.Item>
+                <Descriptions.Item label="技能">
+                  {Array.isArray(selectedCharacter.skills) ? 
+                    selectedCharacter.skills.map(skill => (
+                      <Tag key={skill} color="green">{skill}</Tag>
+                    )) : 
+                    selectedCharacter.skills || '无'}
+                </Descriptions.Item>
+                <Descriptions.Item label="背景设定" span={2}>
+                  {selectedCharacter.characterSetting || '无'}
+                </Descriptions.Item>
+              </Descriptions>
+
+              <Divider>角色关系</Divider>
               {(selectedCharacter.relationships?.length ?? 0) === 0 ? (
-                <p>暂无关系</p>
+                <Text type="secondary">暂无关系</Text>
               ) : (
-                <ul>
-                  {selectedCharacter.relationships?.map((rel: any, index: number) => {
+                <List
+                  dataSource={selectedCharacter.relationships}
+                  renderItem={(rel: any, index: number) => {
                     const key = rel.id || `${selectedCharacter.id}-rel-${index}`;
                     return (
-                      <li key={key}>
-                        <span>{rel.relatedCharacterName}</span>
-                        <span className="relationship-type">{rel.relationshipType}</span>
-                        <span>{rel.description}</span>
-                      </li>
+                      <List.Item key={key}>
+                        <List.Item.Meta
+                          title={rel.relatedCharacterName}
+                          description={
+                            <>
+                              <Tag color="orange">{rel.relationshipType}</Tag>
+                              {rel.description}
+                            </>
+                          }
+                        />
+                      </List.Item>
                     );
-                  })}
-                </ul>
+                  }}
+                />
               )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+            </Card>
+          </Col>
+        )}
+      </Row>
+    </Flex>
   );
 };
 

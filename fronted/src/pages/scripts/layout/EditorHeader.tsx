@@ -1,5 +1,8 @@
 import React from 'react';
+import { Layout, Button, Space, Typography } from 'antd';
 
+const { Header } = Layout;
+const { Title, Text } = Typography;
 
 interface EditorHeaderProps {
   title: string;
@@ -20,56 +23,63 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
   onCancelClick,
   onExportClick
 }) => {
-  // const navigate = useNavigate(); // Removed unused variable
-
   return (
-    <header className="editor-header">
-      <div className="navigation-buttons">
-        <button 
-          className="nav-btn" 
+    <Header className="editor-header" style={{ 
+      backgroundColor: '#fff', 
+      padding: '0 24px',
+      boxShadow: '0 2px 8px #f0f0f0',
+      zIndex: 1,
+      width: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
+    }}>
+      <Space size="middle">
+        <Button 
           onClick={onBackClick}
-          aria-label="返回上一页"
+          icon={<span>←</span>}
+          type="text"
         >
-          ← 返回
-        </button>
-        <button 
-          className="nav-btn" 
+          返回
+        </Button>
+        <Button 
           onClick={onHomeClick}
-          aria-label="回到首页"
+          icon={<span>⌂</span>}
+          type="text"
         >
-          ⌂ 首页
-        </button>
+          首页
+        </Button>
+      </Space>
+      
+      <div style={{ textAlign: 'center', flex: 1 }}>
+        <Title level={3} style={{ margin: 0 }}>{title}</Title>
+        <Text type="secondary" style={{ display: 'block' }}>
+          正在编辑：{projectTitle || '未命名项目'}
+        </Text>
       </div>
       
-      <div className="header-title">
-        <h1>{title}</h1>
-        <span className="project-name">正在编辑：{projectTitle || '未命名项目'}</span>
-      </div>
-      
-      <div className="header-actions">
-        <button 
-          className="btn btn-export" 
+      <Space size="small">
+        <Button 
           onClick={onExportClick}
-          aria-label="导出剧本"
+          type="default"
         >
           导出剧本
-        </button>
-        <button 
-          className="btn btn-cancel" 
+        </Button>
+        <Button 
           onClick={onCancelClick}
-          aria-label="取消编辑"
+          type="default"
         >
           取消
-        </button>
-        <button 
-          className="btn btn-save" 
+        </Button>
+        <Button 
           onClick={onSaveClick}
-          aria-label="保存更改"
+          type="primary"
+          style={{ backgroundColor: '#1890ff' }}
         >
           保存
-        </button>
-      </div>
-    </header>
+        </Button>
+      </Space>
+    </Header>
   );
 };
 

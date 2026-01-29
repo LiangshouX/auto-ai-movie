@@ -1,0 +1,10 @@
+尝试重构前端组件中 `D:\Code\Java\auto-ai-movie\fronted\src\pages\scripts` 下的组件的写法，尤其是于ScriptEditor相关的组件，将html原生元素+css的组件尝试替换为ant Design的组件，
+最好是直接避免使用独立的.css 来定义样式，仅使用antd原生的配置。因为.css定义的样式极度糟糕，经常出现页面缩成一团、切换页面后整体布局缩放扭曲、完全曲解页面设计等情况。
+依赖已安装，无需再次安装。参考文档地址为：https://ant.design/components/overview-cn/
+若antd无法完全满足要求，可使用其他你认为合适的组件库。
+
+
+优化`D:\Code\Java\auto-ai-movie\fronted\src\pages\scripts\component`中的几个组件的呈现样式，
+
+
+检查 `D:\Code\Java\auto-ai-movie\fronted\src\pages\scripts` 下的问题，并修复，可借助npx等辅助工具
