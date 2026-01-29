@@ -76,6 +76,7 @@ JSON格式具有良好的可读性和扩展性
   "relationships": [
     {
       "relatedCharacterId": "相关角色ID",
+      "relatesCharacterName": "相关角色姓名",
       "relationshipType": "关系类型(朋友/敌人/恋人等)",
       "description": "关系描述"
     }

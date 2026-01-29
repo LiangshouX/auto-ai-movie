@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS script_characters (
     role_in_story VARCHAR(255) COMMENT '在故事中的定位',
     skills JSON COMMENT '技能列表(JSON数组)',
     character_setting TEXT COMMENT '角色设定描述',
+    character_relationships JSON COMMENT '角色关系(JSON数组)',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     FOREIGN KEY (project_id) REFERENCES script_projects(id) ON DELETE CASCADE,
@@ -32,18 +33,18 @@ CREATE TABLE IF NOT EXISTS script_characters (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色信息表';
 
 -- 角色关系表 (character_relationships)
-CREATE TABLE IF NOT EXISTS character_relationships (
-    id VARCHAR(36) PRIMARY KEY COMMENT '关系唯一标识',
-    character_id VARCHAR(36) NOT NULL COMMENT '角色ID',
-    related_character_id VARCHAR(36) NOT NULL COMMENT '相关角色ID',
-    relationship_type VARCHAR(50) COMMENT '关系类型',
-    description TEXT COMMENT '关系描述',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    FOREIGN KEY (character_id) REFERENCES script_characters(id) ON DELETE CASCADE,
-    FOREIGN KEY (related_character_id) REFERENCES script_characters(id) ON DELETE CASCADE,
-    UNIQUE KEY uk_char_relation (character_id, related_character_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色关系表';
+--CREATE TABLE IF NOT EXISTS character_relationships (
+--    id VARCHAR(36) PRIMARY KEY COMMENT '关系唯一标识',
+--    character_id VARCHAR(36) NOT NULL COMMENT '角色ID',
+--    related_character_id VARCHAR(36) NOT NULL COMMENT '相关角色ID',
+--    relationship_type VARCHAR(50) COMMENT '关系类型',
+--    description TEXT COMMENT '关系描述',
+--    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+--    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+--    FOREIGN KEY (character_id) REFERENCES script_characters(id) ON DELETE CASCADE,
+--    FOREIGN KEY (related_character_id) REFERENCES script_characters(id) ON DELETE CASCADE,
+--    UNIQUE KEY uk_char_relation (character_id, related_character_id)
+--) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色关系表';
 
 -- 故事大纲表 (story_outlines)
 CREATE TABLE IF NOT EXISTS story_outlines (

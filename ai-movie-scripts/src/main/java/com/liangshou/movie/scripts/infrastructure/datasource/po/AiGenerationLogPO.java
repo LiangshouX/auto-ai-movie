@@ -1,6 +1,7 @@
 package com.liangshou.movie.scripts.infrastructure.datasource.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -17,23 +18,59 @@ import java.time.LocalDateTime;
 public class AiGenerationLogPO {
     
     @TableId(type = IdType.ASSIGN_UUID)
-    private String id; // 日志唯一标识
+    private String id;
     
-    private String projectId; // 关联项目ID
+    /**
+     * 关联项目ID
+     */
+    @TableField("project_id")
+    private String projectId;
     
-    private String generationType; // 生成类型：CREATIVE, THEME, SUMMARY, CHARACTER, OUTLINE, CHAPTER
+    /**
+     * 生成类型：CREATIVE, THEME, SUMMARY, CHARACTER, OUTLINE, CHAPTER
+     */
+    @TableField("generation_type")
+    private String generationType;
     
-    private String prompt; // 输入提示
+    /**
+     * 输入提示
+     */
+    @TableField("prompt")
+    private String prompt;
     
-    private String response; // AI响应
+    /**
+     * AI响应
+     */
+    @TableField("response")
+    private String response;
     
-    private Integer tokensUsed; // 使用token数量
+    /**
+     * 使用token数量
+     */
+    @TableField("tokens_used")
+    private Integer tokensUsed;
     
-    private Integer executionTimeMs; // 执行时间(毫秒)
+    /**
+     * 执行时间(毫秒)
+     */
+    @TableField("execution_time_ms")
+    private Integer executionTimeMs;
     
-    private String status; // 状态：SUCCESS, FAILED, PROCESSING，默认PROCESSING
+    /**
+     * 状态：SUCCESS, FAILED, PROCESSING，默认PROCESSING
+     */
+    @TableField("status")
+    private String status;
     
-    private String errorMessage; // 错误信息
+    /**
+     * 错误信息
+     */
+    @TableField("error_message")
+    private String errorMessage;
     
-    private LocalDateTime createdAt; // 创建时间
+    /**
+     * 创建时间
+     */
+    @TableField("created_at")
+    private LocalDateTime createdAt;
 }

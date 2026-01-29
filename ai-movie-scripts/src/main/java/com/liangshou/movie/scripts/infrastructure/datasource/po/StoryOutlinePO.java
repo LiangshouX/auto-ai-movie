@@ -1,6 +1,7 @@
 package com.liangshou.movie.scripts.infrastructure.datasource.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -17,15 +18,35 @@ import java.time.LocalDateTime;
 public class StoryOutlinePO {
     
     @TableId(type = IdType.ASSIGN_UUID)
-    private String id; // 大纲唯一标识
+    private String id;
     
-    private String projectId; // 关联项目ID
+    /**
+     * 关联项目ID
+     */
+    @TableField("project_id")
+    private String projectId;
     
-    private String structureType; // 结构类型
+    /**
+     * 结构类型
+     */
+    @TableField("structure_type")
+    private String structureType;
     
-    private String outlineNodes; // 大纲节点(JSON格式存储)
+    /**
+     * 大纲节点(JSON格式存储)
+     */
+    @TableField("outline_nodes")
+    private String outlineNodes;
     
-    private LocalDateTime createdAt; // 创建时间
+    /**
+     * 创建时间
+     */
+    @TableField("created_at")
+    private LocalDateTime createdAt;
     
-    private LocalDateTime updatedAt; // 更新时间
+    /**
+     * 更新时间
+     */
+    @TableField("updated_at")
+    private LocalDateTime updatedAt;
 }

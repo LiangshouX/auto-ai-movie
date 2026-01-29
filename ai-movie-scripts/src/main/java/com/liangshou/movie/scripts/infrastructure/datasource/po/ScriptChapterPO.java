@@ -1,6 +1,7 @@
 package com.liangshou.movie.scripts.infrastructure.datasource.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -17,21 +18,53 @@ import java.time.LocalDateTime;
 public class ScriptChapterPO {
     
     @TableId(type = IdType.ASSIGN_UUID)
-    private String id; // 章节唯一标识
+    private String id;
     
-    private String projectId; // 关联项目ID
+    /**
+     * 关联项目ID
+     */
+    @TableField("project_id")
+    private String projectId;
     
-    private String episodeId; // 桥段ID
+    /**
+     * 桥段ID
+     */
+    @TableField("episode_id")
+    private String episodeId;
     
-    private Integer chapterNumber; // 章节号
+    /**
+     * 章节号
+     */
+    @TableField("chapter_number")
+    private Integer chapterNumber;
     
-    private String title; // 章节标题
+    /**
+     * 章节标题
+     */
+    @TableField("title")
+    private String title;
     
-    private String content; // 章节内容
+    /**
+     * 章节内容
+     */
+    @TableField("content")
+    private String content;
     
-    private Integer wordCount; // 字数统计，默认0
+    /**
+     * 字数统计，默认0
+     */
+    @TableField("word_count")
+    private Integer wordCount;
     
-    private LocalDateTime createdAt; // 创建时间
+    /**
+     * 创建时间
+     */
+    @TableField("created_at")
+    private LocalDateTime createdAt;
     
-    private LocalDateTime updatedAt; // 更新时间
+    /**
+     * 更新时间
+     */
+    @TableField("updated_at")
+    private LocalDateTime updatedAt;
 }

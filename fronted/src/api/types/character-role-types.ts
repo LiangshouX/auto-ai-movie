@@ -1,6 +1,7 @@
 // 角色关系类型定义
 export interface CharacterRelationship {
   relatedCharacterId: string;
+  relatedCharacterName: string;
   relationshipType: string;
   description: string;
 }
