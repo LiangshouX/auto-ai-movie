@@ -19,4 +19,5 @@
 main {
   flex: 1;
   overflow: auto;
+  width: 100%;
 }
