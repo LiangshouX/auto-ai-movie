@@ -14,7 +14,8 @@ import {
   Spin, 
   Descriptions,
   Badge,
-  Flex
+  Flex,
+  Avatar
 } from 'antd';
 import { RobotOutlined, UserOutlined, CloseOutlined } from '@ant-design/icons';
 import { CharacterRole } from '../../../api/types/character-role-types';
@@ -77,7 +78,7 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({ project }) => {
     }, 2000);
   };
 
-  // 角色卡片组件
+  // 角色卡片组件 - 重构为使用Ant Design Avatar组件
   const CharacterCard = ({ character }: { character: CharacterRole }) => (
     <Card 
       hoverable
@@ -89,19 +90,16 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({ project }) => {
         }
       }}
     >
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ 
-          width: 64, 
-          height: 64, 
-          borderRadius: '50%', 
-          backgroundColor: '#f0f0f0', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          margin: '0 auto 12px' 
-        }}>
-          <UserOutlined style={{ fontSize: 24, color: '#666' }} />
-        </div>
+      <Flex vertical align="center">
+        <Avatar 
+          size={64} 
+          icon={<UserOutlined />} 
+          style={{ 
+            backgroundColor: '#f0f0f0', 
+            color: '#666',
+            marginBottom: 12
+          }}
+        />
         <Title level={5} style={{ margin: '8px 0' }}>{character.name}</Title>
         <div style={{ marginBottom: 8 }}>
           <Tag color="blue">{character.age ? `${character.age}岁` : '年龄未知'}</Tag>
@@ -115,7 +113,7 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({ project }) => {
             overflowCount={99}
           />
         </div>
-      </div>
+      </Flex>
     </Card>
   );
 
@@ -192,7 +190,7 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({ project }) => {
           </Card>
         </Col>
 
-        {/* 右侧详情面板 */}
+        {/* 右侧详情面板 - 重构为使用flex布局占满可用空间 */}
         {selectedCharacter && (
           <Col xs={24} lg={8}>
             <Card 
@@ -206,68 +204,75 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({ project }) => {
                   />
                 </Flex>
               }
-              style={{ height: 'fit-content' }}
+              style={{ 
+                height: '100%', 
+                display: 'flex',
+                flexDirection: 'column'
+              }}
             >
-              <Descriptions 
-                bordered 
-                column={1}
-                size="small"
-              >
-                <Descriptions.Item label="姓名">
-                  {selectedCharacter.name}
-                </Descriptions.Item>
-                <Descriptions.Item label="年龄">
-                  {selectedCharacter.age ? `${selectedCharacter.age}岁` : '未知'}
-                </Descriptions.Item>
-                <Descriptions.Item label="性别">
-                  {selectedCharacter.gender || '未知'}
-                </Descriptions.Item>
-                <Descriptions.Item label="角色定位">
-                  {selectedCharacter.roleInStory}
-                </Descriptions.Item>
-                <Descriptions.Item label="性格标签">
-                  {Array.isArray(selectedCharacter.personalityTags) ? 
-                    selectedCharacter.personalityTags.map(tag => (
-                      <Tag key={tag} color="blue">{tag}</Tag>
-                    )) : 
-                    selectedCharacter.personalityTags || '无'}
-                </Descriptions.Item>
-                <Descriptions.Item label="技能">
-                  {Array.isArray(selectedCharacter.skills) ? 
-                    selectedCharacter.skills.map(skill => (
-                      <Tag key={skill} color="green">{skill}</Tag>
-                    )) : 
-                    selectedCharacter.skills || '无'}
-                </Descriptions.Item>
-                <Descriptions.Item label="背景设定" span={2}>
-                  {selectedCharacter.characterSetting || '无'}
-                </Descriptions.Item>
-              </Descriptions>
+              <div style={{ flex: 1, overflowY: 'auto' }}>
+                <Descriptions 
+                  bordered 
+                  column={1}
+                  size="small"
+                  layout="vertical"
+                >
+                  <Descriptions.Item label="姓名">
+                    {selectedCharacter.name}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="年龄">
+                    {selectedCharacter.age ? `${selectedCharacter.age}岁` : '未知'}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="性别">
+                    {selectedCharacter.gender || '未知'}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="角色定位">
+                    {selectedCharacter.roleInStory}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="性格标签">
+                    {Array.isArray(selectedCharacter.personalityTags) ? 
+                      selectedCharacter.personalityTags.map(tag => (
+                        <Tag key={tag} color="blue">{tag}</Tag>
+                      )) : 
+                      selectedCharacter.personalityTags || '无'}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="技能">
+                    {Array.isArray(selectedCharacter.skills) ? 
+                      selectedCharacter.skills.map(skill => (
+                        <Tag key={skill} color="green">{skill}</Tag>
+                      )) : 
+                      selectedCharacter.skills || '无'}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="背景设定" span={2}>
+                    {selectedCharacter.characterSetting || '无'}
+                  </Descriptions.Item>
+                </Descriptions>
 
-              <Divider>角色关系</Divider>
-              {(selectedCharacter.relationships?.length ?? 0) === 0 ? (
-                <Text type="secondary">暂无关系</Text>
-              ) : (
-                <List
-                  dataSource={selectedCharacter.relationships}
-                  renderItem={(rel: any, index: number) => {
-                    const key = rel.id || `${selectedCharacter.id}-rel-${index}`;
-                    return (
-                      <List.Item key={key}>
-                        <List.Item.Meta
-                          title={rel.relatedCharacterName}
-                          description={
-                            <>
-                              <Tag color="orange">{rel.relationshipType}</Tag>
-                              {rel.description}
-                            </>
-                          }
-                        />
-                      </List.Item>
-                    );
-                  }}
-                />
-              )}
+                <Divider>角色关系</Divider>
+                {(selectedCharacter.relationships?.length ?? 0) === 0 ? (
+                  <Text type="secondary">暂无关系</Text>
+                ) : (
+                  <List
+                    dataSource={selectedCharacter.relationships}
+                    renderItem={(rel: any, index: number) => {
+                      const key = rel.id || `${selectedCharacter.id}-rel-${index}`;
+                      return (
+                        <List.Item key={key}>
+                          <List.Item.Meta
+                            title={rel.relatedCharacterName}
+                            description={
+                              <>
+                                <Tag color="orange">{rel.relationshipType}</Tag>
+                                {rel.description}
+                              </>
+                            }
+                          />
+                        </List.Item>
+                      );
+                    }}
+                  />
+                )}
+              </div>
             </Card>
           </Col>
         )}
