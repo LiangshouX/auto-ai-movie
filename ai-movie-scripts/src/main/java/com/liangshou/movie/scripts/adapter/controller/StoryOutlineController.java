@@ -11,7 +11,7 @@ import java.util.Optional;
  * 故事大纲控制器
  */
 @RestController
-@RequestMapping("/api/v1/projects/{projectId}/outline")
+@RequestMapping("/api/v1/story-outline")
 public class StoryOutlineController {
 
     @Autowired
@@ -19,10 +19,16 @@ public class StoryOutlineController {
 
     /**
      * 获取项目的大纲
+     * 从请求体中获取项目ID
      */
-    @GetMapping
-    public ResponseEntity<StoryOutlineDTO> getOutlineByProjectId(@PathVariable("projectId") String projectId) {
-        Optional<StoryOutlineDTO> outline = storyOutlineService.findByProjectId(projectId);
+    @PostMapping("/get-by-project")
+    public ResponseEntity<StoryOutlineDTO> getOutlineByProjectId(@RequestBody StoryOutlineDTO outlineDTO) {
+        // 验证请求体中的项目ID是否存在
+        if (outlineDTO.getProjectId() == null || outlineDTO.getProjectId().trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        Optional<StoryOutlineDTO> outline = storyOutlineService.findByProjectId(outlineDTO.getProjectId());
         if (outline.isPresent()) {
             return ResponseEntity.ok(outline.get());
         } else {
@@ -32,16 +38,17 @@ public class StoryOutlineController {
 
     /**
      * 创建或更新项目大纲
+     * 从请求体中获取项目ID
      */
     @PostMapping
-    public ResponseEntity<StoryOutlineDTO> createOrUpdateOutline(
-            @PathVariable("projectId") String projectId,
-            @RequestBody StoryOutlineDTO outlineDTO) {
-        // 设置项目ID
-        outlineDTO.setProjectId(projectId);
+    public ResponseEntity<StoryOutlineDTO> createOrUpdateOutline(@RequestBody StoryOutlineDTO outlineDTO) {
+        // 验证请求体中的项目ID是否存在
+        if (outlineDTO.getProjectId() == null || outlineDTO.getProjectId().trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
         
         // 检查是否已存在大纲
-        Optional<StoryOutlineDTO> existingOutline = storyOutlineService.findByProjectId(projectId);
+        Optional<StoryOutlineDTO> existingOutline = storyOutlineService.findByProjectId(outlineDTO.getProjectId());
         StoryOutlineDTO result;
         if (existingOutline.isPresent()) {
             // 如果存在，则更新
@@ -55,12 +62,16 @@ public class StoryOutlineController {
 
     /**
      * 更新项目大纲
+     * 从请求体中获取大纲ID进行更新
      */
-    @PutMapping("/{id}")
-    public ResponseEntity<StoryOutlineDTO> updateOutline(
-            @PathVariable("id") String id,
-            @RequestBody StoryOutlineDTO outlineDTO) {
-        StoryOutlineDTO updatedOutline = storyOutlineService.updateOutline(id, outlineDTO);
+    @PostMapping("/update")
+    public ResponseEntity<StoryOutlineDTO> updateOutline(@RequestBody StoryOutlineDTO outlineDTO) {
+        // 验证请求体中的ID是否存在
+        if (outlineDTO.getId() == null || outlineDTO.getId().trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        StoryOutlineDTO updatedOutline = storyOutlineService.updateOutline(outlineDTO.getId(), outlineDTO);
         if (updatedOutline != null) {
             return ResponseEntity.ok(updatedOutline);
         } else {
@@ -70,10 +81,16 @@ public class StoryOutlineController {
 
     /**
      * 删除项目大纲
+     * 从请求体中获取大纲ID
      */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOutline(@PathVariable("id") String id) {
-        storyOutlineService.deleteOutline(id);
+    @PostMapping("/delete")
+    public ResponseEntity<Void> deleteOutline(@RequestBody StoryOutlineDTO outlineDTO) {
+        // 验证请求体中的ID是否存在
+        if (outlineDTO.getId() == null || outlineDTO.getId().trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        storyOutlineService.deleteOutline(outlineDTO.getId());
         return ResponseEntity.noContent().build();
     }
 }
