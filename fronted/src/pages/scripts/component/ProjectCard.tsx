@@ -195,10 +195,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
                 <Drawer
                     title={`编辑项目: ${project.title || '未命名项目'}`}
-                    width={700}
+                    size={700}
                     onClose={closeDrawer}
                     open={drawerVisible}
-                    bodyStyle={{paddingBottom: 80}}
+                    styles={{body: {paddingBottom: 80}}}
                     footer={
                         <div style={{textAlign: 'right'}}>
                             <Button onClick={closeDrawer} style={{marginRight: 8}}>
@@ -233,15 +233,18 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                         </Form.Item>
 
                         <Form.Item name="status" label="状态" rules={[{required: true, message: '请选择状态'}]}>
-                            <Select placeholder="请选择项目状态">
-                                <Select.Option value={ProjectStatus.CREATED}>已创建</Select.Option>
-                                <Select.Option value={ProjectStatus.DRAFT}>草稿</Select.Option>
-                                <Select.Option value={ProjectStatus.IN_PROGRESS}>进行中</Select.Option>
-                                <Select.Option value={ProjectStatus.REVIEW}>审核中</Select.Option>
-                                <Select.Option value={ProjectStatus.COMPLETED}>已完成</Select.Option>
-                                <Select.Option value={ProjectStatus.ARCHIVED}>已归档</Select.Option>
-                                <Select.Option value={ProjectStatus.DELETED}>已删除</Select.Option>
-                            </Select>
+                            <Select 
+                                placeholder="请选择项目状态"
+                                options={[
+                                    { value: ProjectStatus.CREATED, label: '已创建' },
+                                    { value: ProjectStatus.DRAFT, label: '草稿' },
+                                    { value: ProjectStatus.IN_PROGRESS, label: '进行中' },
+                                    { value: ProjectStatus.REVIEW, label: '审核中' },
+                                    { value: ProjectStatus.COMPLETED, label: '已完成' },
+                                    { value: ProjectStatus.ARCHIVED, label: '已归档' },
+                                    { value: ProjectStatus.DELETED, label: '已删除' },
+                                ]}
+                            />
                         </Form.Item>
 
                         <Divider orientation="horizontal">只读信息</Divider>

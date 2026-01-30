@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useProjectApi} from '../../hooks/useApi';
 import {ScriptProject, ProjectStatus, ScriptProjectType} from '../../api/types/project-types';
@@ -256,9 +256,20 @@ const ScriptManager = () => {
                         placeholder="搜索项目..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        // style={{width: 250}}
+                        style={{width: 300, marginRight: 16}}
                         allowClear
                     />
+                    <Button
+                        type="default"
+                        size="large"
+                        onClick={() => {
+                            // 刷新项目列表
+                            fetchProjects();
+                        }}
+                        disabled={operationLoading || apiLoading}
+                    >
+                        刷新
+                    </Button>
                     <Button
                         type="primary"
                         size="large"
@@ -296,7 +307,7 @@ const ScriptManager = () => {
                 ) : filteredProjects.length > 0 ? (
                     <>
                         <div className="card-scroll-container">
-                            <Row gutter={[16, 16]} style={{marginBottom: 30, marginTop: 35, width: '100%'}}>
+                            <Row gutter={[16, 16]} style={{marginBottom: 30, marginTop: 30, width: '100%'}}>
                                 {filteredProjects.map((project) => (
                                     <Col xs={24} sm={12} md={8} lg={6} key={project.id}>
                                         <ProjectCard
