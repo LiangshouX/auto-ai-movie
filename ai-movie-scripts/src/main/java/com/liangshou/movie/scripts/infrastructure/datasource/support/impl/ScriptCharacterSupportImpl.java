@@ -12,12 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 角色信息服务实现类
  */
 @Service
+@SuppressWarnings("unused")
 public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMapper, ScriptCharacterPO> implements IScriptCharacterSupport {
 
     @Transactional
@@ -80,7 +80,7 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
             dto.setPersonalityTags(ArrayJsonUtil.jsonToArray(entity.getPersonalityTags()));
             dto.setSkills(ArrayJsonUtil.jsonToArray(entity.getSkills()));
             return dto;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     @Transactional
@@ -138,6 +138,6 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
             dto.setPersonalityTags(ArrayJsonUtil.jsonToArray(entity.getPersonalityTags()));
             dto.setSkills(ArrayJsonUtil.jsonToArray(entity.getSkills()));
             return dto;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 }

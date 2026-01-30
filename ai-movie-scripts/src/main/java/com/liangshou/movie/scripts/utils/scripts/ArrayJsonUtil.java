@@ -77,7 +77,8 @@ public class ArrayJsonUtil {
         }
 
         try {
-            List<String> list = objectMapper.readValue(json, new TypeReference<List<String>>() {});
+            List<String> list = objectMapper.readValue(json, new TypeReference<>() {
+            });
             return list.toArray(new String[0]);
         } catch (JsonProcessingException e) {
             // 记录错误并返回空数组
@@ -98,7 +99,8 @@ public class ArrayJsonUtil {
         }
 
         try {
-            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
+            return objectMapper.readValue(json, new TypeReference<>() {
+            });
         } catch (JsonProcessingException e) {
             // 记录错误并返回空列表
             log.error("Error deserializing JSON to String list: {}", e.getMessage(), e);
