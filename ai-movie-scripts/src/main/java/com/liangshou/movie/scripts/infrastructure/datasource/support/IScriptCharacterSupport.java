@@ -14,7 +14,7 @@ public interface IScriptCharacterSupport {
 
     List<ScriptCharacterDTO> findByProjectId(String projectId);
 
-    ScriptCharacterDTO updateCharacter(String id, ScriptCharacterDTO characterDTO);
+    ScriptCharacterDTO updateCharacter(ScriptCharacterDTO characterDTO);
 
     void deleteCharacter(String id);
 

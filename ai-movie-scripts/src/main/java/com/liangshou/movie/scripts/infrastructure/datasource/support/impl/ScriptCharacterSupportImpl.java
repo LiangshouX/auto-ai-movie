@@ -62,7 +62,13 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
 
     @Transactional
     @Override
-    public ScriptCharacterDTO updateCharacter(String id, ScriptCharacterDTO characterDTO) {
+    public ScriptCharacterDTO updateCharacter(ScriptCharacterDTO characterDTO) {
+        // 从DTO中获取ID
+        String id = characterDTO.getId();
+        if (id == null || id.trim().isEmpty()) {
+            return null;
+        }
+        
         ScriptCharacterPO entity = this.getById(id);
         if (entity == null) {
             return null;

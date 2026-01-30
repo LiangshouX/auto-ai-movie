@@ -16,11 +16,11 @@ import {
 } from 'antd';
 
 import './style/ScriptManagerStyle.css';
-import ProjectCard from './component/ProjectCard';
-import LoadingSpinner from './component/LoadingSpinner';
-import ErrorMessage from './component/ErrorMessage';
-import EmptyState from './component/EmptyState';
-import CreateProjectModal from './component/CreateProjectModal';
+import ProjectCard from './component/scripts-manage/ProjectCard.tsx';
+import LoadingSpinner from './component/scripts-manage/LoadingSpinner.tsx';
+import ErrorMessage from './component/scripts-manage/ErrorMessage.tsx';
+import EmptyState from './component/scripts-manage/EmptyState.tsx';
+import CreateProjectModal from './component/scripts-manage/CreateProjectModal.tsx';
 import {HomeOutlined} from '@ant-design/icons'
 
 const {Title} = Typography;

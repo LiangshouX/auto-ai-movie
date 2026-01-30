@@ -6,42 +6,42 @@ import { CharacterRole, CreateCharacterRoleData } from '../types/character-role-
 // 角色服务接口
 class CharacterRoleService {
   // 创建角色
-  async createCharacter(projectId: string, characterData: CreateCharacterRoleData) {
+  async createCharacter(characterData: CreateCharacterRoleData & { projectId: string }) {
     return ApiUtils.createResource(
-      (data: CreateCharacterRoleData) => apiClient.post(`/v1/projects/${projectId}/characters`, data),
+      (data: CreateCharacterRoleData & { projectId: string }) => apiClient.post(`/v1/characters`, data),
       characterData
     );
   }
 
   // 根据ID获取角色
-  async getCharacterById(projectId: string, id: string) {
-    return ApiUtils.getResource(
-      (characterId: string) => apiClient.get(`/v1/projects/${projectId}/characters/${characterId}`),
-      id
+  async getCharacterById(characterData: { id: string }) {
+    return ApiUtils.createResource(
+      (data: { id: string }) => apiClient.post(`/v1/characters/get-by-id`, data),
+      characterData
     );
   }
 
   // 获取项目的所有角色
-  async getAllCharacters(projectId: string) {
-    return ApiUtils.listResources(
-      () => apiClient.get(`/v1/projects/${projectId}/characters`)
+  async getAllCharacters(characterData: { projectId: string }) {
+    return ApiUtils.createResource(
+      (data: { projectId: string }) => apiClient.post(`/v1/characters/list-by-project`, data),
+      characterData
     );
   }
 
   // 更新角色
-  async updateCharacter(projectId: string, id: string, characterData: Partial<CharacterRole>) {
-    return ApiUtils.updateResource(
-      (characterId: string, data: Partial<CharacterRole>) => apiClient.put(`/v1/projects/${projectId}/characters/${characterId}`, data),
-      id,
+  async updateCharacter(characterData: CharacterRole) {
+    return ApiUtils.createResource(
+      (data: CharacterRole) => apiClient.post(`/v1/characters/update`, data),
       characterData
     );
   }
 
   // 删除角色
-  async deleteCharacter(projectId: string, id: string) {
-    return ApiUtils.deleteResource(
-      (characterId: string) => apiClient.delete(`/v1/projects/${projectId}/characters/${characterId}`),
-      id
+  async deleteCharacter(characterData: { id: string }) {
+    return ApiUtils.createResource(
+      (data: { id: string }) => apiClient.post(`/v1/characters/delete`, data),
+      characterData
     );
   }
 }

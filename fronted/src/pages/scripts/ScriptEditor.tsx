@@ -8,7 +8,7 @@ import EditorHeader from './layout/EditorHeader';
 import SidebarNav from './layout/SidebarNav';
 import BackgroundSetting from './component/BackgroundSetting';
 import PlotSummary from './component/PlotSummary';
-import CharacterDesign from './component/CharacterDesign';
+import CharacterDesign from './component/scripts-role/CharacterDesign.tsx';
 import ScriptOutline from './component/ScriptOutline';
 
 const { Content } = Layout;
