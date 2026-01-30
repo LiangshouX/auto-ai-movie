@@ -15,7 +15,7 @@ import {
     Modal
 } from 'antd';
 
-import './style/ScriptManagerFix.css';
+import './style/ScriptManagerStyle.css';
 import ProjectCard from './component/ProjectCard';
 import LoadingSpinner from './component/LoadingSpinner';
 import ErrorMessage from './component/ErrorMessage';
