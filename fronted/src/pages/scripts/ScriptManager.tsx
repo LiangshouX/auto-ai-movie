@@ -21,6 +21,7 @@ import LoadingSpinner from './component/LoadingSpinner';
 import ErrorMessage from './component/ErrorMessage';
 import EmptyState from './component/EmptyState';
 import CreateProjectModal from './component/CreateProjectModal';
+import {HomeOutlined} from '@ant-design/icons'
 
 const {Title} = Typography;
 const {Search} = Input;
@@ -199,10 +200,6 @@ const ScriptManager = () => {
         (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-    // 处理项目卡片点击事件
-    const handleProjectClick = (projectId: string) => {
-        navigate(`/scripts/editor/${projectId}`);
-    };
 
     // 处理项目卡片删除事件
     const handleProjectDelete = (id: string, projectName: string) => {
@@ -250,7 +247,7 @@ const ScriptManager = () => {
                 borderBottom: '1px solid #e0e0e0'
             }}>
                 <Space size="large">
-                    <Button onClick={() => navigate('/')} type="text" size="large">⌂ 首页</Button>
+                    <Button onClick={() => navigate('/')} type="text" size="large"><HomeOutlined/> 首页</Button>
                     <Title level={2} style={{margin: 0, color: 'rgba(0, 0, 0, 0.88)'}}>AI 剧本项目管理</Title>
                 </Space>
 
@@ -305,7 +302,9 @@ const ScriptManager = () => {
                                         <ProjectCard
                                             project={project}
                                             operationLoading={operationLoading}
-                                            onClick={() => handleProjectClick(project.id!)}
+                                            // onClick={() => handleProjectClick(project.id!)}
+                                            onClick={() => {
+                                            }}
                                             onDelete={handleProjectDelete}
                                         />
                                     </Col>

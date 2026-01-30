@@ -1,8 +1,9 @@
 import React, {useState} from 'react';
 import {Card, Typography, Tag, Button, Drawer, Form, Input, Select, Divider} from 'antd';
-import {EditOutlined, DeleteOutlined} from '@ant-design/icons';
+import {EditOutlined, DeleteOutlined, EyeOutlined} from '@ant-design/icons';
 import {ScriptProject, ProjectStatus} from '../../../api/types/project-types';
 import {projectApi} from '../../../api/service/ai-scripts';
+import {useNavigate} from "react-router-dom";
 
 const {Title, Text} = Typography;
 
@@ -19,6 +20,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                                                      onClick,
                                                      onDelete
                                                  }) => {
+    const navigate = useNavigate();
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [form] = Form.useForm();
     const [updateLoading, setUpdateLoading] = useState(false);
@@ -26,6 +28,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     const handleDeleteClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         onDelete(project.id!, project.title || '未命名项目');
+    };
+
+    // 处理项目卡片点击事件
+    const handleScriptsEditClick = (projectId: string) => {
+        navigate(`/scripts/editor/${projectId}`);
     };
 
     const showDrawer = () => {
@@ -151,9 +158,20 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                     </Text>
                 </div>
 
-                <div style={{marginTop: 10, display: 'flex', gap: 80}}>
+                <div style={{marginTop: 10, display: 'flex', gap: 8}}>
                     <Button
                         type="primary"
+                        size="small"
+                        icon={<EyeOutlined/>}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleScriptsEditClick(project.id!);
+                        }}
+                    >
+                        剧本设计
+                    </Button>
+
+                    <Button
                         size="small"
                         icon={<EditOutlined/>}
                         onClick={(e) => {
