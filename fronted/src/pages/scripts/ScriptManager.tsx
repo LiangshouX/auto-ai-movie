@@ -279,14 +279,14 @@ const ScriptManager = () => {
             <Content style={{
                 flex: 1,
                 overflowY: 'auto',
-                overflowX: 'auto',
+                overflowX: 'hidden',
                 padding: 24,
                 display: 'flex',
+                flexDirection: 'column',
                 width: '100%',
-                position: 'fixed',
                 backgroundColor: '#f9f9f9',
                 minHeight: 'calc(100vh - 64px)',
-                minWidth: '100%'
+                minWidth: 'max(1500px, calc(100vw - 200px))'
             }}>
 
                 {(loading || apiLoading) ? (
@@ -298,18 +298,20 @@ const ScriptManager = () => {
                     />
                 ) : filteredProjects.length > 0 ? (
                     <>
-                        <Row gutter={[24, 24]} style={{marginBottom: 30}}>
-                            {filteredProjects.map((project) => (
-                                <Col xs={24} sm={12} md={8} lg={6} key={project.id}>
-                                    <ProjectCard
-                                        project={project}
-                                        operationLoading={operationLoading}
-                                        onClick={() => handleProjectClick(project.id!)}
-                                        onDelete={handleProjectDelete}
-                                    />
-                                </Col>
-                            ))}
-                        </Row>
+                        <div className="card-scroll-container">
+                            <Row gutter={[16, 16]} style={{marginBottom: 30, marginTop: 35, width: '100%'}}>
+                                {filteredProjects.map((project) => (
+                                    <Col xs={24} sm={12} md={8} lg={6} key={project.id}>
+                                        <ProjectCard
+                                            project={project}
+                                            operationLoading={operationLoading}
+                                            onClick={() => handleProjectClick(project.id!)}
+                                            onDelete={handleProjectDelete}
+                                        />
+                                    </Col>
+                                ))}
+                            </Row>
+                        </div>
                     </>
                 ) : (
                     <EmptyState

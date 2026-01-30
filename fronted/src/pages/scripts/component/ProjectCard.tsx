@@ -26,7 +26,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
         <Card
             hoverable
             style={{
-                height: 320,
+                height: 340,
                 width: 320,
                 display: 'flex',
                 flexDirection: 'column',
@@ -44,7 +44,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                         top: 0,
                         left: -5,
                         width: 5,
-                        height: 280,
+                        height: 300,
                         background: 'linear-gradient(to right, #5a67d8, #4c51bf)',
                         borderRadius: '0 3px 3px 0'
                     }}></div>
@@ -104,7 +104,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                 >
                     状态: {project.status || '未知'}
                 </Tag>
-            </div>
+
 
             <div style={{borderTop: '1px solid #eee', paddingTop: 10, marginTop: 'auto'}}>
                 <Text type="secondary" style={{fontSize: '12px'}}>
@@ -121,6 +121,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                 >
                     {operationLoading ? '...' : '删除'}
                 </Button>
+            </div>
             </div>
         </Card>
     );
