@@ -6,6 +6,7 @@ import com.liangshou.movie.scripts.infrastructure.datasource.po.ScriptCharacterP
 import com.liangshou.movie.scripts.infrastructure.datasource.mapper.ScriptCharacterMapper;
 import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptCharacterSupport;
 import com.liangshou.movie.scripts.service.dto.ScriptCharacterDTO;
+import com.liangshou.movie.scripts.utils.scripts.ArrayJsonUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,13 +24,29 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
     @Override
     public ScriptCharacterDTO createCharacter(ScriptCharacterDTO characterDTO) {
         ScriptCharacterPO entity = new ScriptCharacterPO();
-        BeanUtils.copyProperties(characterDTO, entity);
+        // 手动复制属性，处理数组到JSON的转换
+        entity.setId(characterDTO.getId());
+        entity.setProjectId(characterDTO.getProjectId());
+        entity.setName(characterDTO.getName());
+        entity.setAge(characterDTO.getAge());
+        entity.setGender(characterDTO.getGender());
+        // 将数组转换为JSON字符串
+        entity.setPersonalityTags(ArrayJsonUtil.arrayToJson(characterDTO.getPersonalityTags()));
+        entity.setRoleInStory(characterDTO.getRoleInStory());
+        // 将数组转换为JSON字符串
+        entity.setSkills(ArrayJsonUtil.arrayToJson(characterDTO.getSkills()));
+        entity.setCharacterSetting(characterDTO.getCharacterSetting());
+        entity.setCharacterRelationships(characterDTO.getCharacterRelationships());
         entity.setCreatedAt(LocalDateTime.now());
         entity.setUpdatedAt(LocalDateTime.now());
+        
         this.save(entity);
 
         ScriptCharacterDTO result = new ScriptCharacterDTO();
         BeanUtils.copyProperties(entity, result);
+        // 将JSON字符串转换回数组
+        result.setPersonalityTags(ArrayJsonUtil.jsonToArray(entity.getPersonalityTags()));
+        result.setSkills(ArrayJsonUtil.jsonToArray(entity.getSkills()));
         return result;
     }
 
@@ -43,6 +60,9 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
 
         ScriptCharacterDTO dto = new ScriptCharacterDTO();
         BeanUtils.copyProperties(entity, dto);
+        // 将JSON字符串转换为数组
+        dto.setPersonalityTags(ArrayJsonUtil.jsonToArray(entity.getPersonalityTags()));
+        dto.setSkills(ArrayJsonUtil.jsonToArray(entity.getSkills()));
         return dto;
     }
 
@@ -56,6 +76,9 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
         return entities.stream().map(entity -> {
             ScriptCharacterDTO dto = new ScriptCharacterDTO();
             BeanUtils.copyProperties(entity, dto);
+            // 将JSON字符串转换为数组
+            dto.setPersonalityTags(ArrayJsonUtil.jsonToArray(entity.getPersonalityTags()));
+            dto.setSkills(ArrayJsonUtil.jsonToArray(entity.getSkills()));
             return dto;
         }).collect(Collectors.toList());
     }
@@ -74,13 +97,27 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
             return null;
         }
 
-        BeanUtils.copyProperties(characterDTO, entity);
-        entity.setId(id); // 确保ID不变
+        // 手动复制属性，处理数组到JSON的转换
+        entity.setProjectId(characterDTO.getProjectId());
+        entity.setName(characterDTO.getName());
+        entity.setAge(characterDTO.getAge());
+        entity.setGender(characterDTO.getGender());
+        // 将数组转换为JSON字符串
+        entity.setPersonalityTags(ArrayJsonUtil.arrayToJson(characterDTO.getPersonalityTags()));
+        entity.setRoleInStory(characterDTO.getRoleInStory());
+        // 将数组转换为JSON字符串
+        entity.setSkills(ArrayJsonUtil.arrayToJson(characterDTO.getSkills()));
+        entity.setCharacterSetting(characterDTO.getCharacterSetting());
+        entity.setCharacterRelationships(characterDTO.getCharacterRelationships());
         entity.setUpdatedAt(LocalDateTime.now());
+        
         this.updateById(entity);
 
         ScriptCharacterDTO result = new ScriptCharacterDTO();
         BeanUtils.copyProperties(entity, result);
+        // 将JSON字符串转换回数组
+        result.setPersonalityTags(ArrayJsonUtil.jsonToArray(entity.getPersonalityTags()));
+        result.setSkills(ArrayJsonUtil.jsonToArray(entity.getSkills()));
         return result;
     }
 
@@ -97,6 +134,9 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
         return entities.stream().map(entity -> {
             ScriptCharacterDTO dto = new ScriptCharacterDTO();
             BeanUtils.copyProperties(entity, dto);
+            // 将JSON字符串转换为数组
+            dto.setPersonalityTags(ArrayJsonUtil.jsonToArray(entity.getPersonalityTags()));
+            dto.setSkills(ArrayJsonUtil.jsonToArray(entity.getSkills()));
             return dto;
         }).collect(Collectors.toList());
     }

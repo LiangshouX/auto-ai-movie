@@ -20,9 +20,9 @@ public class ScriptCharacterDTO {
     private String name;
     private Integer age;
     private String gender;
-    private String personalityTags; // JSON格式存储
+    private String[] personalityTags;
     private String roleInStory;
-    private String skills; // JSON格式存储
+    private String[] skills;
     private String characterSetting;
 
     /**

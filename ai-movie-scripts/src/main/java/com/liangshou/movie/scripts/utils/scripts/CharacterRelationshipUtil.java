@@ -12,6 +12,11 @@ import java.util.Collections;
 
 @SuppressWarnings("unused")
 public class CharacterRelationshipUtil {
+
+    private CharacterRelationshipUtil() {
+        // Do Nothing
+    }
+
     // Jackson ObjectMapper实例
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final Logger log = LoggerFactory.getLogger(CharacterRelationshipUtil.class);
@@ -26,7 +31,7 @@ public class CharacterRelationshipUtil {
         if (relationship == null) {
             return "null";
         }
-        
+
         try {
             return objectMapper.writeValueAsString(relationship);
         } catch (JsonProcessingException e) {
@@ -46,7 +51,7 @@ public class CharacterRelationshipUtil {
         if (relationships == null || relationships.isEmpty()) {
             return "[]";
         }
-        
+
         try {
             return objectMapper.writeValueAsString(relationships);
         } catch (JsonProcessingException e) {
@@ -66,7 +71,7 @@ public class CharacterRelationshipUtil {
         if (json == null || json.trim().isEmpty()) {
             return null;
         }
-        
+
         try {
             return objectMapper.readValue(json, CharacterRelationshipDTO.class);
         } catch (JsonProcessingException e) {
@@ -86,9 +91,10 @@ public class CharacterRelationshipUtil {
         if (json == null || json.trim().isEmpty()) {
             return Collections.emptyList();
         }
-        
+
         try {
-            return objectMapper.readValue(json, new TypeReference<List<CharacterRelationshipDTO>>() {});
+            return objectMapper.readValue(json, new TypeReference<List<CharacterRelationshipDTO>>() {
+            });
         } catch (JsonProcessingException e) {
             // 记录错误并返回空列表
             log.error("Error deserializing JSON to CharacterRelationshipDTO list: {}", e.getMessage(), e);

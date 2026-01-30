@@ -38,6 +38,37 @@ const CharacterDetailDrawer: React.FC<CharacterDetailDrawerProps> = ({
     const [saving, setSaving] = useState<boolean>(false);
     const [editing, setEditing] = useState<boolean>(false);
 
+    // 在文件顶部添加数据处理工具函数
+    const parseTagsInput = (input: string | undefined): string[] => {
+        if (!input) {
+            return [];
+        }
+
+        // 分割并清理标签
+        return input.split(',')
+            .map(tag => tag.trim())
+            .filter(tag => tag.length > 0);
+    };
+
+    const formatTagsForDisplay = (tags: string[] | string | undefined): string => {
+        if (Array.isArray(tags)) {
+            return tags.join(',');
+        }
+        if (typeof tags === 'string') {
+            // 如果是JSON字符串，尝试解析
+            try {
+                const parsed = JSON.parse(tags);
+                if (Array.isArray(parsed)) {
+                    return parsed.join(',');
+                }
+            } catch {
+                // 如果解析失败，直接返回原字符串
+                return tags;
+            }
+        }
+        return '';
+    };
+
     // 初始化表单数据
     useEffect(() => {
         if (open && character) {
@@ -46,30 +77,8 @@ const CharacterDetailDrawer: React.FC<CharacterDetailDrawerProps> = ({
                 age: character.age,
                 gender: character.gender,
                 roleInStory: character.roleInStory,
-                personalityTags: Array.isArray(character.personalityTags) 
-                    ? character.personalityTags.join(',') 
-                    : (typeof character.personalityTags === 'string' 
-                        ? (() => {
-                            try {
-                                const parsed = JSON.parse(character.personalityTags);
-                                return Array.isArray(parsed) ? parsed.join(',') : character.personalityTags;
-                            } catch {
-                                return character.personalityTags;
-                            }
-                        })()
-                        : ''),
-                skills: Array.isArray(character.skills) 
-                    ? character.skills.join(',') 
-                    : (typeof character.skills === 'string' 
-                        ? (() => {
-                            try {
-                                const parsed = JSON.parse(character.skills);
-                                return Array.isArray(parsed) ? parsed.join(',') : character.skills;
-                            } catch {
-                                return character.skills;
-                            }
-                        })()
-                        : ''),
+                personalityTags: formatTagsForDisplay(character.personalityTags),
+                skills: formatTagsForDisplay(character.skills),
                 characterSetting: character.characterSetting
             });
             setEditing(false);
@@ -83,19 +92,15 @@ const CharacterDetailDrawer: React.FC<CharacterDetailDrawerProps> = ({
         try {
             setSaving(true);
             const values = await form.validateFields();
-            
+
             // 数据转换和验证
             const updateData: Partial<CharacterRole> = {
                 name: values.name?.trim() || '',
                 age: values.age,
                 gender: values.gender || '',
                 roleInStory: values.roleInStory?.trim() || '',
-                personalityTags: values.personalityTags 
-                    ? JSON.stringify(values.personalityTags.split(',').map((tag: string) => tag.trim()).filter(Boolean))
-                    : '[]',
-                skills: values.skills 
-                    ? JSON.stringify(values.skills.split(',').map((skill: string) => skill.trim()).filter(Boolean))
-                    : '[]',
+                personalityTags: parseTagsInput(values.personalityTags),
+                skills: parseTagsInput(values.skills),
                 characterSetting: values.characterSetting?.trim() || ''
             };
 
@@ -115,13 +120,13 @@ const CharacterDetailDrawer: React.FC<CharacterDetailDrawerProps> = ({
                 ...character,
                 ...updateData
             };
-            
+
             const response = await characterRoleApi.updateCharacter(fullCharacterData);
 
             if (response.success) {
                 message.success('角色信息保存成功');
                 setEditing(false);
-                
+
                 // 更新成功后的回调
                 const updatedCharacter: CharacterRole = {
                     ...character,
@@ -148,16 +153,8 @@ const CharacterDetailDrawer: React.FC<CharacterDetailDrawerProps> = ({
                 age: character.age,
                 gender: character.gender,
                 roleInStory: character.roleInStory,
-                personalityTags: Array.isArray(character.personalityTags) 
-                    ? character.personalityTags.join(',') 
-                    : (typeof character.personalityTags === 'string' 
-                        ? character.personalityTags 
-                        : ''),
-                skills: Array.isArray(character.skills) 
-                    ? character.skills.join(',') 
-                    : (typeof character.skills === 'string' 
-                        ? character.skills 
-                        : ''),
+                personalityTags: formatTagsForDisplay(character.personalityTags),
+                skills: formatTagsForDisplay(character.skills),
                 characterSetting: character.characterSetting
             });
         }
@@ -172,14 +169,14 @@ const CharacterDetailDrawer: React.FC<CharacterDetailDrawerProps> = ({
             <div style={{padding: '0 24px'}}>
                 <div style={{marginBottom: 24}}>
                     <Space style={{marginBottom: 16}}>
-                        <Button 
-                            type="primary" 
-                            icon={<EditOutlined />} 
+                        <Button
+                            type="primary"
+                            icon={<EditOutlined/>}
                             onClick={() => setEditing(true)}
                         >
                             编辑
                         </Button>
-                        <Button icon={<CloseOutlined />} onClick={onClose}>
+                        <Button icon={<CloseOutlined/>} onClick={onClose}>
                             关闭
                         </Button>
                     </Space>
@@ -272,9 +269,9 @@ const CharacterDetailDrawer: React.FC<CharacterDetailDrawerProps> = ({
             <div style={{padding: '0 24px'}}>
                 <div style={{marginBottom: 24}}>
                     <Space style={{marginBottom: 16}}>
-                        <Button 
-                            type="primary" 
-                            icon={<SaveOutlined />} 
+                        <Button
+                            type="primary"
+                            icon={<SaveOutlined/>}
                             onClick={handleSave}
                             loading={saving}
                         >
@@ -283,7 +280,7 @@ const CharacterDetailDrawer: React.FC<CharacterDetailDrawerProps> = ({
                         <Button onClick={handleCancelEdit}>
                             取消
                         </Button>
-                        <Button icon={<CloseOutlined />} onClick={onClose}>
+                        <Button icon={<CloseOutlined/>} onClick={onClose}>
                             关闭
                         </Button>
                     </Space>
@@ -306,9 +303,9 @@ const CharacterDetailDrawer: React.FC<CharacterDetailDrawerProps> = ({
                         label="年龄"
                         name="age"
                     >
-                        <InputNumber 
-                            placeholder="请输入年龄" 
-                            min={0} 
+                        <InputNumber
+                            placeholder="请输入年龄"
+                            min={0}
                             max={150}
                             style={{width: '100%'}}
                         />
@@ -354,8 +351,8 @@ const CharacterDetailDrawer: React.FC<CharacterDetailDrawerProps> = ({
                         label="背景设定"
                         name="characterSetting"
                     >
-                        <Input.TextArea 
-                            placeholder="请输入角色的背景设定" 
+                        <Input.TextArea
+                            placeholder="请输入角色的背景设定"
                             rows={4}
                             showCount
                             maxLength={1000}
