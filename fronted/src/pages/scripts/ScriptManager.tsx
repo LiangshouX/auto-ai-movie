@@ -5,21 +5,24 @@ import {ScriptProject, ProjectStatus, ScriptProjectType} from '../../api/types/p
 import {
     Button,
     Input,
-    Card,
     Row,
     Col,
-    Modal,
     Form,
     Typography,
     Space,
-    Tag,
     message,
-    Spin,
-    Empty,
-    Layout
+    Layout,
+    Modal
 } from 'antd';
 
-const {Title, Text} = Typography;
+import './style/ScriptManagerFix.css';
+import ProjectCard from './component/ProjectCard';
+import LoadingSpinner from './component/LoadingSpinner';
+import ErrorMessage from './component/ErrorMessage';
+import EmptyState from './component/EmptyState';
+import CreateProjectModal from './component/CreateProjectModal';
+
+const {Title} = Typography;
 const {Search} = Input;
 const {Header, Content} = Layout;
 
@@ -196,314 +199,145 @@ const ScriptManager = () => {
         (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
+    // 处理项目卡片点击事件
+    const handleProjectClick = (projectId: string) => {
+        navigate(`/scripts/editor/${projectId}`);
+    };
+
+    // 处理项目卡片删除事件
+    const handleProjectDelete = (id: string, projectName: string) => {
+        handleDeleteProject(id, projectName);
+    };
+
+    // 处理创建项目模态框关闭
+    const handleCloseModal = () => {
+        setShowCreateModal(false);
+        setError(null);
+        form.resetFields();
+    };
+
+    // 处理项目名称输入变化
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setNewProjectName(e.target.value);
+        if ((error || apiError) && e.target.value.trim()) {
+            setError(null);
+        }
+    };
+
+    // 处理项目描述输入变化
+    const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setNewProjectDescription(e.target.value);
+    };
+
     // 使用 Ant Design 的 Layout 结构
     return (
-        <Layout>
-            <Layout style={{padding: '24px 0',height: '100vh'}}>
-                <Header style={{
-                    backgroundColor: '#fff',
-                    padding: '0 24px',
-                    boxShadow: '0 2px 8px #f0f0f0',
-                    // zIndex: 100,
-                    width: '200%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    height: 64,
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    borderBottom: '1px solid #e0e0e0'
-                }}>
-                    <Space size="large">
-                        <Button onClick={() => navigate('/')} type="text" size="large">⌂ 首页</Button>
-                        <Title level={2} style={{margin: 0, color: 'rgba(0, 0, 0, 0.88)'}}>AI 剧本项目管理</Title>
-                    </Space>
 
-                    <Space>
-                        <Search
-                            placeholder="搜索项目..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            // style={{width: 250}}
-                            allowClear
-                        />
-                        <Button
-                            type="primary"
-                            size="large"
-                            onClick={() => {
-                                setShowCreateModal(true);
-                                setError(null); // 清除错误状态
-                            }}
-                            disabled={operationLoading || apiLoading}
-                        >
-                            {operationLoading || apiLoading ? '处理中...' : '+ 新建项目'}
-                        </Button>
-                    </Space>
-                </Header>
+        <Layout style={{padding: '24px 0', height: '100vh'}}>
+            <Header style={{
+                backgroundColor: '#fff',
+                padding: '0 24px',
+                boxShadow: '0 2px 8px #f0f0f0',
+                zIndex: 100,
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                position: 'fixed',
+                justifyContent: 'space-between',
+                height: 64,
+                top: 0,
+                left: 0,
+                right: 0,
+                borderBottom: '1px solid #e0e0e0'
+            }}>
+                <Space size="large">
+                    <Button onClick={() => navigate('/')} type="text" size="large">⌂ 首页</Button>
+                    <Title level={2} style={{margin: 0, color: 'rgba(0, 0, 0, 0.88)'}}>AI 剧本项目管理</Title>
+                </Space>
 
-                <Content style={{
-                    flex: 1,
-                    // overflowY: 'auto',
-                    // overflowX: 'auto',
-                    padding: 24,
-                    display: 'flex',
-                    width: '200%',
-                    backgroundColor: '#f9f9f9',
-                    minHeight: 'calc(100vh - 64px)'
-                }}>
-
-                    {(loading || apiLoading) ? (
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            height: '70vh'
-                        }}>
-                            <Spin size="large"/>
-                        </div>
-                    ) : error || apiError ? (
-                        <div style={{
-                            backgroundColor: 'white',
-                            padding: '24px',
-                            borderRadius: '8px',
-                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                            textAlign: 'center'
-                        }}>
-                            <Text type="danger">错误: {error || apiError}</Text>
-                            <div style={{marginTop: 16}}>
-                                <Button type="primary" onClick={fetchProjects}>重试</Button>
-                            </div>
-                        </div>
-                    ) : filteredProjects.length > 0 ? (
-                        <>
-                            <Row gutter={[24, 24]} style={{marginBottom: 30}}>
-                                {filteredProjects.map((project) => (
-                                    <Col xs={24} sm={12} md={8} lg={6} key={project.id}>
-                                        <Card
-                                            hoverable
-                                            style={{
-                                                height: '100%',
-                                                display: 'flex',
-                                                flexDirection: 'column'
-                                            }}
-                                            onClick={() => navigate(`/scripts/editor/${project.id}`)}
-                                            cover={
-                                                <div style={{
-                                                    height: 100,
-                                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                                    position: 'relative'
-                                                }}>
-                                                    <div style={{
-                                                        position: 'absolute',
-                                                        top: 0,
-                                                        left: -5,
-                                                        width: 5,
-                                                        height: '100%',
-                                                        background: 'linear-gradient(to right, #5a67d8, #4c51bf)',
-                                                        borderRadius: '0 3px 3px 0'
-                                                    }}></div>
-                                                    <div style={{
-                                                        position: 'absolute',
-                                                        top: 5,
-                                                        left: 5,
-                                                        right: 5,
-                                                        bottom: 5,
-                                                        border: '1px solid rgba(255,255,255,0.3)',
-                                                        borderRadius: 3
-                                                    }}></div>
-                                                </div>
-                                            }
-                                        >
-                                            <div style={{
-                                                flexGrow: 1,
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                height: 180
-                                            }}>
-                                                <Title
-                                                    level={4}
-                                                    style={{
-                                                        margin: '0 0 10px 0',
-                                                        whiteSpace: 'normal',
-                                                        wordBreak: 'break-word',
-                                                        fontSize: '16px',
-                                                        lineHeight: '1.4em'
-                                                    }}
-                                                >
-                                                    {project.title || '未命名项目'}
-                                                </Title>
-                                                <Text
-                                                    style={{
-                                                        marginBottom: 10,
-                                                        flex: 1,
-                                                        display: '-webkit-box',
-                                                        WebkitLineClamp: 2,
-                                                        WebkitBoxOrient: 'vertical',
-                                                        overflow: 'hidden',
-                                                        lineHeight: '1.4em',
-                                                        color: 'rgba(0, 0, 0, 0.65)'
-                                                    }}
-                                                    ellipsis={{tooltip: project.description}}
-                                                >
-                                                    {project.description || '暂无描述'}
-                                                </Text>
-                                                <Tag
-                                                    color={
-                                                        project.status === ProjectStatus.COMPLETED ? 'green' :
-                                                            project.status === ProjectStatus.IN_PROGRESS ? 'blue' :
-                                                                project.status === ProjectStatus.ARCHIVED ? 'orange' :
-                                                                    'default'
-                                                    }
-                                                    style={{marginBottom: 10}}
-                                                >
-                                                    状态: {project.status || '未知'}
-                                                </Tag>
-                                            </div>
-
-                                            <div style={{borderTop: '1px solid #eee', paddingTop: 10, marginTop: 'auto'}}>
-                                                <Text type="secondary" style={{fontSize: '12px'}}>
-                                                    更新时间: {new Date(project.updatedAt || project.createdAt || '').toLocaleString()}
-                                                </Text>
-                                            </div>
-
-                                            <div style={{marginTop: 10}}>
-                                                <Button
-                                                    danger
-                                                    size="small"
-                                                    loading={operationLoading}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDeleteProject(project.id!, project.title || '未命名项目');
-                                                    }}
-                                                >
-                                                    {operationLoading ? '...' : '删除'}
-                                                </Button>
-                                            </div>
-                                        </Card>
-                                    </Col>
-                                ))}
-                            </Row>
-                        </>
-                    ) : (
-                        <div style={{
-                            backgroundColor: 'white',
-                            padding: '40px 20px',
-                            borderRadius: '8px',
-                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                            textAlign: 'center',
-                            marginTop: 30
-                        }}>
-                            <Empty
-                                description={
-                                    <div>
-                                        <Title level={3}>暂无剧本项目</Title>
-                                        <Text
-                                            type="secondary">{searchTerm ? '没有找到匹配的项目' : '点击新建按钮创建您的第一个AI剧本项目'}</Text>
-                                    </div>
-                                }
-                            />
-                            {!searchTerm && (
-                                <div style={{marginTop: 16}}>
-                                    <Button
-                                        type="primary"
-                                        size="large"
-                                        onClick={() => {
-                                            setShowCreateModal(true);
-                                            setError(null); // 清除错误状态
-                                        }}
-                                        disabled={operationLoading || apiLoading}
-                                    >
-                                        {operationLoading || apiLoading ? '处理中...' : '+ 新建项目'}
-                                    </Button>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* 创建项目模态框 */}
-                    <Modal
-                        title="创建新项目"
-                        open={showCreateModal}
-                        onCancel={() => {
-                            setShowCreateModal(false);
-                            setError(null); // 关闭模态框时清除错误状态
-                            form.resetFields(); // 重置表单
+                <Space>
+                    <Search
+                        placeholder="搜索项目..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        // style={{width: 250}}
+                        allowClear
+                    />
+                    <Button
+                        type="primary"
+                        size="large"
+                        onClick={() => {
+                            setShowCreateModal(true);
+                            setError(null); // 清除错误状态
                         }}
-                        footer={[
-                            <Button
-                                key="back"
-                                onClick={() => {
-                                    setShowCreateModal(false);
-                                    setError(null); // 关闭模态框时清除错误状态
-                                    form.resetFields(); // 重置表单
-                                }}
-                                disabled={operationLoading || apiLoading}
-                            >
-                                取消
-                            </Button>,
-                            <Button
-                                key="submit"
-                                type="primary"
-                                onClick={handleCreateProject}
-                                loading={operationLoading || apiLoading}
-                                disabled={!newProjectName.trim()}
-                            >
-                                {operationLoading || apiLoading ? '创建中...' : '创建'}
-                            </Button>,
-                        ]}
+                        disabled={operationLoading || apiLoading}
                     >
-                        <Form
-                            form={form}
-                            layout="vertical"
-                            onFinish={handleCreateProject}
-                        >
-                            {(error || apiError) && (
-                                <div style={{
-                                    padding: 10,
-                                    backgroundColor: '#fff6f6',
-                                    border: '1px solid #ffccc7',
-                                    borderRadius: 4,
-                                    marginBottom: 16
-                                }}>
-                                    <Text type="danger">错误: {error || apiError}</Text>
-                                </div>
-                            )}
+                        {operationLoading || apiLoading ? '处理中...' : '+ 新建项目'}
+                    </Button>
+                </Space>
+            </Header>
 
-                            <Form.Item
-                                label="项目名称"
-                                name="projectName"
-                                rules={[{required: true, message: '请输入项目名称!'}]}
-                            >
-                                <Input
-                                    value={newProjectName}
-                                    onChange={(e) => {
-                                        setNewProjectName(e.target.value);
-                                        if ((error || apiError) && newProjectName.trim()) {
-                                            setError(null); // 输入变化时清除错误状态
-                                        }
-                                    }}
-                                    placeholder="输入项目名称"
-                                    disabled={operationLoading || apiLoading}
-                                />
-                            </Form.Item>
+            <Content style={{
+                flex: 1,
+                overflowY: 'auto',
+                overflowX: 'auto',
+                padding: 24,
+                display: 'flex',
+                width: '100%',
+                position: 'fixed',
+                backgroundColor: '#f9f9f9',
+                minHeight: 'calc(100vh - 64px)',
+                minWidth: '100%'
+            }}>
 
-                            <Form.Item
-                                label="项目描述"
-                                name="projectDescription"
-                            >
-                                <Input.TextArea
-                                    value={newProjectDescription}
-                                    onChange={(e) => setNewProjectDescription(e.target.value)}
-                                    placeholder="输入项目描述"
-                                    rows={4}
-                                    disabled={operationLoading || apiLoading}
-                                />
-                            </Form.Item>
-                        </Form>
-                    </Modal>
-                </Content>
-            </Layout>
+                {(loading || apiLoading) ? (
+                    <LoadingSpinner/>
+                ) : (error || apiError) ? (
+                    <ErrorMessage
+                        error={error || apiError}
+                        onRetry={fetchProjects}
+                    />
+                ) : filteredProjects.length > 0 ? (
+                    <>
+                        <Row gutter={[24, 24]} style={{marginBottom: 30}}>
+                            {filteredProjects.map((project) => (
+                                <Col xs={24} sm={12} md={8} lg={6} key={project.id}>
+                                    <ProjectCard
+                                        project={project}
+                                        operationLoading={operationLoading}
+                                        onClick={() => handleProjectClick(project.id!)}
+                                        onDelete={handleProjectDelete}
+                                    />
+                                </Col>
+                            ))}
+                        </Row>
+                    </>
+                ) : (
+                    <EmptyState
+                        searchTerm={searchTerm}
+                        operationLoading={operationLoading}
+                        apiLoading={apiLoading}
+                        onCreateProject={() => {
+                            setShowCreateModal(true);
+                            setError(null);
+                        }}
+                    />
+                )}
+
+                {/* 创建项目模态框 */}
+                <CreateProjectModal
+                    open={showCreateModal}
+                    operationLoading={operationLoading}
+                    apiLoading={apiLoading}
+                    error={error}
+                    newProjectName={newProjectName}
+                    newProjectDescription={newProjectDescription}
+                    form={form}
+                    onClose={handleCloseModal}
+                    onNameChange={handleNameChange}
+                    onDescriptionChange={handleDescriptionChange}
+                    onSubmit={handleCreateProject}
+                />
+            </Content>
         </Layout>
 
     );

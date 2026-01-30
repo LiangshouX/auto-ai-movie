@@ -1,0 +1,45 @@
+/* ScriptManager 布局修复样式 */
+.script-manager-container {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.script-manager-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 24px;
+  display: flex;
+  width: 100%;
+  position: fixed;
+  background-color: #f9f9f9;
+  min-height: calc(100vh - 64px);
+  min-width: 100%;
+}
+
+.project-card-wrapper {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.project-card {
+  height: 320px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+/* 确保卡片间距正确 */
+.ant-row {
+  width: 100%;
+}
+
+.ant-col {
+  padding: 8px;
+}
+
+/* 修复删除按钮点击区域 */
+.project-card-button {
+  margin-top: 10px;
+}
