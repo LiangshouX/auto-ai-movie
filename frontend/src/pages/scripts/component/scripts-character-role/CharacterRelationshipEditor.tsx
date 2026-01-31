@@ -8,7 +8,7 @@ const {Text} = Typography;
 interface CharacterRelationshipEditorProps {
     character: CharacterRole | null;
     characters: CharacterRole[];
-    relationships: CharacterRelationship[];
+    relationships: CharacterRelationship[] | undefined;
     onRelationshipsChange: (relationships: CharacterRelationship[]) => void;
 }
 
@@ -16,7 +16,7 @@ const CharacterRelationshipEditor: React.FC<CharacterRelationshipEditorProps> = 
     {
         character,
         characters,
-        relationships,
+        relationships = [], // 默认值确保不为 undefined
         onRelationshipsChange
     }
 ) => {
@@ -30,13 +30,15 @@ const CharacterRelationshipEditor: React.FC<CharacterRelationshipEditorProps> = 
             relationshipType: '',
             description: ''
         };
-        const updatedRelationships = [...relationships, newRelationship];
+        const safeRelationships = relationships || [];
+        const updatedRelationships = [...safeRelationships, newRelationship];
         onRelationshipsChange(updatedRelationships);
-        setEditingRelationshipIndex(relationships.length);
+        setEditingRelationshipIndex(safeRelationships.length);
     };
 
     const handleUpdateRelationship = (index: number, field: keyof CharacterRelationship, value: string) => {
-        const updatedRelationships = [...relationships];
+        const safeRelationships = relationships || [];
+        const updatedRelationships = [...safeRelationships];
         updatedRelationships[index] = {
             ...updatedRelationships[index],
             [field]: value
@@ -54,7 +56,8 @@ const CharacterRelationshipEditor: React.FC<CharacterRelationshipEditorProps> = 
     };
 
     const handleRemoveRelationship = (index: number) => {
-        const updatedRelationships = relationships.filter((_, i) => i !== index);
+        const safeRelationships = relationships || [];
+        const updatedRelationships = safeRelationships.filter((_, i) => i !== index);
         onRelationshipsChange(updatedRelationships);
         if (editingRelationshipIndex === index) {
             setEditingRelationshipIndex(null);
@@ -64,8 +67,9 @@ const CharacterRelationshipEditor: React.FC<CharacterRelationshipEditorProps> = 
     };
 
     const handleCancelEditRelationship = (index: number) => {
+        const safeRelationships = relationships || [];
         // 如果是新建的空关系，直接删除
-        if (!relationships[index].relatedCharacterId) {
+        if (index >= safeRelationships.length || !safeRelationships[index]?.relatedCharacterId) {
             handleRemoveRelationship(index);
         } else {
             setEditingRelationshipIndex(null);
@@ -107,7 +111,7 @@ const CharacterRelationshipEditor: React.FC<CharacterRelationshipEditorProps> = 
                 </Button>
             </div>
 
-            {relationships.length > 0 && (
+            {(relationships || []).length > 0 && (
                 <div>
                     {relationships.map((relationship, index) => (
                         <Card
@@ -142,7 +146,7 @@ const CharacterRelationshipEditor: React.FC<CharacterRelationshipEditorProps> = 
                             ]}
                         >
                             {editingRelationshipIndex === index ? (
-                                <Space direction="vertical" style={{width: '100%'}}>
+                                <Space orientation="vertical" style={{width: '100%'}}>
                                     <Select
                                         style={{width: '100%'}}
                                         placeholder="选择关联角色"
@@ -167,7 +171,7 @@ const CharacterRelationshipEditor: React.FC<CharacterRelationshipEditorProps> = 
                                     />
                                 </Space>
                             ) : (
-                                <Space direction="vertical">
+                                <Space orientation="vertical">
                                     <Text><strong>关联角色:</strong> {relationship.relatedCharacterName || '未选择'}
                                     </Text>
                                     <Text><strong>关系类型:</strong> {getRelationshipTypes().find(t => t.value === relationship.relationshipType)?.label || '未选择'}
@@ -180,7 +184,7 @@ const CharacterRelationshipEditor: React.FC<CharacterRelationshipEditorProps> = 
                 </div>
             )}
 
-            {relationships.length === 0 && (
+            {(relationships || []).length === 0 && (
                 <Text type="secondary">暂无角色关系，点击上方按钮添加</Text>
             )}
         </div>

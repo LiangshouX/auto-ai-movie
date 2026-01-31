@@ -134,8 +134,8 @@ const RoleCanvasInner: React.FC<{
         const arrowShapes: any[] = [];
 
         roles.forEach(role => {
-            if (role.relationships && role.relationships.length > 0) {
-                role.relationships.forEach((rel, relIndex) => {
+            if (role.characterRelationships && role.characterRelationships.length > 0) {
+                role.characterRelationships.forEach((rel, relIndex) => {
                     // 检查目标角色是否存在
                     const targetRole = roles.find(r => r.id === rel.relatedCharacterId);
                     if (!targetRole) return;

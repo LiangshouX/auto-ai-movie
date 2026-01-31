@@ -174,7 +174,7 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
     const [personalityTags, setPersonalityTags] = useState<string[]>([]);
     const [skills, setSkills] = useState<string[]>([]);
     const [editingRelationships, setEditingRelationships] =
-        useState<CharacterRelationship[]>(character ? (character.relationships? character.relationships:[] ): []);
+        useState<CharacterRelationship[]>(character?.relationships || []);
 
     // 数据处理工具函数
     const parseTagsInput = (input: string | string[] | undefined): string[] => {
@@ -318,7 +318,7 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
                 };
 
                 // 处理角色关系的对称更新
-                const originalRelationships = character ? (character.relationships? character.relationships:[] ): [];
+                const originalRelationships = character?.relationships || [];
                 const currentRelationships = editingRelationships;
 
                 // 找出新增的关系
@@ -331,7 +331,7 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
 
                 const updateData: Partial<CharacterRole> = {
                     ...baseUpdateData,
-                    relationships: currentRelationships
+                    characterRelationships: currentRelationships
                 };
 
                 // 基础数据验证
@@ -365,7 +365,7 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
                                 const symmetricRelationship = createSymmetricRelationship(newRelationship);
                                 const updatedRelatedCharacter: CharacterRole = {
                                     ...relatedCharacter,
-                                    relationships: [...(relatedCharacter.relationships || []), symmetricRelationship]
+                                    characterRelationships: [...(relatedCharacter.relationships || []), symmetricRelationship]
                                 };
 
                                 // 异步更新关联角色（不等待结果，避免阻塞主流程）
@@ -442,7 +442,7 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
         form.resetFields();
         setPersonalityTags([]);
         setSkills([]);
-        setEditingRelationships(character?character.relationships : []);
+        setEditingRelationships(character?.relationships || []);
         setIsEditing(false);
         onClose();
     };
@@ -463,301 +463,301 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
 
             setPersonalityTags(personalityTagsArray);
             setSkills(skillsArray);
-            setEditingRelationships(character.relationships || []);
+            setEditingRelationships(character?.relationships || []);
         }
-        setIsEditing(false);
-    };
+            setIsEditing(false);
+        };
 
-    // 渲染只读视图
-    const renderReadOnlyView = () => {
-        if (!character) return null;
+        // 渲染只读视图
+        const renderReadOnlyView = () => {
+            if (!character) return null;
 
-        return (
-            <div style={{padding: '0 24px'}}>
-                <div style={{marginBottom: 24}}>
-                    <Space style={{marginBottom: 16}}>
-                        <Button
-                            type="primary"
-                            icon={<EditOutlined/>}
-                            onClick={() => setIsEditing(true)}
-                        >
-                            编辑
-                        </Button>
-                        <Popconfirm
-                            title="确定要删除这个角色吗？"
-                            description="删除后无法恢复"
-                            onConfirm={handleDelete}
-                            okText="确定"
-                            cancelText="取消"
-                            okButtonProps={{loading: deleting}}
-                        >
+            return (
+                <div style={{padding: '0 24px'}}>
+                    <div style={{marginBottom: 24}}>
+                        <Space style={{marginBottom: 16}}>
                             <Button
-                                danger
-                                icon={<DeleteOutlined/>}
-                                loading={deleting}
+                                type="primary"
+                                icon={<EditOutlined/>}
+                                onClick={() => setIsEditing(true)}
                             >
-                                删除
+                                编辑
                             </Button>
-                        </Popconfirm>
-                        <Button icon={<CloseOutlined/>} onClick={handleClose}>
-                            关闭
-                        </Button>
-                    </Space>
-                </div>
-
-                <div style={{marginBottom: 24}}>
-                    <Title level={4}>{character.name}</Title>
-                    <Text type="secondary">{character.roleInStory}</Text>
-                </div>
-
-                <Divider>基本信息</Divider>
-                <div style={{marginBottom: 16}}>
-                    <Text strong>年龄: </Text>
-                    <Text>{character.age ? `${character.age}岁` : '未知'}</Text>
-                </div>
-                <div style={{marginBottom: 16}}>
-                    <Text strong>性别: </Text>
-                    <Text>{character.gender || '未知'}</Text>
-                </div>
-
-                <Divider>性格特征</Divider>
-                <div style={{marginBottom: 16}}>
-                    <Text strong>性格标签: </Text>
-                    {Array.isArray(character.personalityTags) && character.personalityTags.length > 0 ? (
-                        <div style={{marginTop: 8}}>
-                            {character.personalityTags.map((tag, index) => (
-                                <Tag key={`${tag}-${index}`} color={'#10b981'}
-                                     style={{marginRight: 8, marginBottom: 8}}>
-                                    {tag}
-                                </Tag>
-                            ))}
-                        </div>
-                    ) : (
-                        <Text type="secondary"></Text>
-                    )}
-                </div>
-
-                <div style={{marginBottom: 16}}>
-                    <Text strong>技能特长: </Text>
-                    {Array.isArray(character.skills) && character.skills.length > 0 ? (
-                        <div style={{marginTop: 8}}>
-                            {character.skills.map((skill, index) => (
-                                <Tag key={`${skill}-${index}`} color="green" style={{marginRight: 8, marginBottom: 8}}>
-                                    {skill}
-                                </Tag>
-                            ))}
-                        </div>
-                    ) : (
-                        <Text type="secondary">无</Text>
-                    )}
-                </div>
-
-                <Divider>背景设定</Divider>
-                <div>
-                    <Text>{character.characterSetting || '无'}</Text>
-                </div>
-
-                <Divider>角色关系</Divider>
-                {(character.relationships?.length ?? 0) === 0 ? (
-                    <Text type="secondary">暂无关系</Text>
-                ) : (
-                    <List
-                        dataSource={character.relationships}
-                        renderItem={(rel: any, index: number) => {
-                            const key = rel.id || `${character.id}-rel-${index}`;
-                            return (
-                                <List.Item key={key}>
-                                    <List.Item.Meta
-                                        title={rel.relatedCharacterName}
-                                        description={
-                                            <>
-                                                <Tag color="orange">{rel.relationshipType}</Tag>
-                                                {rel.description}
-                                            </>
-                                        }
-                                    />
-                                </List.Item>
-                            );
-                        }}
-                    />
-                )}
-            </div>
-        );
-    };
-
-    // 渲染编辑/创建视图
-    const renderEditView = () => {
-        return (
-            <div style={{padding: '0 24px'}}>
-                <div style={{marginBottom: 24}}>
-                    <Space style={{marginBottom: 16}}>
-                        <Button
-                            type="primary"
-                            icon={<SaveOutlined/>}
-                            onClick={handleSave}
-                            loading={saving}
-                        >
-                            {mode === 'create' ? '创建' : '保存'}
-                        </Button>
-                        {mode !== 'create' && (
-                            <Button onClick={handleCancelEdit}>
-                                取消
+                            <Popconfirm
+                                title="确定要删除这个角色吗？"
+                                description="删除后无法恢复"
+                                onConfirm={handleDelete}
+                                okText="确定"
+                                cancelText="取消"
+                                okButtonProps={{loading: deleting}}
+                            >
+                                <Button
+                                    danger
+                                    icon={<DeleteOutlined/>}
+                                    loading={deleting}
+                                >
+                                    删除
+                                </Button>
+                            </Popconfirm>
+                            <Button icon={<CloseOutlined/>} onClick={handleClose}>
+                                关闭
                             </Button>
+                        </Space>
+                    </div>
+
+                    <div style={{marginBottom: 24}}>
+                        <Title level={4}>{character.name}</Title>
+                        <Text type="secondary">{character.roleInStory}</Text>
+                    </div>
+
+                    <Divider>基本信息</Divider>
+                    <div style={{marginBottom: 16}}>
+                        <Text strong>年龄: </Text>
+                        <Text>{character.age ? `${character.age}岁` : '未知'}</Text>
+                    </div>
+                    <div style={{marginBottom: 16}}>
+                        <Text strong>性别: </Text>
+                        <Text>{character.gender || '未知'}</Text>
+                    </div>
+
+                    <Divider>性格特征</Divider>
+                    <div style={{marginBottom: 16}}>
+                        <Text strong>性格标签: </Text>
+                        {Array.isArray(character.personalityTags) && character.personalityTags.length > 0 ? (
+                            <div style={{marginTop: 8}}>
+                                {character.personalityTags.map((tag, index) => (
+                                    <Tag key={`${tag}-${index}`} color={'#10b981'}
+                                         style={{marginRight: 8, marginBottom: 8}}>
+                                        {tag}
+                                    </Tag>
+                                ))}
+                            </div>
+                        ) : (
+                            <Text type="secondary"></Text>
                         )}
-                        <Button icon={<CloseOutlined/>} onClick={handleClose}>
-                            关闭
-                        </Button>
-                    </Space>
+                    </div>
+
+                    <div style={{marginBottom: 16}}>
+                        <Text strong>技能特长: </Text>
+                        {Array.isArray(character.skills) && character.skills.length > 0 ? (
+                            <div style={{marginTop: 8}}>
+                                {character.skills.map((skill, index) => (
+                                    <Tag key={`${skill}-${index}`} color="green" style={{marginRight: 8, marginBottom: 8}}>
+                                        {skill}
+                                    </Tag>
+                                ))}
+                            </div>
+                        ) : (
+                            <Text type="secondary">无</Text>
+                        )}
+                    </div>
+
+                    <Divider>背景设定</Divider>
+                    <div>
+                        <Text>{character.characterSetting || '无'}</Text>
+                    </div>
+
+                    <Divider>角色关系</Divider>
+                    {(character.relationships?.length ?? 0) === 0 ? (
+                        <Text type="secondary">暂无关系</Text>
+                    ) : (
+                        <List
+                            dataSource={character.relationships}
+                            renderItem={(rel: any, index: number) => {
+                                const key = rel.id || `${character.id}-rel-${index}`;
+                                return (
+                                    <List.Item key={key}>
+                                        <List.Item.Meta
+                                            title={rel.relatedCharacterName}
+                                            description={
+                                                <>
+                                                    <Tag color="orange">{rel.relationshipType}</Tag>
+                                                    {rel.description}
+                                                </>
+                                            }
+                                        />
+                                    </List.Item>
+                                );
+                            }}
+                        />
+                    )}
                 </div>
+            );
+        };
 
-                <Form
-                    form={form}
-                    layout="vertical"
-                    disabled={saving}
-                >
-                    <Form.Item
-                        name="name"
-                        label="角色姓名"
-                        rules={[
-                            {required: true, message: '请输入角色姓名'},
-                            {max: 50, message: '角色姓名长度不能超过50个字符'}
-                        ]}
+        // 渲染编辑/创建视图
+        const renderEditView = () => {
+            return (
+                <div style={{padding: '0 24px'}}>
+                    <div style={{marginBottom: 24}}>
+                        <Space style={{marginBottom: 16}}>
+                            <Button
+                                type="primary"
+                                icon={<SaveOutlined/>}
+                                onClick={handleSave}
+                                loading={saving}
+                            >
+                                {mode === 'create' ? '创建' : '保存'}
+                            </Button>
+                            {mode !== 'create' && (
+                                <Button onClick={handleCancelEdit}>
+                                    取消
+                                </Button>
+                            )}
+                            <Button icon={<CloseOutlined/>} onClick={handleClose}>
+                                关闭
+                            </Button>
+                        </Space>
+                    </div>
+
+                    <Form
+                        form={form}
+                        layout="vertical"
+                        disabled={saving}
                     >
-                        <Input placeholder="请输入角色姓名" maxLength={50}/>
-                    </Form.Item>
+                        <Form.Item
+                            name="name"
+                            label="角色姓名"
+                            rules={[
+                                {required: true, message: '请输入角色姓名'},
+                                {max: 50, message: '角色姓名长度不能超过50个字符'}
+                            ]}
+                        >
+                            <Input placeholder="请输入角色姓名" maxLength={50}/>
+                        </Form.Item>
 
-                    <Form.Item
-                        name="age"
-                        label="年龄"
-                        rules={[
-                            {
-                                validator: (_, value) => {
-                                    if (value === undefined || value === null || value === '') {
+                        <Form.Item
+                            name="age"
+                            label="年龄"
+                            rules={[
+                                {
+                                    validator: (_, value) => {
+                                        if (value === undefined || value === null || value === '') {
+                                            return Promise.resolve();
+                                        }
+                                        const num = Number(value);
+                                        if (isNaN(num) || num < 0 || num > 150) {
+                                            return Promise.reject('请输入0-150之间的有效年龄');
+                                        }
                                         return Promise.resolve();
                                     }
-                                    const num = Number(value);
-                                    if (isNaN(num) || num < 0 || num > 150) {
-                                        return Promise.reject('请输入0-150之间的有效年龄');
-                                    }
-                                    return Promise.resolve();
                                 }
-                            }
-                        ]}
-                    >
-                        <InputNumber
-                            placeholder="请输入年龄"
-                            min={0}
-                            max={150}
-                            style={{width: '100%'}}
+                            ]}
+                        >
+                            <InputNumber
+                                placeholder="请输入年龄"
+                                min={0}
+                                max={150}
+                                style={{width: '100%'}}
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="gender"
+                            label="性别"
+                            rules={[{required: true, message: '请选择性别'}]}
+                        >
+                            <Select placeholder="请选择性别">
+                                <Option value={Gender.MALE}>男性</Option>
+                                <Option value={Gender.FEMALE}>女性</Option>
+                                <Option value={Gender.OTHER}>其他</Option>
+                                <Option value={Gender.UNKNOWN}>未知</Option>
+                            </Select>
+                        </Form.Item>
+
+                        <Form.Item
+                            label="性格标签"
+                            extra={`已添加 ${personalityTags.length} 个标签`}
+                        >
+                            <TagInput
+                                value={personalityTags}
+                                onChange={setPersonalityTags}
+                                placeholder="输入性格标签后按回车添加，如：勇敢、聪明、善良"
+                                maxTags={10}
+                                maxLength={20}
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="roleInStory"
+                            label="在故事中的作用"
+                            rules={[
+                                {required: true, message: '请输入角色在故事中的作用'},
+                                {max: 200, message: '故事作用描述不能超过200个字符'}
+                            ]}
+                        >
+                            <Input.TextArea
+                                placeholder="描述这个角色在故事中扮演什么角色..."
+                                rows={3}
+                                maxLength={200}
+                                showCount
+                                defaultValue={'无'}
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            label="技能特长"
+                            extra={`已添加 ${skills.length} 个技能`}
+                        >
+                            <TagInput
+                                value={skills}
+                                onChange={setSkills}
+                                placeholder="输入技能特长后按回车添加，如：武术、医术、剑术"
+                                maxTags={15}
+                                maxLength={25}
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="characterSetting"
+                            label="角色设定"
+                            rules={[
+                                {required: true, message: '请输入角色设定'},
+                                {max: 500, message: '角色设定不能超过500个字符'}
+                            ]}
+                        >
+                            <Input.TextArea
+                                placeholder="详细描述角色的外貌、性格特征等..."
+                                rows={4}
+                                maxLength={500}
+                                showCount
+                                defaultValue={'无'}
+                            />
+                        </Form.Item>
+
+                        角色关系编辑部分
+                        <CharacterRelationshipEditor
+                            character={character}
+                            characters={characters}
+                            relationships={editingRelationships}
+                            onRelationshipsChange={setEditingRelationships}
                         />
-                    </Form.Item>
+                    </Form>
+                </div>
+            );
+        };
 
-                    <Form.Item
-                        name="gender"
-                        label="性别"
-                        rules={[{required: true, message: '请选择性别'}]}
-                    >
-                        <Select placeholder="请选择性别">
-                            <Option value={Gender.MALE}>男性</Option>
-                            <Option value={Gender.FEMALE}>女性</Option>
-                            <Option value={Gender.OTHER}>其他</Option>
-                            <Option value={Gender.UNKNOWN}>未知</Option>
-                        </Select>
-                    </Form.Item>
-
-                    <Form.Item
-                        label="性格标签"
-                        extra={`已添加 ${personalityTags.length} 个标签`}
-                    >
-                        <TagInput
-                            value={personalityTags}
-                            onChange={setPersonalityTags}
-                            placeholder="输入性格标签后按回车添加，如：勇敢、聪明、善良"
-                            maxTags={10}
-                            maxLength={20}
-                        />
-                    </Form.Item>
-
-                    <Form.Item
-                        name="roleInStory"
-                        label="在故事中的作用"
-                        rules={[
-                            {required: true, message: '请输入角色在故事中的作用'},
-                            {max: 200, message: '故事作用描述不能超过200个字符'}
-                        ]}
-                    >
-                        <Input.TextArea
-                            placeholder="描述这个角色在故事中扮演什么角色..."
-                            rows={3}
-                            maxLength={200}
-                            showCount
-                            defaultValue={'无'}
-                        />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="技能特长"
-                        extra={`已添加 ${skills.length} 个技能`}
-                    >
-                        <TagInput
-                            value={skills}
-                            onChange={setSkills}
-                            placeholder="输入技能特长后按回车添加，如：武术、医术、剑术"
-                            maxTags={15}
-                            maxLength={25}
-                        />
-                    </Form.Item>
-
-                    <Form.Item
-                        name="characterSetting"
-                        label="角色设定"
-                        rules={[
-                            {required: true, message: '请输入角色设定'},
-                            {max: 500, message: '角色设定不能超过500个字符'}
-                        ]}
-                    >
-                        <Input.TextArea
-                            placeholder="详细描述角色的外貌、性格特征等..."
-                            rows={4}
-                            maxLength={500}
-                            showCount
-                            defaultValue={'无'}
-                        />
-                    </Form.Item>
-
-                     角色关系编辑部分
-                    <CharacterRelationshipEditor
-                        character={character}
-                        characters={characters}
-                        relationships={editingRelationships}
-                        onRelationshipsChange={setEditingRelationships}
-                    />
-                </Form>
-            </div>
+        return (
+            <Drawer
+                title={
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                        <span>{getDrawerTitle()}</span>
+                        {character && mode !== 'create' && (
+                            <Text type="secondary" style={{fontSize: '14px'}}>
+                                角色 ID: <Tag color={'#10b981'}>{character.id.substring(0, 16)}...</Tag>
+                            </Text>
+                        )}
+                    </div>
+                }
+                placement="right"
+                open={open}
+                onClose={handleClose}
+                size={520}
+                // destroyOnClose
+            >
+                {isEditing ? renderEditView() : renderReadOnlyView()}
+            </Drawer>
         );
     };
-
-    return (
-        <Drawer
-            title={
-                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                    <span>{getDrawerTitle()}</span>
-                    {character && mode !== 'create' && (
-                        <Text type="secondary" style={{fontSize: '14px'}}>
-                            角色 ID: <Tag color={'#10b981'}>{character.id.substring(0, 16)}...</Tag>
-                        </Text>
-                    )}
-                </div>
-            }
-            placement="right"
-            open={open}
-            onClose={handleClose}
-            size={520}
-            // destroyOnClose
-        >
-            {isEditing ? renderEditView() : renderReadOnlyView()}
-        </Drawer>
-    );
-};
 
 export default CharacterDetailDrawer;

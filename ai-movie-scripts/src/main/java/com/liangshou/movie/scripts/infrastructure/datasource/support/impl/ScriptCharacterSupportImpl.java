@@ -7,6 +7,7 @@ import com.liangshou.movie.scripts.infrastructure.datasource.mapper.ScriptCharac
 import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptCharacterSupport;
 import com.liangshou.movie.scripts.service.dto.ScriptCharacterDTO;
 import com.liangshou.movie.scripts.utils.scripts.ArrayJsonUtil;
+import com.liangshou.movie.scripts.utils.scripts.CharacterRelationshipUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +37,7 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
         // 将数组转换为JSON字符串
         entity.setSkills(ArrayJsonUtil.arrayToJson(characterDTO.getSkills()));
         entity.setCharacterSetting(characterDTO.getCharacterSetting());
-        entity.setCharacterRelationships(characterDTO.getCharacterRelationships());
+        entity.setCharacterRelationships(CharacterRelationshipUtil.toJson(characterDTO.getCharacterRelationships()));
         entity.setCreatedAt(LocalDateTime.now());
         entity.setUpdatedAt(LocalDateTime.now());
         
@@ -63,6 +64,8 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
         // 将JSON字符串转换为数组
         dto.setPersonalityTags(ArrayJsonUtil.jsonToArray(entity.getPersonalityTags()));
         dto.setSkills(ArrayJsonUtil.jsonToArray(entity.getSkills()));
+        // 将JSON字符串转换为角色关系对象列表
+        dto.setCharacterRelationships(CharacterRelationshipUtil.fromJson(entity.getCharacterRelationships()));
         return dto;
     }
 
@@ -79,6 +82,8 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
             // 将JSON字符串转换为数组
             dto.setPersonalityTags(ArrayJsonUtil.jsonToArray(entity.getPersonalityTags()));
             dto.setSkills(ArrayJsonUtil.jsonToArray(entity.getSkills()));
+            // 将JSON字符串转换为角色关系对象列表
+            dto.setCharacterRelationships(CharacterRelationshipUtil.fromJson(entity.getCharacterRelationships()));
             return dto;
         }).toList();
     }
@@ -108,7 +113,7 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
         // 将数组转换为JSON字符串
         entity.setSkills(ArrayJsonUtil.arrayToJson(characterDTO.getSkills()));
         entity.setCharacterSetting(characterDTO.getCharacterSetting());
-        entity.setCharacterRelationships(characterDTO.getCharacterRelationships());
+        entity.setCharacterRelationships(CharacterRelationshipUtil.toJson(characterDTO.getCharacterRelationships()));
         entity.setUpdatedAt(LocalDateTime.now());
         
         this.updateById(entity);
@@ -137,6 +142,8 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
             // 将JSON字符串转换为数组
             dto.setPersonalityTags(ArrayJsonUtil.jsonToArray(entity.getPersonalityTags()));
             dto.setSkills(ArrayJsonUtil.jsonToArray(entity.getSkills()));
+            // 将JSON字符串转换为角色关系对象列表
+            dto.setCharacterRelationships(CharacterRelationshipUtil.fromJson(entity.getCharacterRelationships()));
             return dto;
         }).toList();
     }

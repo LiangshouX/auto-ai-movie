@@ -96,13 +96,13 @@ const CharacterDetailSidebar = ({ selectedRoleId, onEdit, onDelete }: CharacterD
                     <Text type="secondary">{character.characterSetting || '暂无设定'}</Text>
                 </div>
 
-                {character.relationships.length > 0 && (
+                {(character.characterRelationships?.length ?? 0) > 0 && (
                     <div>
                         <Title level={4} style={{ margin: '16px 0 12px 0', color: '#434343' }}>
                             <TeamOutlined /> 人际关系
                         </Title>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                            {character.relationships.map((rel, index) => (
+                            {(character.characterRelationships || []).map((rel, index) => (
                                 <Card size="small" key={index}>
                                     <div>
                                         <Text strong>{rel.relatedCharacterName}</Text>

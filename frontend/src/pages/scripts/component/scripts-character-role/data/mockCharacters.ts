@@ -12,7 +12,7 @@ export const mockCharacters: CharacterRole[] = [
     roleInStory: '主角，一个勇敢的小男孩',
     skills: ['跑步', '攀爬'],
     characterSetting: '来自普通家庭的孩子，有着不平凡的梦想',
-    relationships: [
+    characterRelationships: [
       {
         relatedCharacterId: '222222222222222',
         relatedCharacterName: '李四',
@@ -39,7 +39,7 @@ export const mockCharacters: CharacterRole[] = [
     roleInStory: '配角，张三的好朋友',
     skills: ['讲故事', '绘画'],
     characterSetting: '性格开朗，善于交际',
-    relationships: [
+    characterRelationships: [
       {
         relatedCharacterId: '111111111111111',
         relatedCharacterName: '张三1',
@@ -60,7 +60,7 @@ export const mockCharacters: CharacterRole[] = [
     roleInStory: '导师角色，引导主角成长',
     skills: ['教学', '心理咨询', '人生指导'],
     characterSetting: '经验丰富的教师，深受学生喜爱',
-    relationships: [
+    characterRelationships: [
       {
         relatedCharacterId: '111111111111111',
         relatedCharacterName: '张三1',
@@ -81,7 +81,7 @@ export const mockCharacters: CharacterRole[] = [
     roleInStory: '重要配角，带来新的视角',
     skills: ['观察力强', '手工制作'],
     characterSetting: '好奇心旺盛的女孩，总能发现别人注意不到的细节',
-    relationships: [
+    characterRelationships: [
       {
         relatedCharacterId: '111111111111111',
         relatedCharacterName: '张三1',
@@ -108,7 +108,7 @@ export const mockCharacters: CharacterRole[] = [
     roleInStory: '权威角色，学校的重要决策者',
     skills: ['领导力', '决策制定', '危机处理'],
     characterSetting: '学校的最高管理者，以严格著称但内心关爱学生',
-    relationships: [
+    characterRelationships: [
       {
         relatedCharacterId: '333333333333333',
         relatedCharacterName: '王老师',

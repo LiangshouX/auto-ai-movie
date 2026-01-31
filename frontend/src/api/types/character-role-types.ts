@@ -17,7 +17,7 @@ export interface CharacterRole {
   roleInStory: string;
   skills: string[];
   characterSetting: string;
-  relationships: CharacterRelationship[];
+  characterRelationships: CharacterRelationship[];
   createdAt: string; // ISO时间戳
   updatedAt: string; // ISO时间戳
 }
@@ -75,7 +75,7 @@ export const createDefaultCharacterRole = (): CharacterRole => ({
   roleInStory: '',
   skills: [],
   characterSetting: '',
-  relationships: [],
+  characterRelationships: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()
 });
@@ -91,7 +91,7 @@ export const createCharacterRoleFromData = (data: Partial<CharacterRole>): Chara
   roleInStory: data.roleInStory || '',
   skills: data.skills || [],
   characterSetting: data.characterSetting || '',
-  relationships: data.relationships || [],
+  characterRelationships: data.characterRelationships || [],
   createdAt: data.createdAt || new Date().toISOString(),
   updatedAt: data.updatedAt || new Date().toISOString()
 });

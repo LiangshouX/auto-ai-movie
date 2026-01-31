@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
 import {Avatar, Badge, Button, Card, Col, Empty, Flex, Row, Space, Spin, Tag, Typography} from 'antd';
-import {PlusOutlined, RobotOutlined, UserOutlined} from '@ant-design/icons';
+import {PlusOutlined, ReloadOutlined, RobotOutlined, UserOutlined} from '@ant-design/icons';
 import {CharacterRole} from '../../../../api/types/character-role-types.ts';
 import {characterRoleApi} from '../../../../api/service/character-role.ts';
 import {ScriptProject} from '../../../../api/types/project-types.ts';
@@ -118,7 +118,7 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({project}) => {
                 </Text>
                 <div style={{marginTop: 8}}>
                     <Badge
-                        count={`${character.relationships?.length ?? 0}个关系`}
+                        count={`${character.characterRelationships?.length ?? 0}个关系`}
                         overflowCount={99}
                     />
                 </div>
@@ -171,6 +171,15 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({project}) => {
             }}>
                 <Title level={3} style={{margin: 0}}>角色设计</Title>
                 <Space>
+                    <Button
+                        // type="primary"
+                        size="large"
+                        icon={<ReloadOutlined/>}
+                        onClick={fetchCharacters}
+                    >
+                        刷新
+                    </Button>
+
                     <Button
                         // type="primary"
                         size="large"

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 角色信息数据传输对象
@@ -28,7 +29,7 @@ public class ScriptCharacterDTO {
     /**
      * 格式遵从 {@link CharacterRelationshipDTO}
      */
-    private String characterRelationships;
+    private List<CharacterRelationshipDTO> characterRelationships;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

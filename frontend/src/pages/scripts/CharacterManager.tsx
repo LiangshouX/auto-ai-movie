@@ -148,7 +148,7 @@ const CharacterManager = () => {
                 
                 return {
                     ...char,
-                    relationships: [...char.relationships, newRelationship]
+                    relationships: [...char.characterRelationships, newRelationship]
                 };
             }
             return char;
@@ -165,7 +165,7 @@ const CharacterManager = () => {
             if (char.id === sourceId) {
                 return {
                     ...char,
-                    relationships: char.relationships.filter(rel => rel.relatedCharacterId !== targetId)
+                    relationships: char.characterRelationships.filter(rel => rel.relatedCharacterId !== targetId)
                 };
             }
             return char;
