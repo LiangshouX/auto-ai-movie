@@ -6,10 +6,10 @@ import { ScriptProject } from '../../../../api/types/project-types.ts';
 import { projectApi } from '../../../../api/service/ai-scripts.ts';
 import EditorHeader from '../../layout/EditorHeader.tsx';
 import SidebarNav from '../../layout/SidebarNav.tsx';
-import BackgroundSetting from '../BackgroundSetting.tsx';
-import PlotSummary from '../PlotSummary.tsx';
+import BackgroundSetting from '../scripts-backgound-plot/BackgroundSetting.tsx';
+import PlotSummary from '../scripts-backgound-plot/PlotSummary.tsx';
 import CharacterDesign from '../scripts-character-role/CharacterDesign.tsx';
-import ScriptOutline from '../ScriptOutline.tsx';
+import ScriptOutline from '../scripts-outline-chapter/ScriptOutline.tsx';
 
 const { Content } = Layout;
 const { Title, Text } = Typography;

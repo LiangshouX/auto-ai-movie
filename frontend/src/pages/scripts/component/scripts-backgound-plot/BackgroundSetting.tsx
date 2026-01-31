@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {Card, Row, Col, Typography, Input, Button, List, Avatar, Space, Divider, Flex} from 'antd';
 import {SendOutlined, RobotOutlined, UserOutlined} from '@ant-design/icons';
-import {ScriptProject} from '../../../api/types/project-types';
+import {ScriptProject} from '../../../../api/types/project-types.ts';
 
 const {Title, Text} = Typography;
 const {TextArea} = Input;
