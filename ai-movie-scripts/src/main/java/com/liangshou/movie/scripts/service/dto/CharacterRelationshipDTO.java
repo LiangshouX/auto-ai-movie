@@ -15,7 +15,7 @@ public class CharacterRelationshipDTO {
     /**
      * 相关角色姓名
      */
-    private String relatesCharacterName;
+    private String relatedCharacterName;
     
     /**
      * 关系类型(朋友/敌人/恋人等)
