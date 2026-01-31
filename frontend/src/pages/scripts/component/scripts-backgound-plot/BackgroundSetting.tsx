@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from 'react';
 // 添加 message 导入
 import {Col, message, Row} from 'antd';
-import {ScriptProject} from '../../../../api/types/project-types.ts';
-import {projectApi} from '../../../../api/service/ai-scripts.ts';
+import {ScriptProject} from '@/api/types/project-types.ts';
+import {projectApi} from '@/api/service/ai-scripts.ts';
 import {AiChatPanel} from './AiChatPanel.tsx'
 import {TextEditorPanel} from './TextEditorPanel.tsx'
 
@@ -16,7 +16,7 @@ const BackgroundSetting: React.FC<BackgroundSettingProps> = ({project, onContent
     const [sessionId, setSessionId] = useState<string>('');
     const [aiMessages, setAiMessages] = useState<{ id: string, text: string, role: 'user' | 'assistant' }[]>([]);
     const [inputMessage, setInputMessage] = useState<string>('');
-    const [saving, setSaving] = useState<boolean>(false);
+    const [, setSaving] = useState<boolean>(false);
 
     // 初始化session_id，使用projectId + 时间戳
     useEffect(() => {
