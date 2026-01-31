@@ -5,7 +5,7 @@ import {PlusOutlined, RobotOutlined, UserOutlined} from '@ant-design/icons';
 import {CharacterRole} from '../../../../api/types/character-role-types.ts';
 import {characterRoleApi} from '../../../../api/service/character-role.ts';
 import {ScriptProject} from '../../../../api/types/project-types.ts';
-import CharacterManageDrawer from "./CharacterManageDrawer.tsx";
+import CharacterDetailDrawer from "./CharacterDetailDrawer.tsx";
 
 const {Title, Text} = Typography;
 
@@ -166,7 +166,9 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({project}) => {
             minWidth: 'max(1200px, calc(100vw - 340px))'
         }}>
             {/* 画布头部 */}
-            <Flex justify="space-between" align="center" style={{marginBottom: 24}}>
+            <Flex justify="space-between" align="center" style={{
+                marginBottom: 0, position: 'sticky', top: 0, zIndex: 1, background: '#fff',
+            }}>
                 <Title level={3} style={{margin: 0}}>角色设计</Title>
                 <Space>
                     <Button
@@ -217,7 +219,7 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({project}) => {
             </Row>
 
             {/* 角色详情抽屉 */}
-            <CharacterManageDrawer
+            <CharacterDetailDrawer
                 character={selectedCharacter}
                 open={drawerOpen}
                 mode={drawerMode}

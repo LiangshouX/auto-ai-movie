@@ -13,7 +13,7 @@ import {
 } from "./component/scripts-character-role/data/mockCharacters";
 import {CharacterRelationship, CharacterRole, Gender} from "../../api/types/character-role-types";
 import CharacterDetailSidebar from "./component/scripts-character-role/CharacterDetailSidebar.tsx";
-import AddCharacterModal from "./component/scripts-character-role/AddCharacterModal.tsx";
+import CharacterDetailDrawer from "./component/scripts-character-role/CharacterDetailDrawer.tsx";
 
 const {Title} = Typography;
 const {Search} = Input;
@@ -282,11 +282,13 @@ const CharacterManager = () => {
             </Content>
             
             {/* 创建角色模态框 */}
-            <AddCharacterModal
-                visible={isModalVisible}
+            <CharacterDetailDrawer
+                character={null}
+                open={isModalVisible}
+                mode={'create'}
                 projectId="07ca8285a4bfa47abd869415cf9fe404"
-                onCancel={handleModalCancel}
-                onCreated={handleCharacterCreated}
+                onClose={handleModalCancel}
+                onSuccess={handleCharacterCreated}
             />
 
             {/* 角色详情侧边栏 */}
