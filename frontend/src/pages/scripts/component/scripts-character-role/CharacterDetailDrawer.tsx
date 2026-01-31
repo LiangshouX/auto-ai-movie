@@ -173,8 +173,7 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
     // 状态管理
     const [personalityTags, setPersonalityTags] = useState<string[]>([]);
     const [skills, setSkills] = useState<string[]>([]);
-    const [editingRelationships, setEditingRelationships] =
-        useState<CharacterRelationship[]>(character?.relationships || []);
+    const [editingRelationships, setEditingRelationships] = useState<CharacterRelationship[]>([]);
 
     // 数据处理工具函数
     const parseTagsInput = (input: string | string[] | undefined): string[] => {
@@ -212,11 +211,13 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
                 form.setFieldsValue({
                     gender: Gender.UNKNOWN
                 });
+                setEditingRelationships([]);
                 setIsEditing(true);
             } else if (character && (mode === 'view' || mode === 'edit')) {
                 // 查看或编辑模式 - 填充角色数据
                 const personalityTagsArray = parseTagsInput(character.personalityTags);
                 const skillsArray = parseTagsInput(character.skills);
+                const relationshipsArray = character.characterRelationships || [];
 
                 form.setFieldsValue({
                     name: character.name,
@@ -228,6 +229,7 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
 
                 setPersonalityTags(personalityTagsArray);
                 setSkills(skillsArray);
+                setEditingRelationships(relationshipsArray);
                 setIsEditing(mode === 'edit');
             }
         }
@@ -318,7 +320,7 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
                 };
 
                 // 处理角色关系的对称更新
-                const originalRelationships = character?.relationships || [];
+                const originalRelationships = character?.characterRelationships || [];
                 const currentRelationships = editingRelationships;
 
                 // 找出新增的关系
@@ -365,7 +367,7 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
                                 const symmetricRelationship = createSymmetricRelationship(newRelationship);
                                 const updatedRelatedCharacter: CharacterRole = {
                                     ...relatedCharacter,
-                                    characterRelationships: [...(relatedCharacter.relationships || []), symmetricRelationship]
+                                    characterRelationships: [...(relatedCharacter.characterRelationships || []), symmetricRelationship]
                                 };
 
                                 // 异步更新关联角色（不等待结果，避免阻塞主流程）
@@ -442,7 +444,7 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
         form.resetFields();
         setPersonalityTags([]);
         setSkills([]);
-        setEditingRelationships(character?.relationships || []);
+        setEditingRelationships(character?.characterRelationships || []);
         setIsEditing(false);
         onClose();
     };
@@ -463,7 +465,7 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
 
             setPersonalityTags(personalityTagsArray);
             setSkills(skillsArray);
-            setEditingRelationships(character?.relationships || []);
+            setEditingRelationships(character?.characterRelationships || []);
         }
             setIsEditing(false);
         };
@@ -558,11 +560,11 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
                     </div>
 
                     <Divider>角色关系</Divider>
-                    {(character.relationships?.length ?? 0) === 0 ? (
+                    {(character.characterRelationships?.length ?? 0) === 0 ? (
                         <Text type="secondary">暂无关系</Text>
                     ) : (
                         <List
-                            dataSource={character.relationships}
+                            dataSource={character.characterRelationships}
                             renderItem={(rel: any, index: number) => {
                                 const key = rel.id || `${character.id}-rel-${index}`;
                                 return (
