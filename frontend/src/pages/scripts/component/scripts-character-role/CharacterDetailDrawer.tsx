@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
-    Button, Card,
+    Button,
     Divider,
     Drawer,
     Form,
@@ -14,15 +14,15 @@ import {
     Tag,
     Typography
 } from 'antd';
-import {CloseOutlined, DeleteOutlined, EditOutlined, PlusOutlined, SaveOutlined} from '@ant-design/icons';
+import {CloseOutlined, DeleteOutlined, EditOutlined, SaveOutlined} from '@ant-design/icons';
 import {
-    CharacterRole,
     CharacterRelationship,
+    CharacterRole,
     CreateCharacterRoleData,
-    Gender,
-    RelationshipType
+    Gender
 } from '../../../../api/types/character-role-types.ts';
 import {characterRoleApi} from '../../../../api/service/character-role.ts';
+import CharacterRelationshipEditor from "./CharacterRelationshipEditor.tsx";
 
 const {Title, Text} = Typography;
 const {Option} = Select;
@@ -175,7 +175,6 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
     const [skills, setSkills] = useState<string[]>([]);
     const [editingRelationships, setEditingRelationships] =
         useState<CharacterRelationship[]>(character ? (character.relationships? character.relationships:[] ): []);
-    const [editingRelationshipIndex, setEditingRelationshipIndex] = useState<number | null>(0)
 
     // 数据处理工具函数
     const parseTagsInput = (input: string | string[] | undefined): string[] => {
@@ -423,88 +422,6 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
         }
     };
 
-    // 角色关系操作函数
-    const handleAddRelationship = () => {
-        const newRelationship: CharacterRelationship = {
-            relatedCharacterId: '',
-            relatedCharacterName: '',
-            relationshipType: '',
-            description: ''
-        };
-        setEditingRelationships([...editingRelationships, newRelationship]);
-        setEditingRelationshipIndex(editingRelationships.length);
-    };
-
-    const handleUpdateRelationship = (index: number, field: keyof CharacterRelationship, value: string) => {
-        const updatedRelationships = [...editingRelationships];
-        updatedRelationships[index] = {
-            ...updatedRelationships[index],
-            [field]: value
-        };
-
-        // 如果是选择角色，自动填充角色名
-        if (field === 'relatedCharacterId' && value) {
-            const selectedCharacter = characters.find((char: CharacterRole) => char.id === value);
-            if (selectedCharacter) {
-                updatedRelationships[index].relatedCharacterName = selectedCharacter.name;
-            }
-        }
-
-        setEditingRelationships(updatedRelationships);
-    };
-
-    const handleRemoveRelationship = (index: number) => {
-        const updatedRelationships = editingRelationships.filter((_, i) => i !== index);
-        setEditingRelationships(updatedRelationships);
-        if (editingRelationshipIndex === index) {
-            // FIXME
-            setEditingRelationshipIndex(0);
-        } else if (editingRelationshipIndex !== null && editingRelationshipIndex > index) {
-            setEditingRelationshipIndex(editingRelationshipIndex - 1);
-        }
-    };
-
-    /*@ts-ignore*/
-    const handleSaveRelationship = (index: number) => {
-        const relationship = editingRelationships[index];
-        if (!relationship.relatedCharacterId || !relationship.relationshipType) {
-            message.warning('请选择关联角色和关系类型');
-            return;
-        }
-        // FIXME
-        setEditingRelationshipIndex(0);
-    };
-
-    const handleCancelEditRelationship = (index: number) => {
-        // 如果是新建的空关系，直接删除
-        if (!editingRelationships[index].relatedCharacterId) {
-            handleRemoveRelationship(index);
-        } else {
-            setEditingRelationshipIndex(null);
-        }
-    };
-
-    // 获取可用的角色选项（排除当前角色本身）
-    const getAvailableCharacters = () => {
-        return characters.filter((char: CharacterRole) => char.id !== character?.id);
-    };
-
-    // 获取关系类型选项
-    const getRelationshipTypes = () => {
-        return [
-            {value: RelationshipType.FRIEND, label: '朋友'},
-            {value: RelationshipType.ENEMY, label: '敌人'},
-            {value: RelationshipType.LOVER, label: '恋人'},
-            {value: RelationshipType.FAMILY, label: '家人'},
-            {value: RelationshipType.COLLEAGUE, label: '同事'},
-            {value: RelationshipType.ACQUAINTANCE, label: '熟人'},
-            {value: RelationshipType.RIVAL, label: '对手'},
-            {value: RelationshipType.MENTOR, label: '导师'},
-            {value: RelationshipType.PROTEGE, label: '学生'},
-            {value: RelationshipType.OTHER, label: '其他'}
-        ];
-    };
-
     // 生成对称关系描述
     const generateSymmetricDescription = (_originalDescription: string) => {
         return `【由角色${character?.name || ''}创建的关系，注意及时更新！】`;
@@ -526,7 +443,6 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
         setPersonalityTags([]);
         setSkills([]);
         setEditingRelationships(character?character.relationships : []);
-        setEditingRelationshipIndex(null);
         setIsEditing(false);
         onClose();
     };
@@ -809,102 +725,13 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
                         />
                     </Form.Item>
 
-                    {/* 角色关系编辑部分 */}
-                    <Divider>编辑角色关系</Divider>
-                    <div style={{marginBottom: 16}}>
-                        <Button
-                            type="dashed"
-                            onClick={handleAddRelationship}
-                            block
-                            style={{borderStyle: 'dashed'}}
-                        >
-                            <PlusOutlined/> 新增一行
-                        </Button>
-                    </div>
-
-                    {editingRelationships.length > 0 && (
-                        <div>
-                            {editingRelationships.map((relationship, index) => (
-                                <Card
-                                    key={index}
-                                    size="small"
-                                    style={{marginBottom: 12}}
-                                    actions={editingRelationshipIndex === index ? [
-                                        // <Button
-                                        //     type="primary"
-                                        //     size="small"
-                                        //     onClick={() => handleSaveRelationship(index)}
-                                        // >
-                                        //     完成
-                                        // </Button>,
-                                        <Button
-                                            size="small"
-                                            onClick={() => handleCancelEditRelationship(index)}
-                                        >
-                                            退出编辑
-                                        </Button>
-                                    ] : [
-                                        <Button
-                                            type="link"
-                                            size="small"
-                                            onClick={() => setEditingRelationshipIndex(index)}
-                                        >
-                                            编辑
-                                        </Button>,
-                                        <Popconfirm
-                                            title="确定要删除这个关系吗？"
-                                            onConfirm={() => handleRemoveRelationship(index)}
-                                            okText="确定"
-                                            cancelText="取消"
-                                        >
-                                            <Button type="link" size="small" danger>
-                                                删除
-                                            </Button>
-                                        </Popconfirm>
-                                    ]}
-                                >
-                                    {editingRelationshipIndex === index ? (
-                                        <Space direction="vertical" style={{width: '100%'}}>
-                                            <Select
-                                                style={{width: '100%'}}
-                                                placeholder="选择关联角色"
-                                                value={relationship.relatedCharacterId || undefined}
-                                                onChange={(value) => handleUpdateRelationship(index, 'relatedCharacterId', value)}
-                                                options={getAvailableCharacters().map(char => ({
-                                                    value: char.id,
-                                                    label: char.name
-                                                }))}
-                                            />
-                                            <Select
-                                                style={{width: '100%'}}
-                                                placeholder="选择关系类型"
-                                                value={relationship.relationshipType || undefined}
-                                                onChange={(value) => handleUpdateRelationship(index, 'relationshipType', value)}
-                                                options={getRelationshipTypes()}
-                                            />
-                                            <Input
-                                                placeholder="关系描述"
-                                                value={relationship.description}
-                                                onChange={(e) => handleUpdateRelationship(index, 'description', e.target.value)}
-                                            />
-                                        </Space>
-                                    ) : (
-                                        <Space direction="vertical">
-                                            <Text><strong>关联角色:</strong> {relationship.relatedCharacterName || '未选择'}
-                                            </Text>
-                                            <Text><strong>关系类型:</strong> {getRelationshipTypes().find(t => t.value === relationship.relationshipType)?.label || '未选择'}
-                                            </Text>
-                                            <Text><strong>关系描述:</strong> {relationship.description || '无'}</Text>
-                                        </Space>
-                                    )}
-                                </Card>
-                            ))}
-                        </div>
-                    )}
-
-                    {editingRelationships.length === 0 && (
-                        <Text type="secondary">暂无角色关系，点击上方按钮添加</Text>
-                    )}
+                     角色关系编辑部分
+                    <CharacterRelationshipEditor
+                        character={character}
+                        characters={characters}
+                        relationships={editingRelationships}
+                        onRelationshipsChange={setEditingRelationships}
+                    />
                 </Form>
             </div>
         );
@@ -931,406 +758,6 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
             {isEditing ? renderEditView() : renderReadOnlyView()}
         </Drawer>
     );
-
-    // 处理取消编辑
-    // const handleCancelEdit = () => {
-    //     if (character && mode !== 'create') {
-    //         const personalityTagsArray = parseTagsInput(character.personalityTags);
-    //         const skillsArray = parseTagsInput(character.skills);
-    //
-    //         form.setFieldsValue({
-    //             name: character.name,
-    //             age: character.age,
-    //             gender: character.gender,
-    //             roleInStory: character.roleInStory,
-    //             characterSetting: character.characterSetting
-    //         });
-    //
-    //         setPersonalityTags(personalityTagsArray);
-    //         setSkills(skillsArray);
-    //     }
-    //     setIsEditing(false);
-    // };
-
-    // 渲染只读视图
-    // const renderReadOnlyView = () => {
-    //     if (!character) return null;
-    //
-    //     return (
-    //         <div style={{padding: '0 24px'}}>
-    //             <div style={{marginBottom: 24}}>
-    //                 <Space style={{marginBottom: 16}}>
-    //                     <Button
-    //                         type="primary"
-    //                         icon={<EditOutlined/>}
-    //                         onClick={() => setIsEditing(true)}
-    //                     >
-    //                         编辑
-    //                     </Button>
-    //                     <Popconfirm
-    //                         title="确定要删除这个角色吗？"
-    //                         description="删除后无法恢复"
-    //                         onConfirm={handleDelete}
-    //                         okText="确定"
-    //                         cancelText="取消"
-    //                         okButtonProps={{loading: deleting}}
-    //                     >
-    //                         <Button
-    //                             danger
-    //                             icon={<DeleteOutlined/>}
-    //                             loading={deleting}
-    //                         >
-    //                             删除
-    //                         </Button>
-    //                     </Popconfirm>
-    //                     <Button icon={<CloseOutlined/>} onClick={handleClose}>
-    //                         关闭
-    //                     </Button>
-    //                 </Space>
-    //             </div>
-    //
-    //             <div style={{marginBottom: 24}}>
-    //                 <Title level={4}>{character.name}</Title>
-    //                 <Text type="secondary">{character.roleInStory}</Text>
-    //             </div>
-    //
-    //             <Divider>基本信息</Divider>
-    //             <div style={{marginBottom: 16}}>
-    //                 <Text strong>年龄: </Text>
-    //                 <Text>{character.age ? `${character.age}岁` : '未知'}</Text>
-    //             </div>
-    //             <div style={{marginBottom: 16}}>
-    //                 <Text strong>性别: </Text>
-    //                 <Text>{character.gender || '未知'}</Text>
-    //             </div>
-    //
-    //             <Divider>性格特征</Divider>
-    //             <div style={{marginBottom: 16}}>
-    //                 <Text strong>性格标签: </Text>
-    //                 {Array.isArray(character.personalityTags) && character.personalityTags.length > 0 ? (
-    //                     <div style={{marginTop: 8}}>
-    //                         {character.personalityTags.map((tag, index) => (
-    //                             <Tag key={`${tag}-${index}`} color={'#10b981'}
-    //                                  style={{marginRight: 8, marginBottom: 8}}>
-    //                                 {tag}
-    //                             </Tag>
-    //                         ))}
-    //                     </div>
-    //                 ) : (
-    //                     <Text type="secondary"></Text>
-    //                 )}
-    //             </div>
-    //
-    //             <div style={{marginBottom: 16}}>
-    //                 <Text strong>技能特长: </Text>
-    //                 {Array.isArray(character.skills) && character.skills.length > 0 ? (
-    //                     <div style={{marginTop: 8}}>
-    //                         {character.skills.map((skill, index) => (
-    //                             <Tag key={`${skill}-${index}`} color="green" style={{marginRight: 8, marginBottom: 8}}>
-    //                                 {skill}
-    //                             </Tag>
-    //                         ))}
-    //                     </div>
-    //                 ) : (
-    //                     <Text type="secondary">无</Text>
-    //                 )}
-    //             </div>
-    //
-    //             <Divider>背景设定</Divider>
-    //             <div>
-    //                 <Text>{character.characterSetting || '无'}</Text>
-    //             </div>
-    //
-    //             <Divider>角色关系</Divider>
-    //             {(character.relationships?.length ?? 0) === 0 ? (
-    //                 <Text type="secondary">暂无关系</Text>
-    //             ) : (
-    //                 <List
-    //                     dataSource={character.relationships}
-    //                     renderItem={(rel: any, index: number) => {
-    //                         const key = rel.id || `${character.id}-rel-${index}`;
-    //                         return (
-    //                             <List.Item key={key}>
-    //                                 <List.Item.Meta
-    //                                     title={rel.relatedCharacterName}
-    //                                     description={
-    //                                         <>
-    //                                             <Tag color="orange">{rel.relationshipType}</Tag>
-    //                                             {rel.description}
-    //                                         </>
-    //                                     }
-    //                                 />
-    //                             </List.Item>
-    //                         );
-    //                     }}
-    //                 />
-    //             )}
-    //         </div>
-    //     );
-    // };
-
-    // 渲染编辑/创建视图
-    // const renderEditView = () => {
-    //     return (
-    //         <div style={{padding: '0 24px'}}>
-    //             <div style={{marginBottom: 24}}>
-    //                 <Space style={{marginBottom: 16}}>
-    //                     <Button
-    //                         type="primary"
-    //                         icon={<SaveOutlined/>}
-    //                         onClick={handleSave}
-    //                         loading={saving}
-    //                     >
-    //                         {mode === 'create' ? '创建' : '保存'}
-    //                     </Button>
-    //                     {mode !== 'create' && (
-    //                         <Button onClick={handleCancelEdit}>
-    //                             取消
-    //                         </Button>
-    //                     )}
-    //                     <Button icon={<CloseOutlined/>} onClick={handleClose}>
-    //                         关闭
-    //                     </Button>
-    //                 </Space>
-    //             </div>
-    //
-    //             <Form
-    //                 form={form}
-    //                 layout="vertical"
-    //                 disabled={saving}
-    //             >
-    //                 <Form.Item
-    //                     name="name"
-    //                     label="角色姓名"
-    //                     rules={[
-    //                         {required: true, message: '请输入角色姓名'},
-    //                         {max: 50, message: '角色姓名长度不能超过50个字符'}
-    //                     ]}
-    //                 >
-    //                     <Input placeholder="请输入角色姓名" maxLength={50}/>
-    //                 </Form.Item>
-    //
-    //                 <Form.Item
-    //                     name="age"
-    //                     label="年龄"
-    //                     rules={[
-    //                         {
-    //                             validator: (_, value) => {
-    //                                 if (value === undefined || value === null || value === '') {
-    //                                     return Promise.resolve();
-    //                                 }
-    //                                 const num = Number(value);
-    //                                 if (isNaN(num) || num < 0 || num > 150) {
-    //                                     return Promise.reject('请输入0-150之间的有效年龄');
-    //                                 }
-    //                                 return Promise.resolve();
-    //                             }
-    //                         }
-    //                     ]}
-    //                 >
-    //                     <InputNumber
-    //                         placeholder="请输入年龄"
-    //                         min={0}
-    //                         max={150}
-    //                         style={{width: '100%'}}
-    //                     />
-    //                 </Form.Item>
-    //
-    //                 <Form.Item
-    //                     name="gender"
-    //                     label="性别"
-    //                     rules={[{required: true, message: '请选择性别'}]}
-    //                 >
-    //                     <Select placeholder="请选择性别">
-    //                         <Option value={Gender.MALE}>男性</Option>
-    //                         <Option value={Gender.FEMALE}>女性</Option>
-    //                         <Option value={Gender.OTHER}>其他</Option>
-    //                         <Option value={Gender.UNKNOWN}>未知</Option>
-    //                     </Select>
-    //                 </Form.Item>
-    //
-    //                 <Form.Item
-    //                     label="性格标签"
-    //                     extra={`已添加 ${personalityTags.length} 个标签`}
-    //                 >
-    //                     <TagInput
-    //                         value={personalityTags}
-    //                         onChange={setPersonalityTags}
-    //                         placeholder="输入性格标签后按回车添加，如：勇敢、聪明、善良"
-    //                         maxTags={10}
-    //                         maxLength={20}
-    //                     />
-    //                 </Form.Item>
-    //
-    //                 <Form.Item
-    //                     name="roleInStory"
-    //                     label="在故事中的作用"
-    //                     rules={[
-    //                         {required: true, message: '请输入角色在故事中的作用'},
-    //                         {max: 200, message: '故事作用描述不能超过200个字符'}
-    //                     ]}
-    //                 >
-    //                     <Input.TextArea
-    //                         placeholder="描述这个角色在故事中扮演什么角色..."
-    //                         rows={3}
-    //                         maxLength={200}
-    //                         showCount
-    //                         defaultValue={'无'}
-    //                     />
-    //                 </Form.Item>
-    //
-    //                 <Form.Item
-    //                     label="技能特长"
-    //                     extra={`已添加 ${skills.length} 个技能`}
-    //                 >
-    //                     <TagInput
-    //                         value={skills}
-    //                         onChange={setSkills}
-    //                         placeholder="输入技能特长后按回车添加，如：武术、医术、剑术"
-    //                         maxTags={15}
-    //                         maxLength={25}
-    //                     />
-    //                 </Form.Item>
-    //
-    //                 <Form.Item
-    //                     name="characterSetting"
-    //                     label="角色设定"
-    //                     rules={[
-    //                         {required: true, message: '请输入角色设定'},
-    //                         {max: 500, message: '角色设定不能超过500个字符'}
-    //                     ]}
-    //                 >
-    //                     <Input.TextArea
-    //                         placeholder="详细描述角色的外貌、性格特征等..."
-    //                         rows={4}
-    //                         maxLength={500}
-    //                         showCount
-    //                         defaultValue={'无'}
-    //                     />
-    //                 </Form.Item>
-    //
-    //                 {/* 角色关系编辑部分 */}
-    //                 <Divider>编辑角色关系</Divider>
-    //                 <div style={{marginBottom: 16}}>
-    //                     <Button
-    //                         type="dashed"
-    //                         onClick={handleAddRelationship}
-    //                         block
-    //                         style={{borderStyle: 'dashed'}}
-    //                     >
-    //                         <PlusOutlined/> 新增一行
-    //                     </Button>
-    //                 </div>
-    //
-    //                 {relationships.length > 0 && (
-    //                     <div>
-    //                         {relationships.map((relationship, index) => (
-    //                             <Card
-    //                                 key={index}
-    //                                 size="small"
-    //                                 style={{marginBottom: 12}}
-    //                                 actions={editingRelationshipIndex === index ? [
-    //                                     <Button
-    //                                         type="primary"
-    //                                         size="small"
-    //                                         onClick={() => handleSaveRelationship(index)}
-    //                                     >
-    //                                         保存
-    //                                     </Button>,
-    //                                     <Button
-    //                                         size="small"
-    //                                         onClick={() => handleCancelEditRelationship(index)}
-    //                                     >
-    //                                         取消
-    //                                     </Button>
-    //                                 ] : [
-    //                                     <Button
-    //                                         type="link"
-    //                                         size="small"
-    //                                         onClick={() => setEditingRelationshipIndex(index)}
-    //                                     >
-    //                                         编辑
-    //                                     </Button>,
-    //                                     <Popconfirm
-    //                                         title="确定要删除这个关系吗？"
-    //                                         onConfirm={() => handleRemoveRelationship(index)}
-    //                                         okText="确定"
-    //                                         cancelText="取消"
-    //                                     >
-    //                                         <Button type="link" size="small" danger>
-    //                                             删除
-    //                                         </Button>
-    //                                     </Popconfirm>
-    //                                 ]}
-    //                             >
-    //                                 {editingRelationshipIndex === index ? (
-    //                                     <Space direction="vertical" style={{width: '100%'}}>
-    //                                         <Select
-    //                                             style={{width: '100%'}}
-    //                                             placeholder="选择关联角色"
-    //                                             value={relationship.relatedCharacterId || undefined}
-    //                                             onChange={(value) => handleUpdateRelationship(index, 'relatedCharacterId', value)}
-    //                                             options={getAvailableCharacters().map(char => ({
-    //                                                 value: char.id,
-    //                                                 label: char.name
-    //                                             }))}
-    //                                         />
-    //                                         <Select
-    //                                             style={{width: '100%'}}
-    //                                             placeholder="选择关系类型"
-    //                                             value={relationship.relationshipType || undefined}
-    //                                             onChange={(value) => handleUpdateRelationship(index, 'relationshipType', value)}
-    //                                             options={getRelationshipTypes()}
-    //                                         />
-    //                                         <Input
-    //                                             placeholder="关系描述"
-    //                                             value={relationship.description}
-    //                                             onChange={(e) => handleUpdateRelationship(index, 'description', e.target.value)}
-    //                                         />
-    //                                     </Space>
-    //                                 ) : (
-    //                                     <Space direction="vertical">
-    //                                         <Text><strong>关联角色:</strong> {relationship.relatedCharacterName || '未选择'}
-    //                                         </Text>
-    //                                         <Text><strong>关系类型:</strong> {getRelationshipTypes().find(t => t.value === relationship.relationshipType)?.label || '未选择'}
-    //                                         </Text>
-    //                                         <Text><strong>关系描述:</strong> {relationship.description || '无'}</Text>
-    //                                     </Space>
-    //                                 )}
-    //                             </Card>
-    //                         ))}
-    //                     </div>
-    //                 )}
-    //
-    //                 {relationships.length === 0 && (
-    //                     <Text type="secondary">暂无角色关系，点击上方按钮添加</Text>
-    //                 )}
-    //             </Form>
-    //         </div>
-    //     );
-    // };
-
-    // return (
-    //     <Drawer
-    //         title={
-    //             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-    //                 <span>{getDrawerTitle()}</span>
-    //                 {character && mode !== 'create' && (
-    //                     <Text type="secondary" style={{fontSize: '14px'}}>
-    //                         角色 ID: <Tag color={'#10b981'}>{character.id.substring(0, 16)}...</Tag>
-    //                     </Text>
-    //                 )}
-    //             </div>
-    //         }
-    //         placement="right"
-    //         open={open}
-    //         onClose={handleClose}
-    //         size={520}
-    //         // destroyOnClose
-    //     >
-    //         {isEditing ? renderEditView() : renderReadOnlyView()}
-    //     </Drawer>
-    // );
 };
 
 export default CharacterDetailDrawer;
