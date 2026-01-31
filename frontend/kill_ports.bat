@@ -3,6 +3,7 @@ setlocal enabledelayedexpansion
 
 # tasklist | findstr node
 # taskkill /f /im node.exe
+# npx tsc --noEmit
 
 echo ========================================
 echo   Stopping processes on ports 5180-5192

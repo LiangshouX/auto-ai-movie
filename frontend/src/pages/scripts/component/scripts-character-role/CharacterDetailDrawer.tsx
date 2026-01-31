@@ -761,7 +761,6 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
                             />
                         </Form.Item>
 
-                        角色关系编辑部分
                         <CharacterRelationshipEditor
                             character={character}
                             characters={characters}
@@ -780,7 +779,7 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
                         <span>{getDrawerTitle()}</span>
                         {character && mode !== 'create' && (
                             <Text type="secondary" style={{fontSize: '14px'}}>
-                                角色 ID: <Tag color={'#10b981'}>{character.id.substring(0, 16)}...</Tag>
+                                角色 ID: <Tag color={'#10b981'}>{character.id}</Tag>
                             </Text>
                         )}
                     </div>

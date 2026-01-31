@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from 'react';
-// 添加 message 导入
 import {Col, message, Row} from 'antd';
-import {ScriptProject} from '../../../../api/types/project-types.ts';
-import {projectApi} from '../../../../api/service/ai-scripts.ts';
-import {AiChatPanel} from './AiChatPanel.tsx'
-import {TextEditorPanel} from './TextEditorPanel.tsx'
+import {ScriptProject} from '@/api/types/project-types.ts';
+import {projectApi} from '@/api/service/ai-scripts.ts';
+import {AiChatPanel} from './AiChatPanel.tsx';
+import {TextEditorPanel} from './TextEditorPanel.tsx';
+import {AiMessage, AiThought, AiThoughtChain, ConversationSession, createDefaultMessage, createDefaultConversation} from '../../../../api/types/ai-chat-types.ts';
 
 interface PlotSummaryProps {
     project: ScriptProject | null;
@@ -14,15 +14,23 @@ interface PlotSummaryProps {
 const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => {
     const [leftContent, setLeftContent] = useState<string>(project?.summary || '');
     const [sessionId, setSessionId] = useState<string>('');
-    const [aiMessages, setAiMessages] = useState<{ id: string, text: string, role: 'user' | 'assistant' }[]>([]);
+    const [aiMessages, setAiMessages] = useState<AiMessage[]>([]);
+    const [aiThoughts, setAiThoughts] = useState<AiThought[]>([]);
+    const [aiThoughtChains, setAiThoughtChains] = useState<AiThoughtChain[]>([]);
+    const [conversations, setConversations] = useState<ConversationSession[]>([]);
     const [inputMessage, setInputMessage] = useState<string>('');
-    const [saving, setSaving] = useState<boolean>(false);
+    const [isStreaming, setIsStreaming] = useState<boolean>(false);
+    const [, setSaving] = useState<boolean>(false);
 
-    // 初始化session_id
+    // 初始化session_id和对话历史
     useEffect(() => {
         if (project?.id) {
             const sessionId = `${project.id}-${Date.now()}`;
             setSessionId(sessionId);
+            
+            // 创建初始对话
+            const initialConversation = createDefaultConversation(project.id, '剧情梗概讨论');
+            setConversations([initialConversation]);
         }
     }, [project]);
 
@@ -51,32 +59,98 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
         if (!inputMessage.trim()) return;
 
         // 添加用户消息到对话历史
-        const userMessage = {
-            id: `msg-${Date.now()}`,
-            text: inputMessage,
-            role: 'user' as const
-        };
-
+        const userMessage = createDefaultMessage(inputMessage, 'user');
         setAiMessages(prev => [...prev, userMessage]);
         setInputMessage('');
+        setIsStreaming(true);
 
-        // 模拟AI响应（实际需要调用后端API)
+        // 模拟AI思考过程
         setTimeout(() => {
-            const aiResponse = {
-                id: `msg-${Date.now() + 1}`,
-                text: `关于 "${inputMessage}" 的剧情梗概，我建议可以这样组织：首先介绍主要冲突，然后描述关键转折点，最后说明结局走向。这样的结构能让读者快速把握故事脉络。`,
-                role: 'assistant' as const
+            const thought1 = {
+                id: `thought-${Date.now()}-1`,
+                content: '分析剧情梗概的结构完整性...',
+                type: 'analyzing' as const,
+                timestamp: Date.now()
             };
+            
+            const thought2 = {
+                id: `thought-${Date.now()}-2`,
+                content: '评估故事节奏和吸引力...',
+                type: 'planning' as const,
+                timestamp: Date.now() + 500
+            };
+            
+            setAiThoughts([thought1, thought2]);
+        }, 300);
+
+        // 模拟AI执行链
+        setTimeout(() => {
+            const thoughtChain = {
+                id: `chain-${Date.now()}`,
+                thoughts: [
+                    {
+                        id: `sub-thought-${Date.now()}-1`,
+                        content: '检查三幕式结构：开端、发展、结局',
+                        type: 'analyzing' as const,
+                        timestamp: Date.now()
+                    },
+                    {
+                        id: `sub-thought-${Date.now()}-2`,
+                        content: '优化情节转折点的设置',
+                        type: 'planning' as const,
+                        timestamp: Date.now() + 200
+                    }
+                ],
+                finalAnswer: `您的剧情梗概结构清晰，建议加强以下几点：
+
+1. 明确主要冲突的核心
+2. 强化关键转折点的戏剧性
+3. 完善结局的情感共鸣`,
+                timestamp: Date.now() + 800
+            };
+            
+            setAiThoughtChains([thoughtChain]);
+        }, 800);
+
+        // 模拟AI最终响应
+        setTimeout(() => {
+            const aiResponse = createDefaultMessage(
+                `关于 "${inputMessage}" 的剧情梗概，我为您提供以下专业建议：
+
+🎯 **结构优化建议**
+- 建议采用经典的三幕式结构
+- 强化开篇的钩子设计
+- 完善高潮部分的戏剧张力
+
+⚡ **节奏把控**
+- 合理分配各部分篇幅
+- 设置适当的悬念节点
+- 保持叙事节奏的紧凑性
+
+这样的调整能让您的剧情更加引人入胜！`,
+                'assistant'
+            );
+            
             setAiMessages(prev => [...prev, aiResponse]);
-        }, 1000);
+            setIsStreaming(false);
+            setAiThoughts([]);
+            setAiThoughtChains([]);
+        }, 1500);
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSendToAI();
-        }
+    const handleClearHistory = () => {
+        setAiMessages([]);
+        setAiThoughts([]);
+        setAiThoughtChains([]);
+        message.success('对话历史已清空');
     };
+
+    const handleConversationSelect = (conversationId: string) => {
+        // 切换对话会话的逻辑
+        message.info(`切换到会话: ${conversationId}`);
+    };
+
+
 
     return (
         <div style={{
@@ -104,14 +178,20 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
                 {/* 右侧AI对话区 */}
                 <Col xs={24} md={12} style={{height: '100%'}}>
                     <AiChatPanel
-                        title="AI助手"
-                        subtitle="与AI助手讨论剧情梗概"
+                        title="AI剧情顾问"
+                        subtitle="与AI助手讨论剧情结构与叙事技巧"
                         sessionId={sessionId}
                         messages={aiMessages}
+                        thoughts={aiThoughts}
+                        thoughtChains={aiThoughtChains}
+                        conversations={conversations}
                         inputMessage={inputMessage}
                         onInputChange={setInputMessage}
                         onSend={handleSendToAI}
+                        onClearHistory={handleClearHistory}
+                        onConversationSelect={handleConversationSelect}
                         disabledSend={!inputMessage.trim()}
+                        isStreaming={isStreaming}
                     />
                 </Col>
             </Row>
