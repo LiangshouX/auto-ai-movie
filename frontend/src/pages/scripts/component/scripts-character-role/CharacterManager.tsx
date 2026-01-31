@@ -3,17 +3,17 @@ import {HomeOutlined, PlusOutlined} from "@ant-design/icons";
 // import { HomeOutlined, PlusOutlined, UserOutlined, TeamOutlined, EditOutlined, DeleteOutlined, RobotOutlined } from "@ant-design/icons";
 import {useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";
-import RoleCanvas from "./component/scripts-character-role/canva/RoleCanvas.tsx";
+import RoleCanvas from "./canva/RoleCanvas.tsx";
 import {
     addCharacter,
     deleteCharacter,
     findCharacterById,
     mockCharacters,
     updateCharacter
-} from "./component/scripts-character-role/data/mockCharacters";
-import {CharacterRelationship, CharacterRole, Gender} from "../../api/types/character-role-types";
-import CharacterDetailSidebar from "./component/scripts-character-role/CharacterDetailSidebar.tsx";
-import CharacterDetailDrawer from "./component/scripts-character-role/CharacterDetailDrawer.tsx";
+} from "./data/mockCharacters.ts";
+import {CharacterRelationship, CharacterRole, Gender} from "../../../../api/types/character-role-types.ts";
+import CharacterDetailSidebar from "./CharacterDetailSidebar.tsx";
+import CharacterDetailDrawer from "./CharacterDetailDrawer.tsx";
 
 const {Title} = Typography;
 const {Search} = Input;
@@ -88,6 +88,7 @@ const CharacterManager = () => {
             ];
             
             // 添加AI生成的角色
+            /*@ts-ignore*/
             const newCharacters = aiGeneratedRoles.map(roleData => addCharacter(roleData));
             setCharacters(prev => [...prev, ...newCharacters]);
             
@@ -217,7 +218,7 @@ const CharacterManager = () => {
                 boxShadow: '0 2px 8px #f0f0f0',
                 zIndex: 100,
                 width: '100%',
-                minWidth: 'max(1200px, calc(100vw - 200px))',
+                minWidth: 'max(1500px, calc(100vw - 200px))',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',

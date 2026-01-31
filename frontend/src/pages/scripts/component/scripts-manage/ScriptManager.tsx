@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {useProjectApi} from '../../hooks/useApi';
-import {ScriptProject, ProjectStatus, ScriptProjectType} from '../../api/types/project-types';
+import {useProjectApi} from '../../../../hooks/useApi.ts';
+import {ScriptProject, ProjectStatus, ScriptProjectType} from '../../../../api/types/project-types.ts';
 import {
     Button,
     Input,
@@ -15,12 +15,12 @@ import {
     Modal
 } from 'antd';
 
-import './style/ScriptManagerStyle.css';
-import ProjectCard from './component/scripts-manage/ProjectCard.tsx';
-import LoadingSpinner from './component/scripts-manage/LoadingSpinner.tsx';
-import ErrorMessage from './component/scripts-manage/ErrorMessage.tsx';
-import EmptyState from './component/scripts-manage/EmptyState.tsx';
-import CreateProjectModal from './component/scripts-manage/CreateProjectModal.tsx';
+import '../../style/ScriptManagerStyle.css';
+import ProjectCard from './ProjectCard.tsx';
+import LoadingSpinner from './LoadingSpinner.tsx';
+import ErrorMessage from './ErrorMessage.tsx';
+import EmptyState from './EmptyState.tsx';
+import CreateProjectModal from './CreateProjectModal.tsx';
 import {HomeOutlined} from '@ant-design/icons'
 
 const {Title} = Typography;

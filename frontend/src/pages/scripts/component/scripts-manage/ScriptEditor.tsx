@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Layout, Button, Typography, Card, Alert, Spin, message, Flex } from 'antd';
-import api from '../../api/index';
-import { ScriptProject } from '../../api/types/project-types';
-import { projectApi } from '../../api/service/ai-scripts';
-import EditorHeader from './layout/EditorHeader';
-import SidebarNav from './layout/SidebarNav';
-import BackgroundSetting from './component/BackgroundSetting';
-import PlotSummary from './component/PlotSummary';
-import CharacterDesign from './component/scripts-character-role/CharacterDesign.tsx';
-import ScriptOutline from './component/ScriptOutline';
+import api from '../../../../api';
+import { ScriptProject } from '../../../../api/types/project-types.ts';
+import { projectApi } from '../../../../api/service/ai-scripts.ts';
+import EditorHeader from '../../layout/EditorHeader.tsx';
+import SidebarNav from '../../layout/SidebarNav.tsx';
+import BackgroundSetting from '../BackgroundSetting.tsx';
+import PlotSummary from '../PlotSummary.tsx';
+import CharacterDesign from '../scripts-character-role/CharacterDesign.tsx';
+import ScriptOutline from '../ScriptOutline.tsx';
 
 const { Content } = Layout;
 const { Title, Text } = Typography;

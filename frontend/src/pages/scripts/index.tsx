@@ -1,3 +1,4 @@
-import ScriptManager from './ScriptManager';
+import ScriptManager from './component/scripts-manage/ScriptManager.tsx';
+import CharacterManager from "./component/scripts-character-role/CharacterManager.tsx";
 
-export default ScriptManager;
+export {ScriptManager, CharacterManager};
