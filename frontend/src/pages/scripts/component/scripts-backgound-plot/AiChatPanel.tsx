@@ -72,6 +72,15 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
         },
     };
 
+    const messagesContainerRef = React.useRef<HTMLDivElement>(null);
+
+    // 自动滚动到底部
+    React.useEffect(() => {
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
+    }, [messages, thoughts, thoughtChains]);
+
     return (
         <XProvider theme={xTheme}>
             <Card
@@ -116,19 +125,22 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
                     justifyContent: 'space-between'
                 }}>
                     {/* 主要内容区域 */}
-                    <div style={{
-                        flex: 1,
-                        overflowY: 'auto',
-                        marginBottom: 16,
-                        minHeight: 'calc(100vh - 300px)',
-                        maxHeight: 'calc(100vh - 300px)'
-                    }}>
+                    <div 
+                        ref={messagesContainerRef}
+                        style={{
+                            flex: 1,
+                            overflowY: 'auto',
+                            marginBottom: 16,
+                            minHeight: 'calc(100vh - 300px)',
+                            maxHeight: 'calc(100vh - 300px)'
+                        }}>
                         {activeTab === 'chat' ? (
                             messages.length === 0 ? (
                                 <Welcome
                                     title="欢迎使用AI创作助手"
                                     description="您可以输入问题或想法，AI将为您提供专业的创作建议和灵感启发"
-                                    icon={<RobotOutlined style={{fontSize: 48, color: '#1677ff'}}/>}
+                                    // icon={<RobotOutlined style={{fontSize: 48, color: '#1677ff'}}/>}
+                                    icon="https://mdn.alipayobjects.com/huamei_iwk9zp/afts/img/A*s5sNRo5LjfQAAAAAAAAAAAAADgCCAQ/fmt.webp"
                                 />
                             ) : (
                                 <Flex vertical gap={16}>
