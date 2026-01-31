@@ -22,6 +22,13 @@ export interface CharacterRole {
   updatedAt: string; // ISO时间戳
 }
 
+// 角色画布类型定义
+export interface RoleCanvasProps {
+  roles: CharacterRole[];
+  onRoleClick: (roleId: string) => void;
+  onCreateRole: (position: { x: number; y: number }) => void;
+}
+
 // 用于创建新角色的可选参数接口
 export interface CreateCharacterRoleData {
   id?: string;

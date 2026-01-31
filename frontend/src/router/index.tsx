@@ -5,6 +5,7 @@ import ScriptEditor from '../pages/scripts/ScriptEditor.tsx';
 import Movies from '../pages/movie/Movies.tsx';
 import Search from '../pages/search/Search.tsx';
 import NotFound from '../pages/NotFound.tsx';
+import CharacterManager from "../pages/scripts/CharacterManager.tsx";
 
 const router = createBrowserRouter([
   {
@@ -18,6 +19,10 @@ const router = createBrowserRouter([
   {
     path: '/scripts/editor/:projectId',
     element: <ScriptEditor />,
+  },
+  {
+    path: 'characters',
+    element: <CharacterManager/>
   },
   {
     path: '/movies',
