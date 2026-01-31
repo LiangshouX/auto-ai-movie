@@ -257,7 +257,7 @@ const ScriptEditor = () => {
           display: 'flex',
           width: '100%',
           backgroundColor: '#f9f9f9',
-          minHeight: 'calc(100vh - 64px)'
+          minHeight: 'calc(100vh - 64px)',
         }}>
           {renderContent()}
         </Content>

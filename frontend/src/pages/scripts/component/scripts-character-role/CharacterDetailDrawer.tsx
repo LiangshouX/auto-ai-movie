@@ -788,7 +788,7 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
                 placement="right"
                 open={open}
                 onClose={handleClose}
-                size={520}
+                size={640}
                 // destroyOnClose
             >
                 {isEditing ? renderEditView() : renderReadOnlyView()}
