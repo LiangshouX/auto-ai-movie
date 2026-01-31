@@ -284,6 +284,7 @@ const CharacterManager = () => {
             {/* 创建角色模态框 */}
             <CharacterDetailDrawer
                 character={null}
+                characters={[]}
                 open={isModalVisible}
                 mode={'create'}
                 projectId="07ca8285a4bfa47abd869415cf9fe404"

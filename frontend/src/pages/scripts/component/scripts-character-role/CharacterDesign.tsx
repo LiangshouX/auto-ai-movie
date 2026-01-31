@@ -221,6 +221,7 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({project}) => {
             {/* 角色详情抽屉 */}
             <CharacterDetailDrawer
                 character={selectedCharacter}
+                characters={characters}
                 open={drawerOpen}
                 mode={drawerMode}
                 projectId={projectId}
