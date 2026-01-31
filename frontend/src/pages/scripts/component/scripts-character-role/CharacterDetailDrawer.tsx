@@ -331,6 +331,14 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
                     )
                 );
 
+                // 找出被删除的关系
+                const removedRelationships = originalRelationships.filter((origRel: CharacterRelationship) =>
+                    !currentRelationships.some((newRel: CharacterRelationship) =>
+                        origRel.relatedCharacterId === newRel.relatedCharacterId &&
+                        origRel.relationshipType === newRel.relationshipType
+                    )
+                );
+
                 const updateData: Partial<CharacterRole> = {
                     ...baseUpdateData,
                     characterRelationships: currentRelationships
@@ -358,6 +366,7 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
                 if (response.success) {
                     // 处理对称关系更新
                     try {
+                        // 处理新增关系的对称更新
                         for (const newRelationship of addedRelationships) {
                             const relatedCharacter = characters.find((char: CharacterRole) =>
                                 char.id === newRelationship.relatedCharacterId
@@ -373,6 +382,31 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
                                 // 异步更新关联角色（不等待结果，避免阻塞主流程）
                                 characterRoleApi.updateCharacter(updatedRelatedCharacter).catch(err => {
                                     console.warn('Failed to update symmetric relationship for character:', relatedCharacter.id, err);
+                                });
+                            }
+                        }
+
+                        // 处理删除关系的对称更新
+                        for (const removedRelationship of removedRelationships) {
+                            const relatedCharacter = characters.find((char: CharacterRole) =>
+                                char.id === removedRelationship.relatedCharacterId
+                            );
+
+                            if (relatedCharacter) {
+                                // 找到关联角色中对应的关系并删除
+                                const updatedRelationships = (relatedCharacter.characterRelationships || []).filter(rel =>
+                                    !(rel.relatedCharacterId === character?.id && 
+                                      rel.relationshipType === removedRelationship.relationshipType)
+                                );
+
+                                const updatedRelatedCharacter: CharacterRole = {
+                                    ...relatedCharacter,
+                                    characterRelationships: updatedRelationships
+                                };
+
+                                // 异步更新关联角色
+                                characterRoleApi.updateCharacter(updatedRelatedCharacter).catch(err => {
+                                    console.warn('Failed to remove symmetric relationship for character:', relatedCharacter.id, err);
                                 });
                             }
                         }
