@@ -1,10 +1,19 @@
-import { Button, Input, Layout, Space, Typography, Modal, message, Card, Row, Col, Tag } from "antd";
-import { HomeOutlined, PlusOutlined, UserOutlined, TeamOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import RoleCanvas from "./component/scripts-character-role/RoleCanvas";
-import { mockCharacters, addCharacter, findCharacterById, deleteCharacter } from "./component/scripts-character-role/data/mockCharacters";
-import { CharacterRole, Gender, RelationshipType } from "../../api/types/character-role-types";
+import {Button, Input, Layout, message, Modal, Space, Typography} from "antd";
+import {HomeOutlined, PlusOutlined} from "@ant-design/icons";
+// import { HomeOutlined, PlusOutlined, UserOutlined, TeamOutlined, EditOutlined, DeleteOutlined, RobotOutlined } from "@ant-design/icons";
+import {useNavigate} from "react-router-dom";
+import {useEffect, useState} from "react";
+import RoleCanvas from "./component/scripts-character-role/canva/RoleCanvas.tsx";
+import {
+    addCharacter,
+    deleteCharacter,
+    findCharacterById,
+    mockCharacters,
+    updateCharacter
+} from "./component/scripts-character-role/data/mockCharacters";
+import {CharacterRelationship, CharacterRole, Gender} from "../../api/types/character-role-types";
+import CharacterDetailSidebar from "./component/scripts-character-role/CharacterDetailSidebar.tsx";
+import AddCharacterModal from "./component/scripts-character-role/AddCharacterModal.tsx";
 
 const {Title} = Typography;
 const {Search} = Input;
@@ -16,6 +25,9 @@ const CharacterManager = () => {
     const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    // const [showRelationshipModal, setShowRelationshipModal] = useState(false);
+    // const [relationshipForm] = Form.useForm();
+    // const [sourceRoleId, setSourceRoleId] = useState<string>('');
     
     // 初始化数据
     useEffect(() => {
@@ -32,45 +44,61 @@ const CharacterManager = () => {
         setSelectedRoleId(roleId);
         const character = findCharacterById(roleId);
         if (character) {
-            // 这里可以打开角色详情弹窗或跳转到详情页面
-            message.info(`点击了角色: ${character.name}`);
+            message.info(`选中角色: ${character.name}`);
         }
     };
 
     // 处理创建新角色
     const handleCreateRole = (position: { x: number; y: number }) => {
-        // 这里可以打开创建角色的模态框
         setIsModalVisible(true);
-        message.success(`将在位置 (${position.x}, ${position.y}) 创建新角色`);
+        message.info(`将在位置 (${Math.round(position.x)}, ${Math.round(position.y)}) 创建新角色`);
     };
 
     // 处理AI角色设计
     const handleAIRoleDesign = async () => {
         try {
-            message.loading('AI正在设计角色...', 2);
+            message.loading({ content: 'AI正在分析剧本并设计角色...', duration: 0, key: 'ai-loading' });
             // 模拟AI处理时间
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            message.success('AI角色设计完成！');
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // 模拟AI生成的新角色
+            const aiGeneratedRoles = [
+                {
+                    projectId: '07ca8285a4bfa47abd869415cf9fe404',
+                    name: '神秘导师',
+                    age: 45,
+                    gender: Gender.MALE,
+                    personalityTags: ['智慧', '神秘', '严肃'],
+                    roleInStory: '主角的精神导师，掌握着关键的秘密',
+                    skills: ['古老知识', '心灵感应', '预知能力'],
+                    characterSetting: '总是穿着深色长袍，眼神深邃',
+                    relationships: []
+                },
+                {
+                    projectId: '07ca8285a4bfa47abd869415cf9fe404',
+                    name: '叛逆少女',
+                    age: 19,
+                    gender: Gender.FEMALE,
+                    personalityTags: ['反叛', '聪明', '独立'],
+                    roleInStory: '表面是普通学生，实际上是地下组织成员',
+                    skills: ['黑客技术', '格斗技巧', '社交工程'],
+                    characterSetting: '喜欢穿皮夹克，总是戴着耳机',
+                    relationships: []
+                }
+            ];
+            
+            // 添加AI生成的角色
+            const newCharacters = aiGeneratedRoles.map(roleData => addCharacter(roleData));
+            setCharacters(prev => [...prev, ...newCharacters]);
+            
+            message.success({ content: 'AI角色设计完成！新增2个角色', key: 'ai-loading' });
         } catch (error) {
-            message.error('AI角色设计失败');
+            message.error({ content: 'AI角色设计失败', key: 'ai-loading' });
         }
     };
 
-    // 处理模态框确认
-    const handleModalOk = () => {
-        // 这里应该处理创建角色的逻辑
-        const newCharacter = addCharacter({
-            projectId: '07ca8285a4bfa47abd869415cf9fe404',
-            name: '新角色',
-            age: 20,
-            gender: Gender.UNKNOWN,
-            personalityTags: [],
-            roleInStory: '新创建的角色',
-            skills: [],
-            characterSetting: '待完善',
-            relationships: []
-        });
-        
+    // 处理角色创建成功回调
+    const handleCharacterCreated = (newCharacter: CharacterRole) => {
         setCharacters([...characters, newCharacter]);
         setIsModalVisible(false);
         message.success('角色创建成功！');
@@ -102,40 +130,83 @@ const CharacterManager = () => {
     const handleEditCharacter = (roleId: string) => {
         const character = findCharacterById(roleId);
         if (character) {
-            // 这里可以打开编辑模态框
             message.info(`编辑角色: ${character.name}`);
+            // 这里可以打开编辑模态框，预填角色数据
         }
     };
 
+    // 处理添加关系
+    const handleAddRelationship = (sourceId: string, targetId: string, relationshipData: Omit<CharacterRelationship, 'relatedCharacterName'>) => {
+        const updatedCharacters = characters.map(char => {
+            if (char.id === sourceId) {
+                // 添加关系到源角色
+                const targetCharacter = findCharacterById(targetId);
+                const newRelationship: CharacterRelationship = {
+                    ...relationshipData,
+                    relatedCharacterName: targetCharacter?.name || '未知角色'
+                };
+                
+                return {
+                    ...char,
+                    relationships: [...char.relationships, newRelationship]
+                };
+            }
+            return char;
+        });
+        
+        setCharacters(updatedCharacters);
+        updateCharacter(sourceId, updatedCharacters.find(c => c.id === sourceId)!);
+        message.success('角色关系添加成功！');
+    };
+
+    // 处理删除关系
+    const handleRemoveRelationship = (sourceId: string, targetId: string) => {
+        const updatedCharacters = characters.map(char => {
+            if (char.id === sourceId) {
+                return {
+                    ...char,
+                    relationships: char.relationships.filter(rel => rel.relatedCharacterId !== targetId)
+                };
+            }
+            return char;
+        });
+        
+        setCharacters(updatedCharacters);
+        updateCharacter(sourceId, updatedCharacters.find(c => c.id === sourceId)!);
+        message.success('角色关系删除成功！');
+    };
+
+    // TODO
     // 获取性别显示文本
-    const getGenderDisplay = (gender: string) => {
-        switch (gender) {
-            case Gender.MALE: return '男';
-            case Gender.FEMALE: return '女';
-            case Gender.OTHER: return '其他';
-            default: return '未知';
-        }
-    };
-
-    // 获取关系类型显示文本
-    const getRelationshipTypeDisplay = (relationshipType: string) => {
-        switch (relationshipType) {
-            case RelationshipType.FRIEND: return '朋友';
-            case RelationshipType.ENEMY: return '敌人';
-            case RelationshipType.LOVER: return '恋人';
-            case RelationshipType.FAMILY: return '家人';
-            case RelationshipType.COLLEAGUE: return '同事';
-            case RelationshipType.ACQUAINTANCE: return '熟人';
-            case RelationshipType.RIVAL: return '对手';
-            case RelationshipType.MENTOR: return '导师';
-            case RelationshipType.PROTEGE: return '学生';
-            default: return '其他';
-        }
-    };
+    // const getGenderDisplay = (gender: string) => {
+    //     switch (gender) {
+    //         case Gender.MALE: return '男';
+    //         case Gender.FEMALE: return '女';
+    //         case Gender.OTHER: return '其他';
+    //         default: return '未知';
+    //     }
+    // };
+    //
+    // // 获取关系类型显示文本
+    // const getRelationshipTypeDisplay = (relationshipType: string) => {
+    //     switch (relationshipType) {
+    //         case RelationshipType.FRIEND: return '朋友';
+    //         case RelationshipType.ENEMY: return '敌人';
+    //         case RelationshipType.LOVER: return '恋人';
+    //         case RelationshipType.FAMILY: return '家人';
+    //         case RelationshipType.COLLEAGUE: return '同事';
+    //         case RelationshipType.ACQUAINTANCE: return '熟人';
+    //         case RelationshipType.RIVAL: return '对手';
+    //         case RelationshipType.MENTOR: return '导师';
+    //         case RelationshipType.PROTEGE: return '学生';
+    //         default: return '其他';
+    //     }
+    // };
 
     // 处理模态框取消
     const handleModalCancel = () => {
         setIsModalVisible(false);
+        // createForm.resetFields();
     };
 
     return (
@@ -205,144 +276,25 @@ const CharacterManager = () => {
                     onCreateRole={handleCreateRole}
                     onAIRoleDesign={handleAIRoleDesign}
                     isLoading={isLoading}
+                    onRelationshipAdd={handleAddRelationship}
+                    onRelationshipRemove={handleRemoveRelationship}
                 />
             </Content>
             
             {/* 创建角色模态框 */}
-            <Modal
-                title="创建新角色"
-                open={isModalVisible}
-                onOk={handleModalOk}
+            <AddCharacterModal
+                visible={isModalVisible}
+                projectId="07ca8285a4bfa47abd869415cf9fe404"
                 onCancel={handleModalCancel}
-                okText="创建"
-                cancelText="取消"
-            >
-                <p>这里可以添加创建角色的表单</p>
-                <p>当前为演示版本，点击确定将创建一个默认角色。</p>
-            </Modal>
+                onCreated={handleCharacterCreated}
+            />
 
             {/* 角色详情侧边栏 */}
-            {selectedRoleId && (
-                <div style={{
-                    position: 'absolute',
-                    right: 0,
-                    top: 64,
-                    bottom: 0,
-                    width: 320,
-                    backgroundColor: '#fff',
-                    boxShadow: '-2px 0 8px rgba(0,0,0,0.1)',
-                    zIndex: 10,
-                    overflowY: 'auto'
-                }}>
-                    <div style={{ padding: 24 }}>
-                        {(() => {
-                            const character = findCharacterById(selectedRoleId);
-                            if (!character) return null;
-                            
-                            return (
-                                <>
-                                    <div style={{ marginBottom: 24 }}>
-                                        <h3 style={{ margin: '0 0 16px 0', color: '#1f1f1f' }}>
-                                            {character.name}
-                                        </h3>
-                                        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-                                            <Tag icon={<UserOutlined />} color="blue">
-                                                {getGenderDisplay(character.gender || '')}
-                                            </Tag>
-                                            {character.age && (
-                                                <Tag color="green">{character.age}岁</Tag>
-                                            )}
-                                        </div>
-                                        <p style={{ color: '#666', fontSize: 14 }}>
-                                            <strong>在故事中的定位：</strong>
-                                            <br />
-                                            {character.roleInStory}
-                                        </p>
-                                    </div>
-
-                                    <div style={{ marginBottom: 24 }}>
-                                        <h4 style={{ margin: '0 0 12px 0', color: '#434343' }}>性格标签</h4>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                                            {character.personalityTags.map((tag, index) => (
-                                                <Tag key={index} color="purple">{tag}</Tag>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div style={{ marginBottom: 24 }}>
-                                        <h4 style={{ margin: '0 0 12px 0', color: '#434343' }}>技能</h4>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                                            {character.skills.map((skill, index) => (
-                                                <Tag key={index} color="cyan">{skill}</Tag>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div style={{ marginBottom: 24 }}>
-                                        <h4 style={{ margin: '0 0 12px 0', color: '#434343' }}>角色设定</h4>
-                                        <p style={{ color: '#666', fontSize: 14, lineHeight: 1.5 }}>
-                                            {character.characterSetting || '暂无设定'}
-                                        </p>
-                                    </div>
-
-                                    {character.relationships.length > 0 && (
-                                        <div>
-                                            <h4 style={{ margin: '0 0 12px 0', color: '#434343' }}>
-                                                <TeamOutlined /> 人际关系
-                                            </h4>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                                {character.relationships.map((rel, index) => (
-                                                    <Card size="small" key={index}>
-                                                        <div>
-                                                            <strong>{rel.relatedCharacterName}</strong>
-                                                            <Tag color="orange" style={{ marginLeft: 8 }}>
-                                                                {getRelationshipTypeDisplay(rel.relationshipType)}
-                                                            </Tag>
-                                                            <p style={{ margin: '8px 0 0 0', fontSize: 13, color: '#666' }}>
-                                                                {rel.description}
-                                                            </p>
-                                                        </div>
-                                                    </Card>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div style={{ 
-                                        position: 'sticky', 
-                                        bottom: 0, 
-                                        backgroundColor: '#fff', 
-                                        paddingTop: 16,
-                                        borderTop: '1px solid #f0f0f0'
-                                    }}>
-                                        <Row gutter={8}>
-                                            <Col span={12}>
-                                                <Button 
-                                                    block 
-                                                    icon={<EditOutlined />} 
-                                                    onClick={() => handleEditCharacter(selectedRoleId)}
-                                                >
-                                                    编辑
-                                                </Button>
-                                            </Col>
-                                            <Col span={12}>
-                                                <Button 
-                                                    block 
-                                                    danger 
-                                                    icon={<DeleteOutlined />} 
-                                                    onClick={() => handleDeleteCharacter(selectedRoleId)}
-                                                >
-                                                    删除
-                                                </Button>
-                                            </Col>
-                                        </Row>
-                                    </div>
-                                </>
-                            );
-                        })()}
-                    </div>
-                </div>
-            )}
+            <CharacterDetailSidebar
+                selectedRoleId={selectedRoleId}
+                onEdit={handleEditCharacter}
+                onDelete={handleDeleteCharacter}
+            />
         </Layout>
     );
 }
