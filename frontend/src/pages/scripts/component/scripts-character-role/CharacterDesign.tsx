@@ -1,24 +1,11 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
-import {
-    Card,
-    Row,
-    Col,
-    Typography,
-    Button,
-    Space,
-    Empty,
-    Spin,
-    Badge,
-    Flex,
-    Avatar,
-    Tag
-} from 'antd';
-import {RobotOutlined, UserOutlined} from '@ant-design/icons';
+import {Avatar, Badge, Button, Card, Col, Empty, Flex, Row, Space, Spin, Tag, Typography} from 'antd';
+import {PlusOutlined, RobotOutlined, UserOutlined} from '@ant-design/icons';
 import {CharacterRole} from '../../../../api/types/character-role-types.ts';
 import {characterRoleApi} from '../../../../api/service/character-role.ts';
 import {ScriptProject} from '../../../../api/types/project-types.ts';
-import CharacterDetailDrawer from './CharacterDetailDrawer';
+import CharacterManageDrawer from "./CharacterManageDrawer.tsx";
 
 const {Title, Text} = Typography;
 
@@ -34,6 +21,7 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({project}) => {
     const [selectedCharacter, setSelectedCharacter] = useState<CharacterRole | null>(null);
     const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
     const [isAIGenerating, setIsAIGenerating] = useState<boolean>(false);
+    const [drawerMode, setDrawerMode] = useState<'create' | 'view' | 'edit'>('create');
 
     // 获取项目的所有角色
     const fetchCharacters = useCallback(async () => {
@@ -41,7 +29,7 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({project}) => {
 
         try {
             setLoading(true);
-            const response = await characterRoleApi.getAllCharacters({ projectId });
+            const response = await characterRoleApi.getAllCharacters({projectId});
             if (response.success && response.data) {
                 // 确保response.data是一个数组
                 const charactersData = Array.isArray(response.data) ? response.data : [];
@@ -80,15 +68,17 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({project}) => {
     // 处理角色更新成功
     const handleCharacterUpdate = (updatedCharacter: CharacterRole) => {
         // 更新本地角色列表
-        setCharacters(prev => 
-            prev.map(char => 
+        setCharacters(prev =>
+            prev.map(char =>
                 char.id === updatedCharacter.id ? updatedCharacter : char
             )
         );
-        
+
         // 更新当前选中的角色
         setSelectedCharacter(updatedCharacter);
-        
+
+        setDrawerOpen(false)
+
         // 重新获取角色列表以确保数据同步
         fetchCharacters();
     };
@@ -100,6 +90,7 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({project}) => {
             style={{height: '100%'}}
             onClick={() => {
                 setSelectedCharacter(character);
+                setDrawerMode('edit')
                 setDrawerOpen(true);
             }}
             styles={{
@@ -179,7 +170,20 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({project}) => {
                 <Title level={3} style={{margin: 0}}>角色设计</Title>
                 <Space>
                     <Button
-                        type="primary"
+                        // type="primary"
+                        size="large"
+                        icon={<PlusOutlined/>}
+                        onClick={() => {
+                            setDrawerOpen(true)
+                            setDrawerMode('create')
+                        }}
+                    >
+                        新建角色
+                    </Button>
+
+                    <Button
+                        // type="primary"
+                        size="large"
                         icon={<RobotOutlined/>}
                         loading={isAIGenerating}
                         onClick={handleAIDesign}
@@ -211,16 +215,18 @@ const CharacterDesign: React.FC<CharacterDesignProps> = ({project}) => {
                     </Card>
                 </Col>
             </Row>
-            
+
             {/* 角色详情抽屉 */}
-            <CharacterDetailDrawer
+            <CharacterManageDrawer
                 character={selectedCharacter}
                 open={drawerOpen}
+                mode={drawerMode}
+                projectId={projectId}
                 onClose={() => {
                     setDrawerOpen(false);
                     setSelectedCharacter(null);
                 }}
-                onUpdateSuccess={handleCharacterUpdate}
+                onSuccess={handleCharacterUpdate}
             />
         </Flex>
     );

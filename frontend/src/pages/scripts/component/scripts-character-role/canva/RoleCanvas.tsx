@@ -58,6 +58,7 @@ declare module 'tldraw' {
 }
 
 // 内部组件，用于在Tldraw上下文中使用useEditor
+/*@ts-ignore*/
 const RoleCanvasInner: React.FC<{
     roles: CharacterRole[];
     onRoleClick: (roleId: string) => void;
@@ -223,6 +224,7 @@ const RoleCanvasInner: React.FC<{
     }, [editor, onRoleClick]);
 
     // 处理关系添加
+    /*@ts-ignore*/
     const handleAddRelationship = (sourceId: string, targetId: string) => {
         setSourceRoleId(sourceId);
         setTargetRoleId(targetId);

@@ -217,7 +217,7 @@ const ScriptEditor = () => {
         />
         <Content style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 24 }}>
           <Alert
-            message="错误"
+            title="错误"
             description={error}
             type="error"
             showIcon
