@@ -1,0 +1,32 @@
+# 需求
+在`D:\Code\Java\auto-ai-movie\frontend\src\pages\scripts\component\scripts-outline-chapter\`开发剧本设计页面
+
+0. 大纲整体使用antd组件库的可拖动、自定义折叠样式的Tree组件开发，参考文档：https://ant.design/components/tree-cn#tree-demo-switcher-icon、 https://ant.design/components/tree-cn#tree-demo-draggable；
+
+1. 页面渲染时，调用`D:\Code\Java\auto-ai-movie\frontend\src\api\service\scripts-outline.ts`中的API从后端获取当前projectId的大纲数据，根据大纲的数据结构渲染大纲结构；
+大纲中的根为script-project的信息，一级节点为响应数据StoryOutlineDTO的sections，二级节点为OutlineSectionDTO的chapters，三级节点为OutlineChapterDTO的episodes,一般情况下三级即为叶子结点。
+第二、三级的节点都有一个number字段，如chapterNumber、episodeNumber，对应了节点在树形中的顺序位置，若拖动改变了节点卡片的位置，这个值也要响应调整。
+
+2. 响应数据`StoryOutlineDTO`中的`structureType`是一个枚举，
+ - HOOK_RISE_CONTINUATION_TURN_CONCLUSION：`引 -> 起 -> 承 -> 转 -> 合`的结构；
+ - BEGINNING_RISING_ACTION_CLIMAX_END：`开始 -> 发展 -> 高潮 -> 结局`的结构；
+ 需要提供两套对应的组件模版，在【新建剧本时】，选择任一结构开始；
+
+ 3. 按钮逻辑：
+ - 刷新：重新渲染界面，触发查询
+ - 阅读：从右侧弹出较宽的Drawer，阅读纯文本形式的完整剧本内容，Drawer上提供导出按钮功能
+ - 新建：当前projectId下不存在对应的剧本大纲时，按钮生效，触发新建大纲逻辑
+ - 删除：当前projectId下存在对应的剧本大纲时，按钮生效，删除当前大纲，并删除大纲对应的chapter和episode，点击后需要询问确认
+ - AI生成：调用后端AI Agent，预留逻辑，不做实现
+ 注意：大纲OutLine 的 id 和 projectId 是一致的
+
+ 4. 展开到三级节点时，是只以小卡片的形式展示标题摘要等元信息，点击卡片后，从右侧弹出文本编辑Drawer，对对应的episode进行编辑，关闭后立即保存
+
+# 要求
+1. 对于较复杂的组件，如各种Drawer，拆分封装为独立的组件，降低复杂度；
+2. 节点卡片的样式需要精美设计，切合展示节点信息
+3. 避免使用独立的.css 来定义样式，仅使用antd原生的配置，独立css通常会使得界面效果极度混乱，体验很糟糕
+4. 【IMPORTANT】务必确保组件逻辑正确、健壮，交互体验优越，数据逻辑和传输准确！
+
+> 如需更多参考，也可查阅 `D:\Code\Java\auto-ai-movie\frontend\doc\剧本大纲与桥段内容-后端API文档.md`
+

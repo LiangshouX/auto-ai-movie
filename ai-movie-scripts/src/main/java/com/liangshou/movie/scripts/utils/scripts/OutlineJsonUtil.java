@@ -3,6 +3,7 @@ package com.liangshou.movie.scripts.utils.scripts;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.liangshou.movie.scripts.service.dto.outline.OutlineSectionDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,7 @@ public class OutlineJsonUtil {
         }
 
         try {
+            objectMapper.registerModule(new JavaTimeModule());
             return objectMapper.writeValueAsString(sections);
         } catch (JsonProcessingException e) {
             // 记录错误并返回空数组
@@ -57,6 +59,7 @@ public class OutlineJsonUtil {
         }
 
         try {
+            objectMapper.registerModule(new JavaTimeModule());
             return objectMapper.readValue(json, new TypeReference<List<OutlineSectionDTO>>() {
             });
         } catch (JsonProcessingException e) {
@@ -78,6 +81,7 @@ public class OutlineJsonUtil {
         }
 
         try {
+            objectMapper.registerModule(new JavaTimeModule());
             objectMapper.readTree(json);
             return json.trim().startsWith("[") && json.trim().endsWith("]");
         } catch (JsonProcessingException e) {
