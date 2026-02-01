@@ -1,73 +1,73 @@
-import React from 'react';
-import {Card, Typography, Input, Space} from 'antd';
+import React, {useEffect, useState} from 'react';
+import {Editor, Toolbar} from '@wangeditor/editor-for-react'
+import '@wangeditor/editor/dist/css/style.css'
+import {IDomEditor, IEditorConfig, IToolbarConfig} from "@wangeditor/editor";
 
-const {Title, Text} = Typography;
-const {TextArea} = Input;
 
 interface TextEditorPanelProps {
-    title: string;
-    subtitle: string;
     value: string;
     onChange: (value: string) => void;
     placeholder?: string;
-    showSaveButton?: boolean;
-    onSave?: () => void;
 }
 
 export const TextEditorPanel: React.FC<TextEditorPanelProps> = (
     {
-        title,
-        subtitle,
         value,
         onChange,
         placeholder = '请输入内容...',
-        showSaveButton = false,
-        onSave
     }
 ) => {
+    // editor 实例
+    const [editor, setEditor] = useState<IDomEditor | null>(null)
+
+    // 编辑器内容
+    const [html, setHtml] = useState(value)
+
+    // 工具栏配置
+    const toolbarConfig: Partial<IToolbarConfig> = {
+        excludeKeys: ['headerSelect', 'blockquote', "insertLink", "group-video", "codeBlock"],
+    }
+
+    // 编辑器配置
+    const editorConfig: Partial<IEditorConfig> = {
+        placeholder: placeholder,
+    }
+
+    useEffect(() => {
+        setTimeout(() => {
+            setHtml(html)
+        }, 1000)
+    }, [])
+
+    // 及时销毁 editor ，重要！
+    useEffect(() => {
+        return () => {
+            if (editor == null) return
+            editor.destroy()
+            setEditor(null)
+        }
+    }, [editor])
+
+
     return (
-        <Card
-            title={
-                <div>
-                    <Title level={4} style={{margin: 0}}>{title}</Title>
-                    <Text type="secondary">{subtitle}</Text>
-                </div>
-            }
-            extra={showSaveButton && onSave && (
-                <Space>
-                    <button
-                        onClick={onSave}
-                        style={{
-                            backgroundColor: '#1890ff',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            padding: '4px 12px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        保存
-                    </button>
-                </Space>
-            )}
-            style={{height: '100%'}}
-        >
-            <TextArea
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                placeholder={placeholder}
-                rows={1}
-                style={{
-                    minHeight: 'calc(100vh - 128px)',
-                    fontSize: '16px',
-                    lineHeight: '1.25',
-                    fontFamily: '"Microsoft YaHei", "SimSun", "KaiTi", sans-serif',
-                    resize: 'vertical'
-                }}
-                autoSize={{minRows: 25, maxRows: 25}}
-                aria-label={`${title}编辑区域`}
-            />
-        </Card>
+        <>
+            <div style={{border: '1px solid #ccc', zIndex: 100}}>
+                <Toolbar
+                    editor={editor}
+                    defaultConfig={toolbarConfig}
+                    mode="default"
+                    style={{borderBottom: '1px solid #ccc'}}
+                />
+                <Editor
+                    defaultConfig={editorConfig}
+                    value={html}
+                    onCreated={setEditor}
+                    onChange={(editor) => onChange(editor.getText())}
+                    mode="default"
+                    style={{height: '500px', overflowY: 'hidden'}}
+                />
+            </div>
+        </>
     );
 };
 

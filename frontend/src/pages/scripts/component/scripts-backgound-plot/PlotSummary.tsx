@@ -39,6 +39,7 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
         onContentChange(leftContent);
     }, [leftContent]);
 
+    /*@ts-ignore*/
     const handleSave = async () => {
         if (!project?.id) return;
 
@@ -165,13 +166,13 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
                 {/* 左侧文本编辑区 */}
                 <Col xs={24} md={12}>
                     <TextEditorPanel
-                        title="剧情梗概"
-                        subtitle="请在此处编写剧本的剧情梗概内容"
+                        // title="剧情梗概"
+                        // subtitle="请在此处编写剧本的剧情梗概内容"
                         value={leftContent}
                         onChange={setLeftContent}
-                        placeholder="请输入剧情梗概..."
-                        showSaveButton={true}
-                        onSave={handleSave}
+                        placeholder="请在此处编写剧本的剧情梗概内容..."
+                        // showSaveButton={true}
+                        // onSave={handleSave}
                     />
                 </Col>
 

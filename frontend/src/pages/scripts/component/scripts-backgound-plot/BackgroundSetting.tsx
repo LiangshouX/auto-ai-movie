@@ -46,6 +46,7 @@ const BackgroundSetting: React.FC<BackgroundSettingProps> = ({project, onContent
         onContentChange(leftContent);
     }, [leftContent]);
 
+    /*@ts-ignore*/
     const handleSave = async () => {
         if (!project?.id) return;
 
@@ -166,13 +167,13 @@ const BackgroundSetting: React.FC<BackgroundSettingProps> = ({project, onContent
                 {/* 左侧文本编辑区 */}
                 <Col xs={24} md={12} style={{height: '100%'}}>
                     <TextEditorPanel
-                        title="背景设定"
-                        subtitle="请在此处编写剧本的背景设定内容"
+                        // title="背景设定"
+                        // subtitle="请在此处编写剧本的背景设定内容"
                         value={leftContent}
                         onChange={setLeftContent}
                         placeholder="请输入剧本背景设定..."
-                        showSaveButton={true}
-                        onSave={handleSave}
+                        // showSaveButton={true}
+                        // onSave={handleSave}
                     />
                 </Col>
 
