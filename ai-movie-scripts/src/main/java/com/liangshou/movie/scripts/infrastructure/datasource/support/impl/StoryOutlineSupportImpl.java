@@ -221,13 +221,17 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public StoryOutlineDTO updateSections(String id, List<OutlineSectionDTO> sections) {
+    public StoryOutlineDTO updateSections(String projectId, List<OutlineSectionDTO> sections) {
         try {
-            if (!StringUtils.hasText(id)) {
+            if (!StringUtils.hasText(projectId)) {
                 throw new BizException(ErrorCodeEnum.PARAMETER_ERROR.getCode(), "参数错误");
             }
 
-            StoryOutlinePO entity = this.getById(id);
+            // 根据项目ID查找大纲
+            QueryWrapper<StoryOutlinePO> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("project_id", projectId);
+            StoryOutlinePO entity = this.getOne(queryWrapper);
+            
             if (entity == null) {
                 throw new BizException(ErrorCodeEnum.OUTLINE_NOT_FOUND.getCode(), "大纲不存在");
             }
@@ -244,7 +248,7 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
 
             return convertToDTO(entity);
         } catch (Exception e) {
-            LOGGER.error("更新大纲章节结构时发生未知错误: id={}", id, e);
+            LOGGER.error("更新大纲章节结构时发生未知错误: projectId={}", projectId, e);
             throw new BizException(ErrorCodeEnum.OUTLINE_UPDATE_FAILED.getCode(), "更新章节结构时发生系统错误");
         }
     }

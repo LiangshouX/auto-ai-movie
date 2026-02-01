@@ -5,6 +5,7 @@ import com.liangshou.movie.scripts.common.exceptions.BizException;
 import com.liangshou.movie.scripts.infrastructure.datasource.support.IStoryOutlineSupport;
 import com.liangshou.movie.scripts.service.dto.StoryOutlineDTO;
 import com.liangshou.movie.scripts.service.dto.outline.OutlineSectionDTO;
+import com.liangshou.movie.scripts.service.dto.outline.UpdateSectionsRequest;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -230,36 +231,37 @@ public class StoryOutlineController {
     /**
      * 更新大纲章节结构
      */
-    @PatchMapping("/{id}/sections")
+    @PostMapping("/sections")
     public ResponseEntity<StoryOutlineDTO> updateSections(
-            @PathVariable("id") String id,
-            @RequestBody List<OutlineSectionDTO> sections) {
-        logger.info("开始更新大纲章节结构, id={}, 章节数量={}", id, sections != null ? sections.size() : 0);
+            @RequestBody UpdateSectionsRequest request) {
+        logger.info("开始更新大纲章节结构, projectId={}, 章节数量={}", 
+                   request.getProjectId(), 
+                   request.getSections() != null ? request.getSections().size() : 0);
         
-        if (!StringUtils.hasText(id)) {
-            logger.warn("更新大纲章节结构失败: ID不能为空");
+        if (!StringUtils.hasText(request.getProjectId())) {
+            logger.warn("更新大纲章节结构失败: 项目ID不能为空");
             return ResponseEntity.badRequest().build();
         }
         
-        if (sections == null) {
+        if (request.getSections() == null) {
             logger.warn("更新大纲章节结构失败: 章节结构不能为空");
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            StoryOutlineDTO updatedOutline = storyOutlineService.updateSections(id, sections);
+            StoryOutlineDTO updatedOutline = storyOutlineService.updateSections(request.getProjectId(), request.getSections());
             if (updatedOutline != null) {
-                logger.info("大纲章节结构更新成功, id={}", id);
+                logger.info("大纲章节结构更新成功, projectId={}", request.getProjectId());
                 return ResponseEntity.ok(updatedOutline);
             } else {
-                logger.warn("故事大纲不存在, id={}", id);
+                logger.warn("故事大纲不存在, projectId={}", request.getProjectId());
                 return ResponseEntity.notFound().build();
             }
         } catch (BizException e) {
             logger.error("更新大纲章节结构业务异常: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
-            logger.error("更新大纲章节结构系统异常, id={}", id, e);
+            logger.error("更新大纲章节结构系统异常, projectId={}", request.getProjectId(), e);
             throw new BizException("更新大纲章节结构失败");
         }
     }

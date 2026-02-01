@@ -68,9 +68,9 @@ public interface IStoryOutlineSupport {
     /**
      * 更新大纲章节结构
      *
-     * @param id       大纲ID
-     * @param sections 章节结构
+     * @param projectId 项目ID
+     * @param sections  章节结构
      * @return 更新后的大纲DTO
      */
-    StoryOutlineDTO updateSections(String id, List<com.liangshou.movie.scripts.service.dto.outline.OutlineSectionDTO> sections);
+    StoryOutlineDTO updateSections(String projectId, List<com.liangshou.movie.scripts.service.dto.outline.OutlineSectionDTO> sections);
 }

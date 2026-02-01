@@ -3,8 +3,12 @@
 // 大纲桥段数据传输对象
 export interface OutlineEpisodeDTO {
   episodeId: string;
+  projectId: string;
+  chapterId: string;
   episodeTitle: string;
   episodeNumber: number;
+  createdAt?: string; // ISO时间戳
+  updatedAt?: string; // ISO时间戳
 }
 
 // 大纲章节数据传输对象
@@ -61,6 +65,7 @@ export interface UpdateStructureTypeData {
 
 // 更新大纲章节结构的请求数据
 export interface UpdateSectionsData {
+  projectId: string;
   sections: OutlineSectionDTO[];
 }
 
@@ -129,6 +134,8 @@ export const createDefaultOutlineChapter = (): OutlineChapterDTO => ({
 // 工具函数：创建默认桥段对象
 export const createDefaultOutlineEpisode = (): OutlineEpisodeDTO => ({
   episodeId: '',
+  projectId: '',
+  chapterId: '',
   episodeTitle: '',
   episodeNumber: 1
 });

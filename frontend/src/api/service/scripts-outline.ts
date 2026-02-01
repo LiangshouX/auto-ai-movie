@@ -68,10 +68,10 @@ class ScriptsOutlineService {
   }
 
   // 更新大纲章节结构
-  async updateSections(outlineData: { id: string; sectionsData: UpdateSectionsData }) {
+  async updateSections(outlineData: UpdateSectionsData) {
     return ApiUtils.createResource(
-      (data: { id: string; sectionsData: UpdateSectionsData }) => 
-        apiClient.patch(`/v1/outlines/${data.id}/sections`, data.sectionsData),
+      (data: UpdateSectionsData) => 
+        apiClient.post('/v1/outlines/sections', data),
       outlineData
     );
   }

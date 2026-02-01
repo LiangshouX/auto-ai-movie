@@ -46,7 +46,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
     const [treeData, setTreeData] = useState<TreeNode[]>([]);
     const [episodeDrawerVisible, setEpisodeDrawerVisible] = useState(false);
     const [readDrawerVisible, setReadDrawerVisible] = useState(false);
-    const [currentEpisode, setCurrentEpisode] = useState<OutlineEpisodeDTO | null>(null);
+    const [currentEpisode, _setCurrentEpisode] = useState<OutlineEpisodeDTO | null>(null);
     const [editingChapterId, _setEditingChapterId] = useState('');
     const [createModalVisible, setCreateModalVisible] = useState(false);
     const [creating, setCreating] = useState(false);
@@ -265,8 +265,8 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             
             // 更新到后端
             const response = await scriptsOutlineApi.updateSections({
-                id: outline.id,
-                sectionsData: { sections: updatedOutline.sections }
+                projectId: outline.projectId,
+                sections: updatedOutline.sections
             });
             
             if (response.success) {
@@ -319,8 +319,8 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             
             // 更新到后端
             const response = await scriptsOutlineApi.updateSections({
-                id: outline.id,
-                sectionsData: { sections: updatedOutline.sections }
+                projectId: outline.projectId,
+                sections: updatedOutline.sections
             });
             
             if (response.success) {
