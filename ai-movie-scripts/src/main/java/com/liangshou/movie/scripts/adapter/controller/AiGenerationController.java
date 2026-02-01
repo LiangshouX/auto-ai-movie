@@ -1,9 +1,13 @@
 package com.liangshou.movie.scripts.adapter.controller;
 
 import com.liangshou.movie.scripts.service.impl.AIScriptWritingAgent;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.Resource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,7 +18,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/ai")
 public class AiGenerationController {
 
-    @Autowired
+    @Resource
     private AIScriptWritingAgent aiScriptWritingAgent;
 
     /**

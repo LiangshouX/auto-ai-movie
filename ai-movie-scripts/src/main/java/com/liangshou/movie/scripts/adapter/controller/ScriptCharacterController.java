@@ -2,9 +2,13 @@ package com.liangshou.movie.scripts.adapter.controller;
 
 import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptCharacterSupport;
 import com.liangshou.movie.scripts.service.dto.ScriptCharacterDTO;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.Resource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.List;
 
 /**
@@ -14,7 +18,7 @@ import java.util.List;
 @RequestMapping("/api/v1/characters")
 public class ScriptCharacterController {
 
-    @Autowired
+    @Resource
     private IScriptCharacterSupport scriptCharacterService;
 
     /**

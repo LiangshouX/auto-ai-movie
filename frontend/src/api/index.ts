@@ -1,4 +1,4 @@
-import {projectApi} from "./service/ai-scripts.ts";
+import {projectApi} from "./service/scripts-project.ts";
 import apiClient, {ApiResponse} from './request';
 import {ApiErrorHandler, ApiUtils, PaginatedResponse} from './utils';
 

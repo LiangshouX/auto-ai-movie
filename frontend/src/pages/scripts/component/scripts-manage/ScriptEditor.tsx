@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Layout, Button, Typography, Card, Alert, Spin, message, Flex } from 'antd';
 import api from '../../../../api';
 import { ScriptProject } from '@/api/types/project-types.ts';
-import { projectApi } from '@/api/service/ai-scripts.ts';
+import { projectApi } from '@/api/service/scripts-project.ts';
 import EditorHeader from '../../layout/EditorHeader.tsx';
 import SidebarNav from '../../layout/SidebarNav.tsx';
 import BackgroundSetting from '../scripts-backgound-plot/BackgroundSetting.tsx';

@@ -17,7 +17,7 @@
 ## 2、背景设定页面
 分为两栏，左边栏为文本编辑框，由人工编写剧本文本内容，需要确保编辑体验，字体可考虑使用宋体、楷体等便于识别的视觉友好的字体，行间距1.25倍，整个文本区在一个container内，如果超长可以纵向滑动；
 右侧栏为一个AI Chat的对话窗口，会接通后端的AI Agent对话接口具体的接口地址可以先忽略，仅保留API签名，向后端AI Agent发送的文本数据可能从左侧的文本栏中和底部输入框中获取，前端需要维护一个唯一的session_id（可以考虑用剧本项目的 projectId+其他），用于后端识别对话，后端的AI Agent可能为流式输出，前端需要做好对应的适配。
-保存的内容以左侧编辑栏的文本为主，保存的字段对应是 `D:\Code\Java\auto-ai-movie\fronted\src\api\types\project-types.ts`中，`ScriptProject`的`theme`字段，注意合理使用`D:\Code\Java\auto-ai-movie\fronted\src\api\service\ai-scripts.ts`中ProjectService对应的API。
+保存的内容以左侧编辑栏的文本为主，保存的字段对应是 `D:\Code\Java\auto-ai-movie\fronted\src\api\types\project-types.ts`中，`ScriptProject`的`theme`字段，注意合理使用`D:\Code\Java\auto-ai-movie\fronted\src\api\service\scripts-project.ts`中ProjectService对应的API。
 
 
 ## 3、剧情梗概

@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {Card, Typography, Tag, Button, Drawer, Form, Input, Select, Divider} from 'antd';
 import {EditOutlined, DeleteOutlined, EyeOutlined} from '@ant-design/icons';
 import {ScriptProject, ProjectStatus} from '../../../../api/types/project-types.ts';
-import {projectApi} from '../../../../api/service/ai-scripts.ts';
+import {projectApi} from '../../../../api/service/scripts-project.ts';
 import {useNavigate} from "react-router-dom";
 
 const {Title, Text} = Typography;
