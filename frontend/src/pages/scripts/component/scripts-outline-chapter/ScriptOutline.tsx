@@ -1,12 +1,16 @@
 import React from 'react';
-import {Card, Typography, Tree, Space, Flex} from 'antd';
+import {Button, Card, Flex, Space, Tree, Typography} from 'antd';
 import {
     FundProjectionScreenOutlined,
+    InfoCircleOutlined,
     NodeIndexOutlined,
-    InfoCircleOutlined
+    PlusOutlined,
+    ReloadOutlined,
+    RobotOutlined
 } from '@ant-design/icons';
+import Title from "antd/lib/typography/Title";
 
-const {Text, Paragraph} = Typography;
+const {Paragraph} = Typography;
 
 interface ScriptOutlineProps {
     projectTitle: string;
@@ -69,7 +73,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
     ];
 
     return (
-        <div style={{
+        <Flex vertical style={{
             height: '100%',
             display: 'flex',
             flex: 1,
@@ -78,17 +82,50 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             maxHeight: 'calc(100vh - 10px)',
             minWidth: 'max(1200px, calc(100vw - 340px))'
         }}>
-            <Card
-                title={
+            {/* 画布头部 */}
+            <Flex justify="space-between" align="center" style={{
+                marginBottom: 0, position: 'sticky', top: 0, zIndex: 1, background: '#fff',
+            }}>
+                <Title level={3} style={{margin: 0}}>
                     <Space>
                         <FundProjectionScreenOutlined/>
-                        <span>剧本大纲</span>
+                        <span>剧本设计</span>
                     </Space>
-                }
-                extra={
-                    <Text type="secondary">以思维导图形式呈现剧本结构</Text>
-                }
-            >
+                </Title>
+                <Space>
+                    <Button
+                        // type="primary"
+                        size="large"
+                        icon={<ReloadOutlined/>}
+                        onClick={() => {
+                        }}
+                    >
+                        刷新
+                    </Button>
+
+                    <Button
+                        // type="primary"
+                        size="large"
+                        icon={<PlusOutlined/>}
+                        onClick={() => {
+                        }}
+                    >
+                        新建剧本
+                    </Button>
+
+                    <Button
+                        // type="primary"
+                        size="large"
+                        icon={<RobotOutlined/>}
+                        loading={false}
+                        onClick={() => {
+                        }}
+                    >
+                        AI设计
+                    </Button>
+                </Space>
+            </Flex>
+            <Card>
                 <Flex style={{gap: '24px', minHeight: 400}}>
                     <Flex flex={2} vertical>
                         <Tree
@@ -137,7 +174,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                     </Flex>
                 </Flex>
             </Card>
-        </div>
+        </Flex>
     );
 };
 
