@@ -86,13 +86,15 @@ export const createDefaultChapter = (sectionId: string): OutlineChapterDTO => {
 };
 
 // 创建默认桥段对象
-export const createDefaultEpisode = (): OutlineEpisodeDTO => {
+export const createDefaultEpisode = (projectId: string, chapterId: string): OutlineEpisodeDTO => {
   return {
-    episodeId: '', // 不需要生成ID
-    projectId: '',
-    chapterId: '',
+    episodeId: '', // 后端生成
+    projectId,
+    chapterId,
     episodeTitle: '新桥段',
-    episodeNumber: 1
+    episodeNumber: 1,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   };
 };
 

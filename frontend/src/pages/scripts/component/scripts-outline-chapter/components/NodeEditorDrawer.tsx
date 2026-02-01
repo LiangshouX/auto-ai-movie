@@ -91,11 +91,12 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = ({
         case 'episode':
           updatedData = {
             ...nodeData,
-            episodeTitle: values.episodeTitle
+            episodeTitle: values.episodeTitle,
+            updatedAt: new Date().toISOString()
           };
           break;
       }
-      
+
       onSave(updatedData);
       message.success('保存成功');
       onClose();
@@ -125,7 +126,7 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = ({
           break;
         case 'chapter':
           // 在章節下创建新桥段
-          childData = createDefaultEpisode();
+          childData = createDefaultEpisode('', parentId);
           childData.episodeTitle = values.newEpisodeTitle || '新桥段';
           break;
       }
