@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Editor, Tldraw, TLShape, TLShapeId, useEditor} from 'tldraw';
 import 'tldraw/tldraw.css';
 import './role-canvas.css';
-import {CharacterRelationship, CharacterRole} from '../../../../../api/types/character-role-types.ts';
+import {CharacterRelationship, CharacterRole} from '@/api/types/character-role-types.ts';
 import {Form, Input, message, Modal, Select, Spin} from 'antd';
 import {LoadingOutlined, PlusOutlined, RobotOutlined} from '@ant-design/icons';
 import {CHARACTER_ROLE_SHAPE_TYPE, CharacterRoleUtil} from "./TLCharacterRoleShape.tsx";

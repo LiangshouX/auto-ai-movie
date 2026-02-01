@@ -1,4 +1,4 @@
-import { CharacterRole } from '../../../../../api/types/character-role-types.ts';
+import { CharacterRole } from '@/api/types/character-role-types.ts';
 
 // Mock数据：基于提供的SQL示例创建的角色数据
 export const mockCharacters: CharacterRole[] = [

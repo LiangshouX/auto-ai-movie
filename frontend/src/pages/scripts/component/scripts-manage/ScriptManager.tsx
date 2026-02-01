@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {useProjectApi} from '../../../../hooks/useApi.ts';
-import {ScriptProject, ProjectStatus, ScriptProjectType} from '../../../../api/types/project-types.ts';
+import {useProjectApi} from '@/hooks/useApi.ts';
+import {ScriptProject, ProjectStatus, ScriptProjectType} from '@/api/types/project-types.ts';
 import {
     Button,
     Input,

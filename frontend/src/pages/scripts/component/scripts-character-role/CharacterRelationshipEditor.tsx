@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Button, Card, Divider, Input, Popconfirm, Select, Space, Typography} from 'antd';
 import {PlusOutlined} from '@ant-design/icons';
-import {CharacterRelationship, CharacterRole, RelationshipType} from '../../../../api/types/character-role-types.ts';
+import {CharacterRelationship, CharacterRole, RelationshipType} from '@/api/types/character-role-types.ts';
 
 const {Text} = Typography;
 

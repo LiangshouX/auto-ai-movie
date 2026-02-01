@@ -11,7 +11,7 @@ import {
     mockCharacters,
     updateCharacter
 } from "./data/mockCharacters.ts";
-import {CharacterRelationship, CharacterRole, Gender} from "../../../../api/types/character-role-types.ts";
+import {CharacterRelationship, CharacterRole, Gender} from "@/api/types/character-role-types.ts";
 import CharacterDetailSidebar from "./CharacterDetailSidebar.tsx";
 import CharacterDetailDrawer from "./CharacterDetailDrawer.tsx";
 

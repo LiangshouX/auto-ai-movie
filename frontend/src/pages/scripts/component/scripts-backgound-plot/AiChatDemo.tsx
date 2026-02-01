@@ -13,7 +13,7 @@ import {
     ConversationSession,
     createDefaultMessage,
     createDefaultConversation
-} from '../../../../api/types/ai-chat-types';
+} from '@/api/types/ai-chat-types.ts';
 
 const { Title, Text } = Typography;
 

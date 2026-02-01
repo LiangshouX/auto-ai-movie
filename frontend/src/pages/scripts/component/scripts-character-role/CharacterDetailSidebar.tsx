@@ -1,6 +1,6 @@
 import {Button, Card, Col, Row, Tag, Typography} from "antd";
 import {DeleteOutlined, EditOutlined, TeamOutlined, UserOutlined} from "@ant-design/icons";
-import {Gender, RelationshipType} from "../../../../api/types/character-role-types";
+import {Gender, RelationshipType} from "@/api/types/character-role-types.ts";
 import {findCharacterById} from "./data/mockCharacters";
 
 const { Title, Text } = Typography;

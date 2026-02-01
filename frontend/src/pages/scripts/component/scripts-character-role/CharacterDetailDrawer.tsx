@@ -20,8 +20,8 @@ import {
     CharacterRole,
     CreateCharacterRoleData,
     Gender
-} from '../../../../api/types/character-role-types.ts';
-import {characterRoleApi} from '../../../../api/service/character-role.ts';
+} from '@/api/types/character-role-types.ts';
+import {characterRoleApi} from '@/api/service/character-role.ts';
 import CharacterRelationshipEditor from "./CharacterRelationshipEditor.tsx";
 
 const {Title, Text} = Typography;

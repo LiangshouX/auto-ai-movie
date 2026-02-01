@@ -2,9 +2,9 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
 import {Avatar, Badge, Button, Card, Col, Empty, Flex, Row, Space, Spin, Tag, Typography} from 'antd';
 import {PlusOutlined, ReloadOutlined, RobotOutlined, UserOutlined} from '@ant-design/icons';
-import {CharacterRole} from '../../../../api/types/character-role-types.ts';
-import {characterRoleApi} from '../../../../api/service/character-role.ts';
-import {ScriptProject} from '../../../../api/types/project-types.ts';
+import {CharacterRole} from '@/api/types/character-role-types.ts';
+import {characterRoleApi} from '@/api/service/character-role.ts';
+import {ScriptProject} from '@/api/types/project-types.ts';
 import CharacterDetailDrawer from "./CharacterDetailDrawer.tsx";
 
 const {Title, Text} = Typography;

@@ -4,7 +4,7 @@ import {ScriptProject} from '@/api/types/project-types.ts';
 import {projectApi} from '@/api/service/ai-scripts.ts';
 import {AiChatPanel} from './AiChatPanel.tsx';
 import {TextEditorPanel} from './TextEditorPanel.tsx';
-import {AiMessage, AiThought, AiThoughtChain, ConversationSession, createDefaultMessage, createDefaultConversation} from '../../../../api/types/ai-chat-types.ts';
+import {AiMessage, AiThought, AiThoughtChain, ConversationSession, createDefaultMessage, createDefaultConversation} from '@/api/types/ai-chat-types.ts';
 
 interface PlotSummaryProps {
     project: ScriptProject | null;
