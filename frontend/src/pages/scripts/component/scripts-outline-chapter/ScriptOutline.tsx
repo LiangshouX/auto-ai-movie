@@ -1187,7 +1187,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             <Drawer
                 title="桥段编辑"
                 placement="right"
-                width={600}
+                size={600}
                 open={episodeDrawerVisible}
                 onClose={() => setEpisodeDrawerVisible(false)}
             >
@@ -1198,7 +1198,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             <Drawer
                 title="剧本全文阅读"
                 placement="right"
-                width={800}
+                size={800}
                 open={readDrawerVisible}
                 onClose={() => setReadDrawerVisible(false)}
                 extra={

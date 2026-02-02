@@ -91,7 +91,7 @@ const InlineEditor: React.FC<InlineEditorProps> = ({
                             chapterId: parentId
                         };
                     } else {
-                        throw new Error('创建桥段失败');
+                        message.error('创建桥段失败');
                     }
                     break;
             }
@@ -146,7 +146,7 @@ const InlineEditor: React.FC<InlineEditorProps> = ({
             marginBottom: '8px',
             boxShadow: '0 2px 8px rgba(24, 144, 255, 0.2)'
         }}>
-            <Space direction="vertical" style={{width: '100%'}} size="small">
+            <Space orientation="vertical" style={{width: '100%'}} size="small">
                 <Input
                     ref={inputRef}
                     placeholder={`请输入${getNodeTypeName()}标题`}

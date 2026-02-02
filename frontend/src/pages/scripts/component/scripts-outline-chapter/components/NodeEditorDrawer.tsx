@@ -469,10 +469,10 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
                 </Space>
             }
             placement="right"
-            width={nodeType === 'episode' ? 700 : 500}
+            size={nodeType === 'episode' ? 700 : 500}
             open={open}
             onClose={onClose}
-            destroyOnClose
+            // destroyOnClose
             extra={
                 <Space>
                     <Button
