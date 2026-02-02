@@ -16,13 +16,12 @@ import {scriptsOutlineApi} from '@/api/service/scripts-outline';
 import {scriptsEpisodeApi} from '@/api/service/scripts-episode';
 
 import type {OutlineEpisodeDTO, StoryOutlineDTO, StructureType} from '@/api/types/scripts-outline-types';
-import type {ScriptEpisodeDTO, CreateScriptEpisodeData} from '@/api/types/scripts-episode-types';
+import type {CreateScriptEpisodeData, ScriptEpisodeDTO} from '@/api/types/scripts-episode-types';
 import type {DataNode} from 'antd/es/tree';
 
 import {createDefaultOutlineStructure, generateOutlineText, recalculateNumbers} from './utils/outline-utils';
 import CreateOutlineModal from './components/CreateOutlineModal';
 import NodeEditorDrawer from './components/NodeEditorDrawer';
-import InlineEditor from './components/InlineEditor';
 
 const {Paragraph} = Typography;
 
@@ -49,8 +48,6 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
     const [treeData, setTreeData] = useState<TreeNode[]>([]);
     const [episodeDrawerVisible, setEpisodeDrawerVisible] = useState(false);
     const [readDrawerVisible, setReadDrawerVisible] = useState(false);
-    const [currentEpisode, _setCurrentEpisode] = useState<OutlineEpisodeDTO | null>(null);
-    const [editingChapterId, _setEditingChapterId] = useState('');
     const [createModalVisible, setCreateModalVisible] = useState(false);
     const [creating, setCreating] = useState(false);
     const [outlineText, setOutlineText] = useState('');
@@ -60,9 +57,9 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
     const [editingParentId, setEditingParentId] = useState<string>('');
     
     // 内联编辑器状态
-    const [inlineEditorVisible, setInlineEditorVisible] = useState(false);
-    const [inlineEditorNodeType, setInlineEditorNodeType] = useState<'section' | 'chapter' | 'episode' | null>(null);
-    const [inlineEditorParentId, setInlineEditorParentId] = useState<string>('');
+    // const [inlineEditorVisible, setInlineEditorVisible] = useState(false);
+    // const [inlineEditorNodeType, setInlineEditorNodeType] = useState<'section' | 'chapter' | 'episode' | null>(null);
+    // const [inlineEditorParentId, setInlineEditorParentId] = useState<string>('');
     
     // 悬浮状态
     const [hoveredNodeId, setHoveredNodeId] = useState<string>('');
@@ -128,18 +125,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                         >
                             <div style={{fontWeight: 'bold', color: '#1890ff', marginBottom: '4px'}}>
                                 {section.sectionTitle}
-                                {hoveredNodeId === `section-${section.sectionId}` && (
-                                    <Button
-                                        type="text"
-                                        icon={<PlusOutlined />}
-                                        size="small"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            showInlineEditor('chapter', section.sectionId);
-                                        }}
-                                        style={{marginLeft: '8px', color: '#1890ff'}}
-                                    />
-                                )}
+
                             </div>
                             <div style={{fontSize: '12px', color: '#666', marginTop: '4px'}}>{section.description}</div>
                             <div style={{
@@ -166,25 +152,6 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                     nodeType: 'section',
                     nodeData: section,
                     children: [
-                        // 内联编辑器
-                        ...(inlineEditorVisible && inlineEditorNodeType === 'chapter' && inlineEditorParentId === section.sectionId
-                            ? [{
-                                title: (
-                                    <InlineEditor
-                                        visible={true}
-                                        nodeType="chapter"
-                                        parentId={section.sectionId}
-                                        projectId={outlineData.projectId}
-                                        onSave={(data) => handleInlineSave('chapter', section.sectionId, data)}
-                                        onCancel={() => setInlineEditorVisible(false)}
-                                    />
-                                ),
-                                key: `inline-editor-chapter-${section.sectionId}`,
-                                nodeType: 'inline-editor' as const,
-                                isLeaf: true
-                            } as TreeNode]
-                            : []
-                        ),
                         ...section.chapters.map(chapter => {
                             const chapterNode: TreeNode = {
                                 title: (
@@ -212,18 +179,6 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                                     >
                                         <div style={{fontWeight: '500', marginBottom: '4px'}}>
                                             {chapter.chapterTitle}
-                                            {hoveredNodeId === `chapter-${chapter.chapterId}` && (
-                                                <Button
-                                                    type="text"
-                                                    icon={<PlusOutlined />}
-                                                    size="small"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        showInlineEditor('episode', chapter.chapterId);
-                                                    }}
-                                                    style={{marginLeft: '8px', color: '#1890ff'}}
-                                                />
-                                            )}
                                         </div>
                                         <div style={{
                                             fontSize: '12px',
@@ -258,25 +213,6 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                                 nodeType: 'chapter',
                                 nodeData: chapter,
                                 children: [
-                                    // 内联编辑器
-                                    ...(inlineEditorVisible && inlineEditorNodeType === 'episode' && inlineEditorParentId === chapter.chapterId
-                                        ? [{
-                                            title: (
-                                                <InlineEditor
-                                                    visible={true}
-                                                    nodeType="episode"
-                                                    parentId={chapter.chapterId}
-                                                    projectId={outlineData.projectId}
-                                                    onSave={(data) => handleInlineSave('episode', chapter.chapterId, data)}
-                                                    onCancel={() => setInlineEditorVisible(false)}
-                                                />
-                                            ),
-                                            key: `inline-editor-episode-${chapter.chapterId}`,
-                                            nodeType: 'inline-editor' as const,
-                                            isLeaf: true
-                                        } as TreeNode]
-                                        : []
-                                    ),
                                     ...chapter.episodes.map(episode => ({
                                         title: (
                                             <div 
@@ -707,14 +643,16 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
     };
 
     // 显示内联编辑器
-    const showInlineEditor = (nodeType: 'chapter' | 'episode', parentId: string) => {
-        setInlineEditorVisible(true);
-        setInlineEditorNodeType(nodeType);
-        setInlineEditorParentId(parentId);
-        setHoveredNodeId(''); // 清除悬浮状态
-    };
+    // const showInlineEditor = (nodeType: 'section' |'chapter' | 'episode', parentId: string) => {
+    //     setInlineEditorVisible(true);
+    //     setInlineEditorNodeType(nodeType);
+    //     setInlineEditorParentId(parentId);
+    //     console.log(`点击内联编辑按钮，nodeType: ${nodeType} parentId: ${parentId} inlineEditorVisible:${inlineEditorVisible}`)
+    //     setHoveredNodeId(''); // 清除悬浮状态
+    // };
 
     // 处理内联保存
+    /*@ts-ignore*/
     const handleInlineSave = async (nodeType: 'chapter' | 'episode', parentId: string, data: any) => {
         if (!outline) return;
 
@@ -783,11 +721,8 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             if (response.success) {
                 setOutline(updatedOutline);
                 buildTreeData(updatedOutline);
-                setInlineEditorVisible(false);
-                setInlineEditorNodeType(null);
-                setInlineEditorParentId('');
             } else {
-                throw new Error('更新大纲失败');
+                console.error('更新大纲失败');
             }
         } catch (error) {
             console.error('内联保存失败:', error);
@@ -1226,14 +1161,6 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
         </Flex>
     );
 
-    // 为了防止TS6133警告，这里添加对状态变量的引用
-    // 这些变量在JSX中被使用，但TypeScript静态分析可能检测不到
-    // 故意保留这些变量引用以避免TS6133警告
-    // 这些变量在JSX中被实际使用
-    void [currentEpisode, editingChapterId, createModalVisible, creating, outlineText, handleCreateOutlineConfirm,
-        editorDrawerVisible, editingNodeType, editingNodeData, editingParentId, handleNodeSave, handleCreateChild,
-        inlineEditorVisible, inlineEditorNodeType, inlineEditorParentId, hoveredNodeId, 
-        showInlineEditor, handleInlineSave, handleDeleteSection];
 };
 
 export default ScriptOutline;

@@ -1,6 +1,13 @@
 import React, {useEffect, useState} from 'react';
 import {Button, Drawer, Form, Input, message, Space, Tabs, List, Card, Popconfirm} from 'antd';
-import {CloseOutlined, PlusOutlined, SaveOutlined, EditOutlined, DeleteOutlined} from '@ant-design/icons';
+import {
+    CloseOutlined,
+    PlusOutlined,
+    SaveOutlined,
+    EditOutlined,
+    DeleteOutlined,
+    ExclamationCircleOutlined
+} from '@ant-design/icons';
 import {createDefaultChapter, createDefaultEpisode} from '../utils/outline-utils';
 import {scriptsEpisodeApi} from '@/api/service/scripts-episode';
 import type {ScriptEpisodeDTO} from '@/api/types/scripts-episode-types';
@@ -212,20 +219,23 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
             case 'section':
                 return (
                     <>
+                        <div style={{ marginBottom: '20px' ,fontSize: '16px', color: 'red'}}>
+                            <ExclamationCircleOutlined/> 新增的子节点：【保存并新增子节点】  否则：【保存】
+                        </div>
                         <Form.Item
                             name="sectionTitle"
-                            label="章节标题"
-                            rules={[{required: true, message: '请输入章节标题'}]}
+                            label="大纲标题"
+                            rules={[{required: true, message: '请输入大纲标题'}]}
                         >
-                            <Input placeholder="请输入章节标题"/>
+                            <Input placeholder="请输入大纲标题"/>
                         </Form.Item>
                         <Form.Item
                             name="description"
-                            label="章节描述"
-                            rules={[{required: true, message: '请输入章节描述'}]}
+                            label="大纲描述"
+                            rules={[{required: true, message: '请输入大纲描述'}]}
                         >
                             <Input.TextArea
-                                placeholder="请输入章节描述"
+                                placeholder="请输入大纲描述"
                                 autoSize={{minRows: 3, maxRows: 6}}
                             />
                         </Form.Item>
