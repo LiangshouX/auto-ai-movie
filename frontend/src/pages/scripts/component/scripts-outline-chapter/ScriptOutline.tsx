@@ -23,7 +23,7 @@ import {createDefaultOutlineStructure, generateOutlineText, recalculateNumbers} 
 import CreateOutlineModal from './components/CreateOutlineModal';
 import NodeEditorDrawer from './components/NodeEditorDrawer';
 
-const { Paragraph } = Typography;
+const {Paragraph} = Typography;
 
 interface ScriptOutlineProps {
     projectTitle: string;
@@ -40,8 +40,8 @@ interface TreeNode extends DataNode {
 
 const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
 
-    const { projectId } = useParams<{ projectId: string }>();
-    
+    const {projectId} = useParams<{ projectId: string }>();
+
     // 状态管理
     const [outline, setOutline] = useState<StoryOutlineDTO | null>(null);
     const [loading, setLoading] = useState(false);
@@ -57,14 +57,14 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
     const [editingNodeType, setEditingNodeType] = useState<'section' | 'chapter' | 'episode' | null>(null);
     const [editingNodeData, setEditingNodeData] = useState<any>(null);
     const [editingParentId, setEditingParentId] = useState<string>('');
-    
+
     // 获取大纲数据
     const fetchOutline = async () => {
         if (!projectId) return;
-        
+
         setLoading(true);
         try {
-            const response = await scriptsOutlineApi.getOutlineByProject({ projectId });
+            const response = await scriptsOutlineApi.getOutlineByProject({projectId});
             if (response.success && response.data) {
                 setOutline(response.data as StoryOutlineDTO);
                 buildTreeData(response.data as StoryOutlineDTO);
@@ -81,12 +81,12 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             setLoading(false);
         }
     };
-    
+
     // 构建树形数据
     const buildTreeData = (outlineData: StoryOutlineDTO) => {
         const rootNode: TreeNode = {
             title: (
-                <div style={{ padding: '12px 16px', fontWeight: 'bold', fontSize: '16px' }}>
+                <div style={{padding: '12px 16px', fontWeight: 'bold', fontSize: '16px'}}>
                     {projectTitle || '剧本大纲'}
                 </div>
             ),
@@ -95,16 +95,20 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             nodeData: outlineData,
             children: outlineData.sections.map(section => ({
                 title: (
-                    <div style={{ 
-                        padding: '12px 16px', 
-                        border: '1px solid #e8e8e8', 
+                    <div style={{
+                        padding: '12px 16px',
+                        border: '1px solid #e8e8e8',
                         borderRadius: '6px',
                         backgroundColor: '#fafafa',
                         marginBottom: '8px'
                     }}>
-                        <div style={{ fontWeight: 'bold', color: '#1890ff' }}>{section.sectionTitle}</div>
-                        <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{section.description}</div>
-                        <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>章节: {section.chapterCount}</div>
+                        <div style={{fontWeight: 'bold', color: '#1890ff'}}>{section.sectionTitle}</div>
+                        <div style={{fontSize: '12px', color: '#666', marginTop: '4px'}}>{section.description}</div>
+                        <div style={{
+                            fontSize: '11px',
+                            color: '#999',
+                            marginTop: '4px'
+                        }}>章节: {section.chapterCount}</div>
                     </div>
                 ),
                 key: `section-${section.sectionId}`,
@@ -112,20 +116,29 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                 nodeData: section,
                 children: section.chapters.map(chapter => ({
                     title: (
-                        <div style={{ 
-                            padding: '10px 14px', 
-                            border: '1px solid #d9d9d9', 
+                        <div style={{
+                            padding: '10px 14px',
+                            border: '1px solid #d9d9d9',
                             borderRadius: '4px',
                             backgroundColor: '#fff',
                             marginBottom: '6px',
                             cursor: 'pointer',
                             transition: 'all 0.2s'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'}
-                        onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}>
-                            <div style={{ fontWeight: '500', marginBottom: '4px' }}>{chapter.chapterTitle}</div>
-                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{chapter.chapterSummary}</div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#999' }}>
+                             onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'}
+                             onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}>
+                            <div style={{fontWeight: '500', marginBottom: '4px'}}>{chapter.chapterTitle}</div>
+                            <div style={{
+                                fontSize: '12px',
+                                color: '#666',
+                                marginBottom: '4px'
+                            }}>{chapter.chapterSummary}</div>
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                fontSize: '11px',
+                                color: '#999'
+                            }}>
                                 <span>桥段: {chapter.episodeCount}</span>
                                 <span>字数: {chapter.wordCount}</span>
                             </div>
@@ -136,25 +149,29 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                     nodeData: chapter,
                     children: chapter.episodes.map(episode => ({
                         title: (
-                            <div style={{ 
-                                padding: '8px 12px', 
-                                border: '1px dashed #d9d9d9', 
+                            <div style={{
+                                padding: '8px 12px',
+                                border: '1px dashed #d9d9d9',
                                 borderRadius: '4px',
                                 backgroundColor: '#fff',
                                 marginBottom: '4px',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s'
                             }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = '#f0f7ff';
-                                e.currentTarget.style.borderColor = '#1890ff';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = '#fff';
-                                e.currentTarget.style.borderColor = '#d9d9d9';
-                            }}>
-                                <div style={{ fontWeight: 'normal', fontSize: '13px' }}>{episode.episodeTitle}</div>
-                                <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>#{episode.episodeNumber}</div>
+                                 onMouseEnter={(e) => {
+                                     e.currentTarget.style.backgroundColor = '#f0f7ff';
+                                     e.currentTarget.style.borderColor = '#1890ff';
+                                 }}
+                                 onMouseLeave={(e) => {
+                                     e.currentTarget.style.backgroundColor = '#fff';
+                                     e.currentTarget.style.borderColor = '#d9d9d9';
+                                 }}>
+                                <div style={{fontWeight: 'normal', fontSize: '13px'}}>{episode.episodeTitle}</div>
+                                <div style={{
+                                    fontSize: '11px',
+                                    color: '#999',
+                                    marginTop: '2px'
+                                }}>#{episode.episodeNumber}</div>
                             </div>
                         ),
                         key: `episode-${episode.episodeId}`,
@@ -164,14 +181,14 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                 }))
             }))
         };
-        
+
         setTreeData([rootNode]);
     };
 
     // 处理节点点击
     const handleNodeSelect = async (_selectedKeys: React.Key[], info: any) => {
         const node = info.node as TreeNode;
-        
+
         // 打开对应的编辑抽屉
         switch (node.nodeType) {
             case 'section':
@@ -190,8 +207,8 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                 // 对于episode，先获取最新数据再打开编辑器
                 try {
                     if (node.nodeData.episodeId) {
-                        const response = await scriptsEpisodeApi.getEpisodeById({ 
-                            id: node.nodeData.episodeId 
+                        const response = await scriptsEpisodeApi.getEpisodeById({
+                            id: node.nodeData.episodeId
                         });
                         if (response.success && response.data) {
                             const episodeData = response.data as ScriptEpisodeDTO;
@@ -222,26 +239,26 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                 break;
         }
     };
-    
+
     // 刷新大纲
     const handleRefresh = () => {
         fetchOutline();
     };
-    
+
     // 新建大纲
     const handleCreateOutline = () => {
         setCreateModalVisible(true);
     };
-    
+
     // 处理大纲创建
     const handleCreateOutlineConfirm = async (structureType: StructureType) => {
         if (!projectId) return;
-        
+
         setCreating(true);
         try {
             const outlineData = createDefaultOutlineStructure(projectId, structureType);
             const response = await scriptsOutlineApi.createOutline(outlineData);
-            
+
             if (response.success && response.data) {
                 message.success('大纲创建成功');
                 setOutline(response.data as StoryOutlineDTO);
@@ -255,14 +272,14 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             setCreating(false);
         }
     };
-    
+
     // 保存节点编辑
     const handleNodeSave = async (updatedData: any) => {
         if (!outline) return;
-        
+
         try {
-            let updatedOutline = { ...outline };
-            
+            let updatedOutline = {...outline};
+
             // 处理新建节点的情况
             if (!editingNodeData) {
                 // 新建节点
@@ -311,7 +328,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                             episodeContent: '',
                             wordCount: 0
                         };
-                        
+
                         const episodeResponse = await scriptsEpisodeApi.createEpisode(episodeData);
                         if (episodeResponse.success && episodeResponse.data) {
                             // 将返回的完整episode数据添加到outline中
@@ -325,7 +342,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                                 createdAt: newEpisode.createdAt || new Date().toISOString(),
                                 updatedAt: newEpisode.updatedAt || new Date().toISOString()
                             };
-                            
+
                             updatedOutline.sections = updatedOutline.sections.map(section => ({
                                 ...section,
                                 chapters: section.chapters.map(chapter => {
@@ -350,7 +367,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                 switch (editingNodeType) {
                     case 'section':
                         // 更新章节
-                        updatedOutline.sections = updatedOutline.sections.map(section => 
+                        updatedOutline.sections = updatedOutline.sections.map(section =>
                             section.sectionId === updatedData.sectionId ? updatedData : section
                         );
                         break;
@@ -358,7 +375,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                         // 更新章节
                         updatedOutline.sections = updatedOutline.sections.map(section => ({
                             ...section,
-                            chapters: section.chapters.map(chapter => 
+                            chapters: section.chapters.map(chapter =>
                                 chapter.chapterId === updatedData.chapterId ? updatedData : chapter
                             )
                         }));
@@ -369,15 +386,15 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                             id: updatedData.episodeId,
                             episodeTitle: updatedData.episodeTitle
                         };
-                        
+
                         await scriptsEpisodeApi.updateEpisode(updateEpisodeData);
-                        
+
                         // 同时更新outline中的episode数据
                         updatedOutline.sections = updatedOutline.sections.map(section => ({
                             ...section,
                             chapters: section.chapters.map(chapter => ({
                                 ...chapter,
-                                episodes: chapter.episodes.map(episode => 
+                                episodes: chapter.episodes.map(episode =>
                                     episode.episodeId === updatedData.episodeId ? updatedData : episode
                                 )
                             }))
@@ -385,22 +402,22 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                         break;
                 }
             }
-            
+
             // 重新计算编号
             updatedOutline = recalculateNumbers(updatedOutline);
-            
+
             // 更新到后端（除了episode，因为episode已经单独更新了）
             if (editingNodeType !== 'episode') {
                 const response = await scriptsOutlineApi.updateSections({
                     projectId: outline.projectId,
                     sections: updatedOutline.sections
                 });
-                
+
                 if (!response.success) {
                     throw new Error('更新大纲失败');
                 }
             }
-            
+
             setOutline(updatedOutline);
             buildTreeData(updatedOutline);
             message.success('保存成功');
@@ -409,14 +426,14 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             message.error('保存节点失败');
         }
     };
-    
+
     // 创建子节点
     const handleCreateChild = async (parentId: string, childData: any) => {
         if (!outline) return;
-        
+
         try {
-            let updatedOutline = { ...outline };
-            
+            let updatedOutline = {...outline};
+
             if (editingNodeType === 'section') {
                 // 在章节下创建新章节
                 updatedOutline.sections = updatedOutline.sections.map(section => {
@@ -449,7 +466,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                     episodeContent: '',
                     wordCount: 0
                 };
-                
+
                 const episodeResponse = await scriptsEpisodeApi.createEpisode(episodeData);
                 if (episodeResponse.success && episodeResponse.data) {
                     const newEpisode = episodeResponse.data as ScriptEpisodeDTO;
@@ -462,7 +479,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                         createdAt: newEpisode.createdAt || new Date().toISOString(),
                         updatedAt: newEpisode.updatedAt || new Date().toISOString()
                     };
-                    
+
                     updatedOutline.sections = updatedOutline.sections.map(section => ({
                         ...section,
                         chapters: section.chapters.map(chapter => {
@@ -479,22 +496,22 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                     }));
                 }
             }
-            
+
             // 重新计算编号
             updatedOutline = recalculateNumbers(updatedOutline);
-            
+
             // 更新到后端（除了episode，因为episode已经单独创建了）
             if (editingNodeType !== 'chapter') {
                 const response = await scriptsOutlineApi.updateSections({
                     projectId: outline.projectId,
                     sections: updatedOutline.sections
                 });
-                
+
                 if (!response.success) {
                     throw new Error('更新大纲失败');
                 }
             }
-            
+
             setOutline(updatedOutline);
             buildTreeData(updatedOutline);
             message.success('子节点创建成功');
@@ -503,21 +520,21 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             message.error('创建子节点失败');
         }
     };
-    
+
     // 删除大纲
     const handleDeleteOutline = () => {
         if (!outline) return;
-        
+
         Modal.confirm({
             title: '确认删除',
-            icon: <ExclamationCircleOutlined />,
+            icon: <ExclamationCircleOutlined/>,
             content: '确定要删除当前剧本大纲吗？此操作将同时删除所有章节和桥段内容。',
             okText: '确认删除',
-            okButtonProps: { danger: true },
+            okButtonProps: {danger: true},
             cancelText: '取消',
             onOk: async () => {
                 try {
-                    const response = await scriptsOutlineApi.deleteOutline({ id: outline.id });
+                    const response = await scriptsOutlineApi.deleteOutline({id: outline.id});
                     if (response.success) {
                         message.success('大纲删除成功');
                         setOutline(null);
@@ -530,12 +547,12 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             }
         });
     };
-    
+
     // AI生成
     const handleAIGenerate = () => {
         message.info('AI生成功能预留接口');
     };
-    
+
     // 阅读剧本
     const handleReadScript = () => {
         if (outline) {
@@ -544,20 +561,20 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             setReadDrawerVisible(true);
         }
     };
-    
+
     // 初始化加载
     useEffect(() => {
         fetchOutline();
     }, [projectId]);
-    
+
     return (
         <Flex vertical style={{
             height: '100%',
             display: 'flex',
             flex: 1,
             flexDirection: 'column',
-            minHeight: 'calc(100vh - 10px)',
-            maxHeight: 'calc(100vh - 10px)',
+            minHeight: 'calc(100vh - 115px)',
+            maxHeight: 'calc(100vh - 115px)',
             minWidth: 'max(1200px, calc(100vw - 340px))'
         }}>
             {/* 工具栏 */}
@@ -567,14 +584,14 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             }}>
                 <Title level={3} style={{margin: 0}}>
                     <Space>
-                        <FundProjectionScreenOutlined />
+                        <FundProjectionScreenOutlined/>
                         <span>剧本设计</span>
                     </Space>
                 </Title>
                 <Space>
                     <Button
                         size="large"
-                        icon={<ReloadOutlined />}
+                        icon={<ReloadOutlined/>}
                         onClick={handleRefresh}
                         loading={loading}
                     >
@@ -583,7 +600,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
 
                     <Button
                         size="large"
-                        icon={<PlusOutlined />}
+                        icon={<PlusOutlined/>}
                         onClick={handleCreateOutline}
                         disabled={!!outline}
                     >
@@ -592,7 +609,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
 
                     <Button
                         size="large"
-                        icon={<DeleteOutlined />}
+                        icon={<DeleteOutlined/>}
                         onClick={handleDeleteOutline}
                         disabled={!outline}
                         danger
@@ -602,7 +619,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
 
                     <Button
                         size="large"
-                        icon={<ReadOutlined />}
+                        icon={<ReadOutlined/>}
                         onClick={handleReadScript}
                         disabled={!outline}
                     >
@@ -611,7 +628,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
 
                     <Button
                         size="large"
-                        icon={<RobotOutlined />}
+                        icon={<RobotOutlined/>}
                         onClick={handleAIGenerate}
                         disabled={!outline}
                     >
@@ -619,16 +636,16 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                     </Button>
                 </Space>
             </Flex>
-            
+
             {/* 主内容区域 */}
-            <Card style={{ flex: 1, margin: '16px', overflow: 'hidden' }}>
-                <Flex style={{ gap: '24px', height: '100%' }}>
+            <Card style={{flex: 1, margin: '16px', overflow: 'scroll'}}>
+                <Flex style={{gap: '24px', height: '100%', overflow: 'scroll'}}>
                     {/* 大纲树形结构 */}
-                    <Flex flex={3} vertical style={{ overflow: 'auto' }}>
+                    <Flex flex={3} vertical style={{overflow: 'hidden'}}>
                         {outline ? (
                             <Tree
                                 defaultExpandAll
-                                showLine={{ showLeafIcon: false }}
+                                showLine={{showLeafIcon: false}}
                                 treeData={treeData}
                                 onSelect={handleNodeSelect}
                                 draggable
@@ -638,10 +655,10 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                                 }}
                             />
                         ) : (
-                            <Flex vertical align="center" justify="center" style={{ height: '100%', color: '#999' }}>
-                                <FundProjectionScreenOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+                            <Flex vertical align="center" justify="center" style={{height: '100%', color: '#999'}}>
+                                <FundProjectionScreenOutlined style={{fontSize: '48px', marginBottom: '16px'}}/>
                                 <div>暂无剧本大纲</div>
-                                <div style={{ marginTop: '8px', fontSize: '12px' }}>点击"新建剧本"开始创作</div>
+                                <div style={{marginTop: '8px', fontSize: '12px'}}>点击"新建剧本"开始创作</div>
                             </Flex>
                         )}
                     </Flex>
@@ -651,15 +668,15 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                         <Card
                             title={
                                 <Space>
-                                    <InfoCircleOutlined />
+                                    <InfoCircleOutlined/>
                                     <span>使用说明</span>
                                 </Space>
                             }
                             size="small"
-                            style={{ height: 'fit-content' }}
+                            style={{height: 'fit-content'}}
                         >
                             <Paragraph>
-                                <ul style={{ paddingLeft: '16px' }}>
+                                <ul style={{paddingLeft: '16px'}}>
                                     <li>左侧展示剧本大纲的层级结构</li>
                                     <li>支持拖拽调整节点顺序</li>
                                     <li>点击桥段卡片可在右侧编辑</li>
@@ -668,17 +685,21 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                                 </ul>
                             </Paragraph>
                         </Card>
-                        
+
                         {outline && (
                             <Card
                                 title="当前项目信息"
                                 size="small"
-                                style={{ marginTop: '16px', height: 'fit-content' }}
+                                style={{marginTop: '16px', height: 'fit-content'}}
                             >
-                                <div style={{ fontSize: '12px', lineHeight: '1.8' }}>
+                                <div style={{fontSize: '12px', lineHeight: '1.8'}}>
                                     <div><strong>项目ID:</strong> {outline.projectId}</div>
-                                    <div><strong>结构类型:</strong> {outline.structureType === 'BEGINNING_RISING_ACTION_CLIMAX_END' ? '起承转合' : '引起承转合'}</div>
-                                    <div><strong>章节总数:</strong> {outline.sections.reduce((sum, section) => sum + section.chapterCount, 0)}</div>
+                                    <div>
+                                        <strong>结构类型:</strong> {outline.structureType === 'BEGINNING_RISING_ACTION_CLIMAX_END' ? '起承转合' : '引起承转合'}
+                                    </div>
+                                    <div>
+                                        <strong>章节总数:</strong> {outline.sections.reduce((sum, section) => sum + section.chapterCount, 0)}
+                                    </div>
                                     <div><strong>最后更新:</strong> {new Date(outline.updatedAt).toLocaleString()}</div>
                                 </div>
                             </Card>
@@ -686,7 +707,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                     </Flex>
                 </Flex>
             </Card>
-            
+
             {/* 新建大纲模态框 */}
             <CreateOutlineModal
                 open={createModalVisible}
@@ -694,7 +715,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                 onOk={handleCreateOutlineConfirm}
                 loading={creating}
             />
-            
+
             {/* 节点编辑抽屉 */}
             <NodeEditorDrawer
                 open={editorDrawerVisible}
@@ -710,7 +731,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                 onSave={handleNodeSave}
                 onCreateChild={handleCreateChild}
             />
-            
+
             {/* 桥段编辑抽屉 - 待实现 */}
             <Drawer
                 title="桥段编辑"
@@ -721,7 +742,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             >
                 <div>桥段编辑功能待实现</div>
             </Drawer>
-            
+
             {/* 剧本阅读抽屉 */}
             <Drawer
                 title="剧本全文阅读"
@@ -730,11 +751,11 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                 open={readDrawerVisible}
                 onClose={() => setReadDrawerVisible(false)}
                 extra={
-                    <Button 
-                        type="primary" 
+                    <Button
+                        type="primary"
                         onClick={() => {
                             // TODO: 实现导出功能
-                            const blob = new Blob([outlineText], { type: 'text/plain;charset=utf-8' });
+                            const blob = new Blob([outlineText], {type: 'text/plain;charset=utf-8'});
                             const url = URL.createObjectURL(blob);
                             const a = document.createElement('a');
                             a.href = url;
@@ -747,19 +768,19 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                     </Button>
                 }
             >
-                <div style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', lineHeight: 1.6 }}>
+                <div style={{whiteSpace: 'pre-wrap', fontFamily: 'monospace', lineHeight: 1.6}}>
                     {outlineText}
                 </div>
             </Drawer>
         </Flex>
     );
-    
+
     // 为了防止TS6133警告，这里添加对状态变量的引用
     // 这些变量在JSX中被使用，但TypeScript静态分析可能检测不到
     // 故意保留这些变量引用以避免TS6133警告
     // 这些变量在JSX中被实际使用
-    void [currentEpisode, editingChapterId, createModalVisible, creating, outlineText, handleCreateOutlineConfirm, 
-          editorDrawerVisible, editingNodeType, editingNodeData, editingParentId, handleNodeSave, handleCreateChild];
+    void [currentEpisode, editingChapterId, createModalVisible, creating, outlineText, handleCreateOutlineConfirm,
+        editorDrawerVisible, editingNodeType, editingNodeData, editingParentId, handleNodeSave, handleCreateChild];
 };
 
 export default ScriptOutline;

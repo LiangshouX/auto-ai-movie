@@ -248,7 +248,7 @@ const ScriptManager = () => {
             }}>
                 <Space size="large">
                     <Button onClick={() => navigate('/')} type="text" size="large"><HomeOutlined/> 首页</Button>
-                    <Title level={2} style={{margin: 0, color: 'rgba(0, 0, 0, 0.88)'}}>AI 剧本项目管理</Title>
+                    <Title level={2} style={{margin: 0, color: 'rgba(0, 0, 0, 0.88)'}}>AI 剧本管理</Title>
                 </Space>
 
                 <Space>
