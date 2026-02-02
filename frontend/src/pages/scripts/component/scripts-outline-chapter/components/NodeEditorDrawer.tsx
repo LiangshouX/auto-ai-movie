@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import {Button, Drawer, Form, Input, message, Space, Tabs} from 'antd';
-import {CloseOutlined, PlusOutlined, SaveOutlined, EditOutlined} from '@ant-design/icons';
+import {Button, Drawer, Form, Input, message, Space, Tabs, List, Card, Popconfirm} from 'antd';
+import {CloseOutlined, PlusOutlined, SaveOutlined, EditOutlined, DeleteOutlined} from '@ant-design/icons';
 import {createDefaultChapter, createDefaultEpisode} from '../utils/outline-utils';
 import {scriptsEpisodeApi} from '@/api/service/scripts-episode';
 import type {ScriptEpisodeDTO} from '@/api/types/scripts-episode-types';
@@ -13,6 +13,9 @@ interface NodeEditorDrawerProps {
     parentId?: string; // 父节点ID，用于创建子节点
     onSave: (updatedData: any, newNode?: any) => void;
     onCreateChild?: (parentId: string, childData: any) => void;
+    // 子节点数据用于展示
+    childNodes?: any[];
+    onDeleteChild?: (childId: string) => void;
 }
 
 const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
@@ -23,7 +26,9 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
         nodeData,
         parentId,
         onSave,
-        onCreateChild
+        onCreateChild,
+        childNodes = [],
+        onDeleteChild
     }
 ) => {
     const [form] = Form.useForm();
@@ -338,9 +343,96 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
         );
     };
 
+    // 渲染子节点列表
+    const renderChildList = () => {
+        if (!childNodes || childNodes.length === 0) {
+            return (
+                <div style={{
+                    textAlign: 'center',
+                    padding: '24px',
+                    color: '#999',
+                    fontSize: '14px'
+                }}>
+                    暂无子节点
+                </div>
+            );
+        }
+
+        const getChildTitle = (child: any) => {
+            if (nodeType === 'section') {
+                return child.chapterTitle || '未命名章节';
+            } else if (nodeType === 'chapter') {
+                return child.episodeTitle || '未命名桥段';
+            }
+            return '';
+        };
+
+        const getChildDescription = (child: any) => {
+            if (nodeType === 'section') {
+                return child.chapterSummary || '';
+            } else if (nodeType === 'chapter') {
+                return `#${child.episodeNumber || 1}`;
+            }
+            return '';
+        };
+
+        return (
+            <List
+                dataSource={childNodes}
+                renderItem={(child: any) => (
+                    <List.Item
+                        actions={onDeleteChild ? [
+                            <Popconfirm
+                                title="确认删除"
+                                description={`确定要删除"${getChildTitle(child)}"吗？`}
+                                onConfirm={() => onDeleteChild(child.chapterId || child.episodeId)}
+                                okText="确认"
+                                cancelText="取消"
+                            >
+                                <Button
+                                    type="text"
+                                    icon={<DeleteOutlined />}
+                                    danger
+                                    size="small"
+                                />
+                            </Popconfirm>
+                        ] : []}
+                    >
+                        <List.Item.Meta
+                            title={getChildTitle(child)}
+                            description={getChildDescription(child)}
+                        />
+                    </List.Item>
+                )}
+            />
+        );
+    };
+
+    // 渲染子节点展示区域
+    const renderChildSection = () => {
+        if (nodeType !== 'section' && nodeType !== 'chapter') return null;
+
+        const sectionTitle = nodeType === 'section' ? '章节列表' : '桥段列表';
+        
+        return (
+            <Card 
+                title={sectionTitle} 
+                size="small" 
+                style={{ marginTop: '24px' }}
+            >
+                {renderChildList()}
+            </Card>
+        );
+    };
+
     const renderTabs = () => {
         if (nodeType !== 'episode') {
-            return renderBasicFields();
+            return (
+                <>
+                    {renderBasicFields()}
+                    {renderChildSection()}
+                </>
+            );
         }
 
         return (
@@ -351,7 +443,12 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
                     {
                         key: 'basic',
                         label: '基本信息',
-                        children: renderBasicFields()
+                        children: (
+                            <>
+                                {renderBasicFields()}
+                                {renderChildSection()}
+                            </>
+                        )
                     },
                     {
                         key: 'content',
