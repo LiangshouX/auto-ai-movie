@@ -15,15 +15,17 @@ interface NodeEditorDrawerProps {
     onCreateChild?: (parentId: string, childData: any) => void;
 }
 
-const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = ({
-                                                               open,
-                                                               onClose,
-                                                               nodeType,
-                                                               nodeData,
-                                                               parentId,
-                                                               onSave,
-                                                               onCreateChild
-                                                           }) => {
+const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
+    {
+        open,
+        onClose,
+        nodeType,
+        nodeData,
+        parentId,
+        onSave,
+        onCreateChild
+    }
+) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('basic');
