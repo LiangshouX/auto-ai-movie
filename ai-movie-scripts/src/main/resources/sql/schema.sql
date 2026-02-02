@@ -1,9 +1,9 @@
 -- 删除表（按依赖关系逆序）
---DROP TABLE IF EXISTS scripts_episodes;
---DROP TABLE IF EXISTS ai_generation_logs;
---DROP TABLE IF EXISTS content_revisions;
---DROP TABLE IF EXISTS script_chapters;
--- DROP TABLE IF EXISTS character_relationships; -- 此表在create_table_origin.sql中未定义
+DROP TABLE IF EXISTS scripts_episodes;
+DROP TABLE IF EXISTS ai_generation_logs;
+DROP TABLE IF EXISTS content_revisions;
+DROP TABLE IF EXISTS script_chapters;
+ DROP TABLE IF EXISTS character_relationships;
 
 
 -- 角色信息表 (script_characters)

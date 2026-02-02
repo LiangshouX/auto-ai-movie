@@ -81,7 +81,7 @@ custom-model:
 # Logging configuration
 logging:
   level:
-    com.liangshou: debug
-    com.liangshou.movie.scripts: debug
+    com.liangshou: info
+    com.liangshou.movie.scripts: info
     org.springframework: info
-    org.springframework.ai: debug
+    org.springframework.ai: info

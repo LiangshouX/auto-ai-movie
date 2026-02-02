@@ -13,8 +13,10 @@ import {
 import Title from "antd/lib/typography/Title";
 import {useParams} from 'react-router-dom';
 import {scriptsOutlineApi} from '@/api/service/scripts-outline';
+import {scriptsEpisodeApi} from '@/api/service/scripts-episode';
 
 import type {OutlineEpisodeDTO, StoryOutlineDTO, StructureType} from '@/api/types/scripts-outline-types';
+import type {ScriptEpisodeDTO, CreateScriptEpisodeData} from '@/api/types/scripts-episode-types';
 import type {DataNode} from 'antd/es/tree';
 
 import {createDefaultOutlineStructure, generateOutlineText, recalculateNumbers} from './utils/outline-utils';
@@ -167,7 +169,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
     };
 
     // 处理节点点击
-    const handleNodeSelect = (_selectedKeys: React.Key[], info: any) => {
+    const handleNodeSelect = async (_selectedKeys: React.Key[], info: any) => {
         const node = info.node as TreeNode;
         
         // 打开对应的编辑抽屉
@@ -175,20 +177,48 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             case 'section':
                 setEditingNodeType('section');
                 setEditingNodeData(node.nodeData);
-                setEditingParentId('');
+                setEditingParentId(node.nodeData.sectionId);
                 setEditorDrawerVisible(true);
                 break;
             case 'chapter':
                 setEditingNodeType('chapter');
                 setEditingNodeData(node.nodeData);
-                setEditingParentId(node.nodeData.sectionId);
+                setEditingParentId(node.nodeData.chapterId);
                 setEditorDrawerVisible(true);
                 break;
             case 'episode':
-                setEditingNodeType('episode');
-                setEditingNodeData(node.nodeData);
-                setEditingParentId(node.nodeData.chapterId);
-                setEditorDrawerVisible(true);
+                // 对于episode，先获取最新数据再打开编辑器
+                try {
+                    if (node.nodeData.episodeId) {
+                        const response = await scriptsEpisodeApi.getEpisodeById({ 
+                            id: node.nodeData.episodeId 
+                        });
+                        if (response.success && response.data) {
+                            const episodeData = response.data as ScriptEpisodeDTO;
+                            setEditingNodeType('episode');
+                            setEditingNodeData({
+                                ...node.nodeData,
+                                episodeContent: episodeData.episodeContent,
+                                wordCount: episodeData.wordCount
+                            });
+                        } else {
+                            setEditingNodeType('episode');
+                            setEditingNodeData(node.nodeData);
+                        }
+                    } else {
+                        setEditingNodeType('episode');
+                        setEditingNodeData(node.nodeData);
+                    }
+                    setEditingParentId(node.nodeData.chapterId);
+                    setEditorDrawerVisible(true);
+                } catch (error) {
+                    console.error('获取桥段详情失败:', error);
+                    // 即使获取失败也打开编辑器
+                    setEditingNodeType('episode');
+                    setEditingNodeData(node.nodeData);
+                    setEditingParentId(node.nodeData.chapterId);
+                    setEditorDrawerVisible(true);
+                }
                 break;
         }
     };
@@ -250,7 +280,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                         ];
                         break;
                     case 'chapter':
-                        // 新建章節
+                        // 新建章节
                         updatedOutline.sections = updatedOutline.sections.map(section => {
                             if (section.sectionId === editingParentId) {
                                 return {
@@ -272,29 +302,47 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                         });
                         break;
                     case 'episode':
-                        // 新建桥段
-                        updatedOutline.sections = updatedOutline.sections.map(section => ({
-                            ...section,
-                            chapters: section.chapters.map(chapter => {
-                                if (chapter.chapterId === editingParentId) {
-                                    return {
-                                        ...chapter,
-                                        episodes: [
-                                            ...chapter.episodes,
-                                            {
-                                                ...updatedData,
-                                                projectId: outline.projectId,
-                                                chapterId: editingParentId,
-                                                createdAt: new Date().toISOString(),
-                                                updatedAt: new Date().toISOString()
-                                            }
-                                        ],
-                                        episodeCount: chapter.episodes.length + 1
-                                    };
-                                }
-                                return chapter;
-                            })
-                        }));
+                        // 新建桥段 - 使用专门的episode API
+                        const episodeData: CreateScriptEpisodeData = {
+                            projectId: outline.projectId,
+                            chapterId: editingParentId,
+                            episodeNumber: updatedData.episodeNumber || 1,
+                            episodeTitle: updatedData.episodeTitle,
+                            episodeContent: '',
+                            wordCount: 0
+                        };
+                        
+                        const episodeResponse = await scriptsEpisodeApi.createEpisode(episodeData);
+                        if (episodeResponse.success && episodeResponse.data) {
+                            // 将返回的完整episode数据添加到outline中
+                            const newEpisode = episodeResponse.data as ScriptEpisodeDTO;
+                            const outlineEpisode: OutlineEpisodeDTO = {
+                                episodeId: newEpisode.id || '',
+                                projectId: newEpisode.projectId || '',
+                                chapterId: newEpisode.chapterId || '',
+                                episodeTitle: newEpisode.episodeTitle || '',
+                                episodeNumber: newEpisode.episodeNumber || 1,
+                                createdAt: newEpisode.createdAt || new Date().toISOString(),
+                                updatedAt: newEpisode.updatedAt || new Date().toISOString()
+                            };
+                            
+                            updatedOutline.sections = updatedOutline.sections.map(section => ({
+                                ...section,
+                                chapters: section.chapters.map(chapter => {
+                                    if (chapter.chapterId === editingParentId) {
+                                        return {
+                                            ...chapter,
+                                            episodes: [
+                                                ...chapter.episodes,
+                                                outlineEpisode
+                                            ],
+                                            episodeCount: chapter.episodes.length + 1
+                                        };
+                                    }
+                                    return chapter;
+                                })
+                            }));
+                        }
                         break;
                 }
             } else {
@@ -307,7 +355,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                         );
                         break;
                     case 'chapter':
-                        // 更新章節
+                        // 更新章节
                         updatedOutline.sections = updatedOutline.sections.map(section => ({
                             ...section,
                             chapters: section.chapters.map(chapter => 
@@ -316,7 +364,15 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                         }));
                         break;
                     case 'episode':
-                        // 更新桥段
+                        // 更新桥段 - 使用专门的episode API
+                        const updateEpisodeData = {
+                            id: updatedData.episodeId,
+                            episodeTitle: updatedData.episodeTitle
+                        };
+                        
+                        await scriptsEpisodeApi.updateEpisode(updateEpisodeData);
+                        
+                        // 同时更新outline中的episode数据
                         updatedOutline.sections = updatedOutline.sections.map(section => ({
                             ...section,
                             chapters: section.chapters.map(chapter => ({
@@ -333,16 +389,21 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             // 重新计算编号
             updatedOutline = recalculateNumbers(updatedOutline);
             
-            // 更新到后端
-            const response = await scriptsOutlineApi.updateSections({
-                projectId: outline.projectId,
-                sections: updatedOutline.sections
-            });
-            
-            if (response.success) {
-                setOutline(updatedOutline);
-                buildTreeData(updatedOutline);
+            // 更新到后端（除了episode，因为episode已经单独更新了）
+            if (editingNodeType !== 'episode') {
+                const response = await scriptsOutlineApi.updateSections({
+                    projectId: outline.projectId,
+                    sections: updatedOutline.sections
+                });
+                
+                if (!response.success) {
+                    throw new Error('更新大纲失败');
+                }
             }
+            
+            setOutline(updatedOutline);
+            buildTreeData(updatedOutline);
+            message.success('保存成功');
         } catch (error) {
             console.error('保存节点失败:', error);
             message.error('保存节点失败');
@@ -357,7 +418,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             let updatedOutline = { ...outline };
             
             if (editingNodeType === 'section') {
-                // 在章节下创建新章節
+                // 在章节下创建新章节
                 updatedOutline.sections = updatedOutline.sections.map(section => {
                     if (section.sectionId === parentId) {
                         // 创建新章节时需要设置必要的字段
@@ -378,44 +439,65 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                     return section;
                 });
             } else if (editingNodeType === 'chapter') {
-                // 在章節下创建新桥段
-                updatedOutline.sections = updatedOutline.sections.map(section => ({
-                    ...section,
-                    chapters: section.chapters.map(chapter => {
-                        if (chapter.chapterId === parentId) {
-                            // 创建新桥段时需要设置必要的字段
-                            const newEpisode = {
-                                ...childData,
-                                projectId: outline.projectId,
-                                chapterId: parentId,
-                                createdAt: new Date().toISOString(),
-                                updatedAt: new Date().toISOString()
-                            };
-                            const newEpisodes = [...chapter.episodes, newEpisode];
-                            return {
-                                ...chapter,
-                                episodes: newEpisodes,
-                                episodeCount: newEpisodes.length
-                            };
-                        }
-                        return chapter;
-                    })
-                }));
+                // 在章节下创建新桥段
+                // 使用专门的episode API创建桥段
+                const episodeData = {
+                    projectId: outline.projectId,
+                    chapterId: parentId,
+                    episodeNumber: childData.episodeNumber || 1,
+                    episodeTitle: childData.episodeTitle,
+                    episodeContent: '',
+                    wordCount: 0
+                };
+                
+                const episodeResponse = await scriptsEpisodeApi.createEpisode(episodeData);
+                if (episodeResponse.success && episodeResponse.data) {
+                    const newEpisode = episodeResponse.data as ScriptEpisodeDTO;
+                    const outlineEpisode: OutlineEpisodeDTO = {
+                        episodeId: newEpisode.id || '',
+                        projectId: newEpisode.projectId || '',
+                        chapterId: newEpisode.chapterId || '',
+                        episodeTitle: newEpisode.episodeTitle || '',
+                        episodeNumber: newEpisode.episodeNumber || 1,
+                        createdAt: newEpisode.createdAt || new Date().toISOString(),
+                        updatedAt: newEpisode.updatedAt || new Date().toISOString()
+                    };
+                    
+                    updatedOutline.sections = updatedOutline.sections.map(section => ({
+                        ...section,
+                        chapters: section.chapters.map(chapter => {
+                            if (chapter.chapterId === parentId) {
+                                const newEpisodes = [...chapter.episodes, outlineEpisode];
+                                return {
+                                    ...chapter,
+                                    episodes: newEpisodes,
+                                    episodeCount: newEpisodes.length
+                                };
+                            }
+                            return chapter;
+                        })
+                    }));
+                }
             }
             
             // 重新计算编号
             updatedOutline = recalculateNumbers(updatedOutline);
             
-            // 更新到后端
-            const response = await scriptsOutlineApi.updateSections({
-                projectId: outline.projectId,
-                sections: updatedOutline.sections
-            });
-            
-            if (response.success) {
-                setOutline(updatedOutline);
-                buildTreeData(updatedOutline);
+            // 更新到后端（除了episode，因为episode已经单独创建了）
+            if (editingNodeType !== 'chapter') {
+                const response = await scriptsOutlineApi.updateSections({
+                    projectId: outline.projectId,
+                    sections: updatedOutline.sections
+                });
+                
+                if (!response.success) {
+                    throw new Error('更新大纲失败');
+                }
             }
+            
+            setOutline(updatedOutline);
+            buildTreeData(updatedOutline);
+            message.success('子节点创建成功');
         } catch (error) {
             console.error('创建子节点失败:', error);
             message.error('创建子节点失败');

@@ -164,12 +164,151 @@ export const updateOutlineFromDrag = (
     dropToGap: boolean;
   }
 ): StoryOutlineDTO => {
-  // 这里实现具体的拖拽逻辑
-  // 需要解析拖拽信息，重新排列节点顺序，并更新相应的编号
-  console.log('拖拽信息:', dragInfo);
+  const { dragNode, dropNode, dropPosition, dropToGap } = dragInfo;
+  const updatedOutline = { ...outline };
   
-  // TODO: 实现完整的拖拽逻辑
-  return outline;
+  // 解析节点类型和ID
+  const dragKey = dragNode.key as string;
+  const dropKey = dropNode.key as string;
+  
+  const [dragType, dragId] = dragKey.split('-');
+  const [dropType, dropId] = dropKey.split('-');
+  
+  // 只允许同级节点间拖拽
+  if (dragType !== dropType) {
+    console.warn('不允许跨层级拖拽');
+    return outline;
+  }
+  
+  switch (dragType) {
+    case 'chapter':
+      // 章节拖拽
+      return handleChapterDrag(updatedOutline, dragId, dropId, dropPosition, dropToGap);
+    
+    case 'episode':
+      // 桥段拖拽
+      return handleEpisodeDrag(updatedOutline, dragId, dropId, dropPosition, dropToGap);
+    
+    default:
+      console.warn('不支持的拖拽类型:', dragType);
+      return outline;
+  }
+};
+
+// 处理章节拖拽
+const handleChapterDrag = (
+  outline: StoryOutlineDTO,
+  dragChapterId: string,
+  dropChapterId: string,
+  dropPosition: number,
+  dropToGap: boolean
+): StoryOutlineDTO => {
+  // 找到包含这两个章节的section
+  for (const section of outline.sections) {
+    const dragIndex = section.chapters.findIndex(ch => ch.chapterId === dragChapterId);
+    const dropIndex = section.chapters.findIndex(ch => ch.chapterId === dropChapterId);
+    
+    if (dragIndex !== -1 && dropIndex !== -1) {
+      const draggedChapter = section.chapters[dragIndex];
+      
+      // 移除拖拽的章节
+      const chaptersWithoutDragged = [
+        ...section.chapters.slice(0, dragIndex),
+        ...section.chapters.slice(dragIndex + 1)
+      ];
+      
+      // 计算插入位置
+      let insertIndex = dropIndex;
+      if (dragIndex < dropIndex) {
+        insertIndex--; // 如果是从前面拖过来的，索引要减1
+      }
+      
+      if (dropToGap) {
+        // 插入到间隙
+        if (dropPosition > 0) {
+          insertIndex++;
+        }
+      } else {
+        // 插入到节点内部（这种情况在章节层面不太可能发生）
+        insertIndex++;
+      }
+      
+      // 确保插入位置有效
+      insertIndex = Math.max(0, Math.min(insertIndex, chaptersWithoutDragged.length));
+      
+      // 插入到新位置
+      const newChapters = [
+        ...chaptersWithoutDragged.slice(0, insertIndex),
+        draggedChapter,
+        ...chaptersWithoutDragged.slice(insertIndex)
+      ];
+      
+      // 更新章节
+      section.chapters = newChapters;
+      break;
+    }
+  }
+  
+  return recalculateNumbers(outline);
+};
+
+// 处理桥段拖拽
+const handleEpisodeDrag = (
+  outline: StoryOutlineDTO,
+  dragEpisodeId: string,
+  dropEpisodeId: string,
+  dropPosition: number,
+  dropToGap: boolean
+): StoryOutlineDTO => {
+  // 找到包含这两个桥段的章节
+  for (const section of outline.sections) {
+    for (const chapter of section.chapters) {
+      const dragIndex = chapter.episodes.findIndex(ep => ep.episodeId === dragEpisodeId);
+      const dropIndex = chapter.episodes.findIndex(ep => ep.episodeId === dropEpisodeId);
+      
+      if (dragIndex !== -1 && dropIndex !== -1) {
+        const draggedEpisode = chapter.episodes[dragIndex];
+        
+        // 移除拖拽的桥段
+        const episodesWithoutDragged = [
+          ...chapter.episodes.slice(0, dragIndex),
+          ...chapter.episodes.slice(dragIndex + 1)
+        ];
+        
+        // 计算插入位置
+        let insertIndex = dropIndex;
+        if (dragIndex < dropIndex) {
+          insertIndex--; // 如果是从前面拖过来的，索引要减1
+        }
+        
+        if (dropToGap) {
+          // 插入到间隙
+          if (dropPosition > 0) {
+            insertIndex++;
+          }
+        } else {
+          // 插入到节点内部
+          insertIndex++;
+        }
+        
+        // 确保插入位置有效
+        insertIndex = Math.max(0, Math.min(insertIndex, episodesWithoutDragged.length));
+        
+        // 插入到新位置
+        const newEpisodes = [
+          ...episodesWithoutDragged.slice(0, insertIndex),
+          draggedEpisode,
+          ...episodesWithoutDragged.slice(insertIndex)
+        ];
+        
+        // 更新桥段
+        chapter.episodes = newEpisodes;
+        break;
+      }
+    }
+  }
+  
+  return recalculateNumbers(outline);
 };
 
 // 计算总字数

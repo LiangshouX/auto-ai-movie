@@ -1,7 +1,9 @@
 import React, {useEffect, useState} from 'react';
-import {Button, Drawer, Form, Input, message, Space} from 'antd';
-import {CloseOutlined, PlusOutlined, SaveOutlined} from '@ant-design/icons';
+import {Button, Drawer, Form, Input, message, Space, Tabs} from 'antd';
+import {CloseOutlined, PlusOutlined, SaveOutlined, EditOutlined} from '@ant-design/icons';
 import {createDefaultChapter, createDefaultEpisode} from '../utils/outline-utils';
+import {scriptsEpisodeApi} from '@/api/service/scripts-episode';
+import type {ScriptEpisodeDTO} from '@/api/types/scripts-episode-types';
 
 interface NodeEditorDrawerProps {
   open: boolean;
@@ -24,32 +26,42 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('basic');
+  const [episodeContent, setEpisodeContent] = useState('');
+  const [wordCount, setWordCount] = useState(0);
 
   // 设置表单初始值
   useEffect(() => {
-    if (open && nodeData) {
-      switch (nodeType) {
-        case 'section':
-          form.setFieldsValue({
-            sectionTitle: nodeData.sectionTitle,
-            description: nodeData.description
-          });
-          break;
-        case 'chapter':
-          form.setFieldsValue({
-            chapterTitle: nodeData.chapterTitle,
-            chapterSummary: nodeData.chapterSummary
-          });
-          break;
-        case 'episode':
-          form.setFieldsValue({
-            episodeTitle: nodeData.episodeTitle
-          });
-          break;
+    if (open) {
+      if (nodeData) {
+        switch (nodeType) {
+          case 'section':
+            form.setFieldsValue({
+              sectionTitle: nodeData.sectionTitle,
+              description: nodeData.description
+            });
+            break;
+          case 'chapter':
+            form.setFieldsValue({
+              chapterTitle: nodeData.chapterTitle,
+              chapterSummary: nodeData.chapterSummary
+            });
+            break;
+          case 'episode':
+            form.setFieldsValue({
+              episodeTitle: nodeData.episodeTitle
+            });
+            // 加载episode详细内容
+            loadEpisodeContent(nodeData.episodeId);
+            break;
+        }
+      } else {
+        // 新建节点时清空表单
+        form.resetFields();
+        setEpisodeContent('');
+        setWordCount(0);
+        setActiveTab('basic');
       }
-    } else if (open && !nodeData) {
-      // 新建节点时清空表单
-      form.resetFields();
     }
   }, [open, nodeData, nodeType, form]);
 
@@ -58,10 +70,37 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = ({
     
     const titles = {
       section: nodeData ? '编辑章节' : '新增章节',
-      chapter: nodeData ? '编辑章節' : '新增章節',
+      chapter: nodeData ? '编辑章节' : '新增章节',
       episode: nodeData ? '编辑桥段' : '新增桥段'
     };
     return titles[nodeType];
+  };
+
+  // 加载episode详细内容
+  const loadEpisodeContent = async (episodeId: string) => {
+    if (!episodeId) return;
+    
+    try {
+      const response = await scriptsEpisodeApi.getEpisodeById({ id: episodeId });
+      if (response.success && response.data) {
+        const episode = response.data as ScriptEpisodeDTO;
+        setEpisodeContent(episode.episodeContent);
+        setWordCount(episode.wordCount);
+      }
+    } catch (error) {
+      console.error('加载桥段内容失败:', error);
+    }
+  };
+
+  // 计算字数
+  const calculateWordCount = (content: string): number => {
+    return content.replace(/\s+/g, '').length;
+  };
+
+  // 处理内容变化
+  const handleContentChange = (content: string) => {
+    setEpisodeContent(content);
+    setWordCount(calculateWordCount(content));
   };
 
   const handleSave = async () => {
@@ -94,6 +133,23 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = ({
             episodeTitle: values.episodeTitle,
             updatedAt: new Date().toISOString()
           };
+          
+          // 同时更新episode内容
+          if (nodeData?.episodeId) {
+            try {
+              await scriptsEpisodeApi.updateEpisode({
+                id: nodeData.episodeId,
+                episodeTitle: values.episodeTitle,
+                episodeContent: episodeContent,
+                wordCount: wordCount
+              });
+            } catch (error) {
+              console.error('更新桥段内容失败:', error);
+              message.error('更新桥段内容失败');
+              setLoading(false);
+              return;
+            }
+          }
           break;
       }
 
@@ -144,7 +200,7 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = ({
     }
   };
 
-  const renderFormFields = () => {
+  const renderBasicFields = () => {
     switch (nodeType) {
       case 'section':
         return (
@@ -243,13 +299,20 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = ({
       
       case 'episode':
         return (
-          <Form.Item
-            name="episodeTitle"
-            label="桥段标题"
-            rules={[{ required: true, message: '请输入桥段标题' }]}
-          >
-            <Input placeholder="请输入桥段标题" />
-          </Form.Item>
+          <>
+            <Form.Item
+              name="episodeTitle"
+              label="桥段标题"
+              rules={[{ required: true, message: '请输入桥段标题' }]}
+            >
+              <Input placeholder="请输入桥段标题" />
+            </Form.Item>
+            {nodeData && (
+              <div style={{ marginBottom: '16px', fontSize: '12px', color: '#666' }}>
+                字数统计: {wordCount} 字
+              </div>
+            )}
+          </>
         );
       
       default:
@@ -257,11 +320,57 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = ({
     }
   };
 
+  const renderContentFields = () => {
+    if (nodeType !== 'episode') return null;
+    
+    return (
+      <Form.Item label="桥段内容">
+        <Input.TextArea
+          value={episodeContent}
+          onChange={(e) => handleContentChange(e.target.value)}
+          placeholder="请输入桥段内容..."
+          autoSize={{ minRows: 10, maxRows: 20 }}
+          style={{ fontFamily: 'monospace' }}
+        />
+      </Form.Item>
+    );
+  };
+
+  const renderTabs = () => {
+    if (nodeType !== 'episode') {
+      return renderBasicFields();
+    }
+    
+    return (
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={[
+          {
+            key: 'basic',
+            label: '基本信息',
+            children: renderBasicFields()
+          },
+          {
+            key: 'content',
+            label: '内容编辑',
+            children: renderContentFields()
+          }
+        ]}
+      />
+    );
+  };
+
   return (
     <Drawer
-      title={getTitle()}
+      title={
+        <Space>
+          <EditOutlined />
+          <span>{getTitle()}</span>
+        </Space>
+      }
       placement="right"
-      width={500}
+      width={nodeType === 'episode' ? 700 : 500}
       open={open}
       onClose={onClose}
       destroyOnClose
@@ -299,7 +408,7 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = ({
         layout="vertical"
         onFinish={handleSave}
       >
-        {renderFormFields()}
+        {renderTabs()}
       </Form>
     </Drawer>
   );
