@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * 索引: idx_project_id(project_id), idx_structure_type(structure_type)
  */
 @Data
-@TableName("script_outlines")
+@TableName(value = "script_outlines", autoResultMap = true)
 public class StoryOutlinePO {
 
     @TableId(type = IdType.ASSIGN_UUID)

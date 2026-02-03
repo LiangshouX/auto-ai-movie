@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -30,7 +29,6 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
     private static final Logger LOGGER = LoggerFactory.getLogger(StoryOutlineSupportImpl.class);
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public StoryOutlineDTO createOutline(StoryOutlineDTO outlineDTO) {
         try {
             // 参数校验
@@ -126,7 +124,6 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public StoryOutlineDTO updateOutline(String id, StoryOutlineDTO outlineDTO) {
         try {
             // 参数校验
@@ -165,7 +162,6 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void deleteOutline(String id) {
         try {
             if (!StringUtils.hasText(id)) {
@@ -192,7 +188,6 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public StoryOutlineDTO updateStructureType(String id, String structureType) {
         try {
             if (!StringUtils.hasText(id) || !StringUtils.hasText(structureType)) {
@@ -220,7 +215,6 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public StoryOutlineDTO updateSections(String projectId, List<OutlineSectionDTO> sections) {
         try {
             if (!StringUtils.hasText(projectId)) {

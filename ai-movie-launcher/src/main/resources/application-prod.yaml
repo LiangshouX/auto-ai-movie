@@ -24,8 +24,8 @@ server:
 logging:
   level:
     com.liangshou: info
-    org.springframework: warn
-    org.springframework.web: warn
+    org.springframework: info
+    org.springframework.web: info
   file:
     name: logs/app.log
   logback:

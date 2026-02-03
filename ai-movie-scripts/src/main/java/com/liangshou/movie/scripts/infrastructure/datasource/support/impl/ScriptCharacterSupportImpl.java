@@ -2,15 +2,15 @@ package com.liangshou.movie.scripts.infrastructure.datasource.support.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.liangshou.movie.scripts.infrastructure.datasource.po.ScriptCharacterPO;
 import com.liangshou.movie.scripts.infrastructure.datasource.mapper.ScriptCharacterMapper;
+import com.liangshou.movie.scripts.infrastructure.datasource.po.ScriptCharacterPO;
 import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptCharacterSupport;
 import com.liangshou.movie.scripts.service.dto.ScriptCharacterDTO;
 import com.liangshou.movie.scripts.utils.scripts.ArrayJsonUtil;
 import com.liangshou.movie.scripts.utils.scripts.CharacterRelationshipUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,7 +21,6 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMapper, ScriptCharacterPO> implements IScriptCharacterSupport {
 
-    @Transactional
     @Override
     public ScriptCharacterDTO createCharacter(ScriptCharacterDTO characterDTO) {
         ScriptCharacterPO entity = new ScriptCharacterPO();
@@ -51,7 +50,6 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
         return result;
     }
 
-    @Transactional(readOnly = true)
     @Override
     public ScriptCharacterDTO findById(String id) {
         ScriptCharacterPO entity = this.getById(id);
@@ -69,7 +67,6 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
         return dto;
     }
 
-    @Transactional(readOnly = true)
     @Override
     public List<ScriptCharacterDTO> findByProjectId(String projectId) {
         QueryWrapper<ScriptCharacterPO> queryWrapper = new QueryWrapper<>();
@@ -88,7 +85,6 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
         }).toList();
     }
 
-    @Transactional
     @Override
     public ScriptCharacterDTO updateCharacter(ScriptCharacterDTO characterDTO) {
         // 从DTO中获取ID
@@ -126,13 +122,11 @@ public class ScriptCharacterSupportImpl extends ServiceImpl<ScriptCharacterMappe
         return result;
     }
 
-    @Transactional
     @Override
     public void deleteCharacter(String id) {
         this.removeById(id);
     }
 
-    @Transactional(readOnly = true)
     @Override
     public List<ScriptCharacterDTO> findAll() {
         List<ScriptCharacterPO> entities = this.list();

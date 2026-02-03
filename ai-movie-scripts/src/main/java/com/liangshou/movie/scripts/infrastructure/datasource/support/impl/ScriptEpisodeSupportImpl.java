@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -31,7 +30,6 @@ public class ScriptEpisodeSupportImpl extends ServiceImpl<ScriptEpisodeMapper, S
     public static final String EPISODE_NUMBER_COLUMN = "episode_number";
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public ScriptEpisodeDTO createEpisode(ScriptEpisodeDTO episodeDTO) {
         try {
             // 参数校验
@@ -175,7 +173,6 @@ public class ScriptEpisodeSupportImpl extends ServiceImpl<ScriptEpisodeMapper, S
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public ScriptEpisodeDTO updateEpisode(String id, ScriptEpisodeDTO episodeDTO) {
         try {
             // 参数校验
@@ -212,7 +209,6 @@ public class ScriptEpisodeSupportImpl extends ServiceImpl<ScriptEpisodeMapper, S
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void deleteEpisode(String id) {
         try {
             if (!StringUtils.hasText(id)) {
@@ -239,7 +235,6 @@ public class ScriptEpisodeSupportImpl extends ServiceImpl<ScriptEpisodeMapper, S
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void batchDeleteEpisodes(List<String> ids) {
         try {
             if (ids == null || ids.isEmpty()) {
@@ -269,7 +264,6 @@ public class ScriptEpisodeSupportImpl extends ServiceImpl<ScriptEpisodeMapper, S
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public ScriptEpisodeDTO updateEpisodeTitle(String id, String episodeTitle) {
         try {
             if (!StringUtils.hasText(id)) {
@@ -297,7 +291,6 @@ public class ScriptEpisodeSupportImpl extends ServiceImpl<ScriptEpisodeMapper, S
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public ScriptEpisodeDTO updateEpisodeContent(String id, String episodeContent) {
         try {
             if (!StringUtils.hasText(id)) {
@@ -329,7 +322,6 @@ public class ScriptEpisodeSupportImpl extends ServiceImpl<ScriptEpisodeMapper, S
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public ScriptEpisodeDTO updateWordCount(String id, Integer wordCount) {
         try {
             if (!StringUtils.hasText(id)) {

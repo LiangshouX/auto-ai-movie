@@ -8,6 +8,17 @@ spring:
     username: root
     password: ${LOCAL_MYSQL_PWD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      # 连接池配置
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+      # 连接测试配置
+      connection-test-query: SELECT 1
+      validation-timeout: 5000
   
   # MyBatis Configuration
   sql:
@@ -35,13 +46,13 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
       id-type: assign_uuid
-  mapper-locations: classpath*:mapper/*.xml
-  type-aliases-package: com.liangshou.movie.scripts.infrastructure.entity
+#  mapper-locations: classpath*:mapper/*.xml
+  type-aliases-package: com.liangshou.movie.scripts.infrastructure.database.po
 
 logging:
   level:
-    com.liangshou.scripts: debug
-    org.springframework.ai: debug
+    com.liangshou.scripts: info
+    org.springframework.ai: info
 
 # 自定义模型配置
 custom-model:

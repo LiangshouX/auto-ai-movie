@@ -7,7 +7,6 @@ import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptProj
 import com.liangshou.movie.scripts.service.dto.ScriptProjectDTO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -107,7 +106,6 @@ public class ScriptProjectSupportImpl extends ServiceImpl<ScriptProjectMapper, S
         return dto;
     }
 
-    @Transactional
     @Override
     public ScriptProjectDTO updateProjectStatus(String id, String status) {
         ScriptProjectPO entity = this.getById(id);
