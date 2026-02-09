@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {"com.liangshou", "com.liangshou.movie.scripts"})
-@MapperScan
+@MapperScan("com.liangshou.movie.scripts.infrastructure.datasource.mapper")
 @EnableTransactionManagement
 public class ApplicationMain {
     public static void main(String[] args) {

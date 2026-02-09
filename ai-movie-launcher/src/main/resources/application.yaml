@@ -19,6 +19,10 @@ spring:
     time-zone: GMT+8
   # Database Configuration
   datasource:
+#    dynamic:
+#      strict: false
+#      datasource:
+#        ds1:
     url: jdbc:mysql://localhost:3306/ai_movie_scripts?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
     username: root
     password: ${LOCAL_MYSQL_PWD}
@@ -61,6 +65,19 @@ spring:
         max-active: 8
         max-idle: 8
         min-idle: 0
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      id-type: assign_uuid
+  #  mapper-locations: classpath*:mapper/*.xml
+  type-aliases-package: com.liangshou.movie.scripts.infrastructure.database.po
 
 # 自定义模型配置
 custom-model:
