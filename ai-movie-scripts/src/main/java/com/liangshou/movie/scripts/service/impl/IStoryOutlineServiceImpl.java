@@ -29,6 +29,7 @@ import static com.liangshou.movie.scripts.common.enums.ErrorCodeEnum.CHAPTER_UPD
 public class IStoryOutlineServiceImpl implements IStoryOutlineService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IStoryOutlineServiceImpl.class);
+    public static final String PROJECT_ID_COLUMN = "project_id";
 
     @Resource
     private IStoryOutlineSupport storyOutlineSupport;
@@ -47,7 +48,7 @@ public class IStoryOutlineServiceImpl implements IStoryOutlineService {
 
             // 检查是否已存在该项目的大纲
             QueryWrapper<StoryOutlinePO> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("project_id", outlineDTO.getProjectId());
+            queryWrapper.eq(PROJECT_ID_COLUMN, outlineDTO.getProjectId());
             if (storyOutlineSupport.count(queryWrapper) > 0) {
                 throw new BizException(ErrorCodeEnum.OUTLINE_CREATE_FAILED, new RuntimeException("该项目已存在大纲"));
             }
@@ -98,7 +99,7 @@ public class IStoryOutlineServiceImpl implements IStoryOutlineService {
             }
 
             QueryWrapper<StoryOutlinePO> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("project_id", projectId);
+            queryWrapper.eq(PROJECT_ID_COLUMN, projectId);
             StoryOutlinePO entity = storyOutlineSupport.getOne(queryWrapper);
 
             if (entity == null) {
@@ -223,7 +224,7 @@ public class IStoryOutlineServiceImpl implements IStoryOutlineService {
 
             // 根据项目ID查找大纲
             QueryWrapper<StoryOutlinePO> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("project_id", projectId);
+            queryWrapper.eq(PROJECT_ID_COLUMN, projectId);
             StoryOutlinePO entity = storyOutlineSupport.getOne(queryWrapper);
             
             if (entity == null) {

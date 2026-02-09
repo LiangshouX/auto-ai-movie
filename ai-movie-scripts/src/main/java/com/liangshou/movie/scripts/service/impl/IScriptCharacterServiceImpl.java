@@ -216,11 +216,16 @@ public class IScriptCharacterServiceImpl implements IScriptCharacterService {
 
     @Override
     public List<ScriptCharacterDTO> findAll() {
-        try {
-            List<ScriptCharacterPO> scriptCharacterPOS = scriptCharacterSupport.list();
-        } catch (Exception e) {
-            LOGGER.error("查询所有角色信息时发生错误", e);
-        }
-        return List.of();
+        List<ScriptCharacterPO> entities = scriptCharacterSupport.list();
+        return entities.stream().map(entity -> {
+            ScriptCharacterDTO dto = new ScriptCharacterDTO();
+            BeanUtils.copyProperties(entity, dto);
+            // 将JSON字符串转换为数组
+            dto.setPersonalityTags(ArrayJsonUtil.jsonToArray(entity.getPersonalityTags()));
+            dto.setSkills(ArrayJsonUtil.jsonToArray(entity.getSkills()));
+            // 将JSON字符串转换为角色关系对象列表
+            dto.setCharacterRelationships(CharacterRelationshipUtil.fromJson(entity.getCharacterRelationships()));
+            return dto;
+        }).toList();
     }
 }
