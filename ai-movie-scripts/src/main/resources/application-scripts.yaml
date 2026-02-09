@@ -17,6 +17,7 @@ logging:
   level:
     com.liangshou.scripts: info
     org.springframework.ai: info
+    org.springframework.jdbc.datasource.DataSourceTransactionManager: DEBUG
 
 # 自定义模型配置
 custom-model:

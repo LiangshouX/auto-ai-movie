@@ -1,15 +1,13 @@
-package com.liangshou.movie.scripts.infrastructure.datasource.support.impl;
+package com.liangshou.movie.scripts.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.liangshou.movie.scripts.common.enums.ErrorCodeEnum;
-import com.liangshou.movie.scripts.common.exceptions.BizException;
-import com.liangshou.movie.scripts.infrastructure.datasource.mapper.StoryOutlineMapper;
 import com.liangshou.movie.scripts.infrastructure.datasource.po.StoryOutlinePO;
 import com.liangshou.movie.scripts.infrastructure.datasource.support.IStoryOutlineSupport;
+import com.liangshou.movie.scripts.service.IStoryOutlineService;
 import com.liangshou.movie.scripts.service.dto.StoryOutlineDTO;
 import com.liangshou.movie.scripts.service.dto.outline.OutlineSectionDTO;
 import com.liangshou.movie.scripts.utils.scripts.OutlineJsonUtil;
+import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -20,31 +18,33 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 故事大纲服务实现类
+ * 故事大纲业务服务实现类
  */
 @Service
-@SuppressWarnings("unused")
-public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, StoryOutlinePO> implements IStoryOutlineSupport {
+public class IStoryOutlineServiceImpl implements IStoryOutlineService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StoryOutlineSupportImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(IStoryOutlineServiceImpl.class);
+
+    @Resource
+    private IStoryOutlineSupport storyOutlineSupport;
 
     @Override
     public StoryOutlineDTO createOutline(StoryOutlineDTO outlineDTO) {
         try {
             // 参数校验
             if (outlineDTO == null) {
-                throw new BizException(ErrorCodeEnum.PARAMETER_ERROR.getCode(), "参数错误");
+                throw new IllegalArgumentException("参数错误");
             }
 
             if (!StringUtils.hasText(outlineDTO.getProjectId())) {
-                throw new BizException(ErrorCodeEnum.PARAMETER_ERROR.getCode(), "项目ID不能为空");
+                throw new IllegalArgumentException("项目ID不能为空");
             }
 
             // 检查是否已存在该项目的大纲
             QueryWrapper<StoryOutlinePO> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("project_id", outlineDTO.getProjectId());
-            if (this.count(queryWrapper) > 0) {
-                throw new BizException(ErrorCodeEnum.OUTLINE_CREATE_FAILED.getCode(), "该项目已存在大纲");
+            if (storyOutlineSupport.count(queryWrapper) > 0) {
+                throw new RuntimeException("该项目已存在大纲");
             }
 
             // 转换DTO到PO
@@ -53,16 +53,16 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
             entity.setUpdatedAt(LocalDateTime.now());
 
             // 保存到数据库
-            boolean saved = this.save(entity);
+            boolean saved = storyOutlineSupport.save(entity);
             if (!saved) {
-                throw new BizException(ErrorCodeEnum.OUTLINE_CREATE_FAILED.getCode(), "大纲创建失败");
+                throw new RuntimeException("大纲创建失败");
             }
 
             // 转换PO到DTO并返回
             return convertToDTO(entity);
         } catch (Exception e) {
-            LOGGER.error("创建故事大纲时发生未知错误", e);
-            throw new BizException(ErrorCodeEnum.OUTLINE_CREATE_FAILED);
+            LOGGER.error("创建故事大纲时发生错误", e);
+            throw new RuntimeException("创建大纲失败: " + e.getMessage(), e);
         }
     }
 
@@ -73,7 +73,7 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
                 return null;
             }
 
-            StoryOutlinePO entity = this.getById(id);
+            StoryOutlinePO entity = storyOutlineSupport.getById(id);
             if (entity == null) {
                 return null;
             }
@@ -81,7 +81,6 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
             return convertToDTO(entity);
         } catch (Exception e) {
             LOGGER.error("根据ID查找故事大纲失败: id={}", id, e);
-            // 兜底处理：返回null而不是抛出异常
             return null;
         }
     }
@@ -95,7 +94,7 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
 
             QueryWrapper<StoryOutlinePO> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("project_id", projectId);
-            StoryOutlinePO entity = this.getOne(queryWrapper);
+            StoryOutlinePO entity = storyOutlineSupport.getOne(queryWrapper);
 
             if (entity == null) {
                 return null;
@@ -104,7 +103,6 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
             return convertToDTO(entity);
         } catch (Exception e) {
             LOGGER.error("根据项目ID查找故事大纲失败: projectId={}", projectId, e);
-            // 兜底处理：返回null而不是抛出异常
             return null;
         }
     }
@@ -112,13 +110,12 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
     @Override
     public List<StoryOutlineDTO> findAll() {
         try {
-            List<StoryOutlinePO> entities = this.list();
+            List<StoryOutlinePO> entities = storyOutlineSupport.list();
             return entities.stream()
                     .map(this::convertToDTO)
                     .toList();
         } catch (Exception e) {
             LOGGER.error("查询所有故事大纲失败", e);
-            // 兜底处理：返回空列表而不是抛出异常
             return List.of();
         }
     }
@@ -128,13 +125,13 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
         try {
             // 参数校验
             if (!StringUtils.hasText(id) || outlineDTO == null) {
-                throw new BizException(ErrorCodeEnum.PARAMETER_ERROR.getCode(), "参数错误");
+                throw new IllegalArgumentException("参数错误");
             }
 
             // 检查大纲是否存在
-            StoryOutlinePO existingEntity = this.getById(id);
+            StoryOutlinePO existingEntity = storyOutlineSupport.getById(id);
             if (existingEntity == null) {
-                throw new BizException(ErrorCodeEnum.OUTLINE_NOT_FOUND.getCode(), "大纲不存在");
+                return null;
             }
 
             // 转换DTO到PO
@@ -145,19 +142,16 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
             entity.setUpdatedAt(LocalDateTime.now());
 
             // 更新数据库
-            boolean updated = this.updateById(entity);
+            boolean updated = storyOutlineSupport.updateById(entity);
             if (!updated) {
-                throw new BizException(ErrorCodeEnum.OUTLINE_UPDATE_FAILED.getCode(), "大纲更新失败");
+                throw new RuntimeException("大纲更新失败");
             }
 
             // 返回更新后的数据
             return convertToDTO(entity);
-        } catch (BizException e) {
-            LOGGER.error("更新故事大纲失败: id={}", id);
-            throw e;
         } catch (Exception e) {
-            LOGGER.error("更新故事大纲时发生未知错误: id={}", id, e);
-            throw new BizException(ErrorCodeEnum.OUTLINE_UPDATE_FAILED.getCode(), "更新大纲时发生系统错误");
+            LOGGER.error("更新故事大纲失败: id={}", id, e);
+            throw new RuntimeException("更新大纲失败: " + e.getMessage(), e);
         }
     }
 
@@ -169,21 +163,22 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
             }
 
             // 检查大纲是否存在
-            if (!this.existsById(id)) {
+            StoryOutlinePO entity = storyOutlineSupport.getById(id);
+            if (entity == null) {
                 LOGGER.warn("尝试删除不存在的故事大纲: id={}", id);
                 return;
             }
 
             // 删除大纲
-            boolean removed = this.removeById(id);
+            boolean removed = storyOutlineSupport.removeById(id);
             if (!removed) {
-                throw new BizException(ErrorCodeEnum.OUTLINE_DELETE_FAILED.getCode(), "大纲删除失败");
+                throw new RuntimeException("大纲删除失败");
             }
 
             LOGGER.info("成功删除故事大纲: id={}", id);
         } catch (Exception e) {
-            LOGGER.error("删除故事大纲时发生未知错误: id={}", id, e);
-            throw new BizException(ErrorCodeEnum.OUTLINE_DELETE_FAILED.getCode(), "删除大纲时发生系统错误");
+            LOGGER.error("删除故事大纲时发生错误: id={}", id, e);
+            throw new RuntimeException("删除大纲失败: " + e.getMessage(), e);
         }
     }
 
@@ -191,26 +186,26 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
     public StoryOutlineDTO updateStructureType(String id, String structureType) {
         try {
             if (!StringUtils.hasText(id) || !StringUtils.hasText(structureType)) {
-                throw new BizException(ErrorCodeEnum.PARAMETER_ERROR.getCode(), "参数错误");
+                throw new IllegalArgumentException("参数错误");
             }
 
-            StoryOutlinePO entity = this.getById(id);
+            StoryOutlinePO entity = storyOutlineSupport.getById(id);
             if (entity == null) {
-                throw new BizException(ErrorCodeEnum.OUTLINE_NOT_FOUND.getCode(), "大纲不存在");
+                return null;
             }
 
             entity.setStructureType(structureType);
             entity.setUpdatedAt(LocalDateTime.now());
 
-            boolean updated = this.updateById(entity);
+            boolean updated = storyOutlineSupport.updateById(entity);
             if (!updated) {
-                throw new BizException(ErrorCodeEnum.OUTLINE_UPDATE_FAILED.getCode(), "更新结构类型失败");
+                throw new RuntimeException("更新结构类型失败");
             }
 
             return convertToDTO(entity);
         } catch (Exception e) {
-            LOGGER.error("更新大纲结构类型时发生未知错误: id={}, structureType={}", id, structureType, e);
-            throw new BizException(ErrorCodeEnum.OUTLINE_UPDATE_FAILED.getCode(), "更新结构类型时发生系统错误");
+            LOGGER.error("更新大纲结构类型时发生错误: id={}, structureType={}", id, structureType, e);
+            throw new RuntimeException("更新结构类型失败: " + e.getMessage(), e);
         }
     }
 
@@ -218,16 +213,16 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
     public StoryOutlineDTO updateSections(String projectId, List<OutlineSectionDTO> sections) {
         try {
             if (!StringUtils.hasText(projectId)) {
-                throw new BizException(ErrorCodeEnum.PARAMETER_ERROR.getCode(), "参数错误");
+                throw new IllegalArgumentException("参数错误");
             }
 
             // 根据项目ID查找大纲
             QueryWrapper<StoryOutlinePO> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("project_id", projectId);
-            StoryOutlinePO entity = this.getOne(queryWrapper);
+            StoryOutlinePO entity = storyOutlineSupport.getOne(queryWrapper);
             
             if (entity == null) {
-                throw new BizException(ErrorCodeEnum.OUTLINE_NOT_FOUND.getCode(), "大纲不存在");
+                return null;
             }
 
             // 转换章节列表为JSON
@@ -235,27 +230,15 @@ public class StoryOutlineSupportImpl extends ServiceImpl<StoryOutlineMapper, Sto
             entity.setSections(sectionsJson);
             entity.setUpdatedAt(LocalDateTime.now());
 
-            boolean updated = this.updateById(entity);
+            boolean updated = storyOutlineSupport.updateById(entity);
             if (!updated) {
-                throw new BizException(ErrorCodeEnum.OUTLINE_UPDATE_FAILED.getCode(), "更新章节结构失败");
+                throw new RuntimeException("更新章节结构失败");
             }
 
             return convertToDTO(entity);
         } catch (Exception e) {
-            LOGGER.error("更新大纲章节结构时发生未知错误: projectId={}", projectId, e);
-            throw new BizException(ErrorCodeEnum.OUTLINE_UPDATE_FAILED.getCode(), "更新章节结构时发生系统错误");
-        }
-    }
-
-    /**
-     * 检查大纲是否存在
-     */
-    private boolean existsById(String id) {
-        try {
-            return this.getById(id) != null;
-        } catch (Exception e) {
-            LOGGER.error("检查大纲是否存在时发生错误: id={}", id, e);
-            return false;
+            LOGGER.error("更新大纲章节结构时发生错误: projectId={}", projectId, e);
+            throw new RuntimeException("更新章节结构失败: " + e.getMessage(), e);
         }
     }
 

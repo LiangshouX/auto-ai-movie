@@ -3,6 +3,7 @@ package com.liangshou.movie.scripts.adapter.controller;
 import com.liangshou.movie.scripts.common.enums.ErrorCodeEnum;
 import com.liangshou.movie.scripts.common.exceptions.BizException;
 import com.liangshou.movie.scripts.infrastructure.datasource.support.IStoryOutlineSupport;
+import com.liangshou.movie.scripts.service.IStoryOutlineService;
 import com.liangshou.movie.scripts.service.dto.StoryOutlineDTO;
 import com.liangshou.movie.scripts.service.dto.outline.OutlineSectionDTO;
 import com.liangshou.movie.scripts.service.dto.outline.UpdateSectionsRequest;
@@ -27,7 +28,7 @@ public class StoryOutlineController {
     private static final Logger logger = LoggerFactory.getLogger(StoryOutlineController.class);
 
     @Resource
-    private IStoryOutlineSupport storyOutlineService;
+    private IStoryOutlineService storyOutlineService;
 
     /**
      * 创建故事大纲

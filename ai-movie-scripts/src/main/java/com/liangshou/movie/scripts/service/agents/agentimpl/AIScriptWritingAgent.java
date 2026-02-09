@@ -1,4 +1,4 @@
-package com.liangshou.movie.scripts.service.impl;
+package com.liangshou.movie.scripts.service.agents.agentimpl;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;

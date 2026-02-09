@@ -3,6 +3,7 @@ package com.liangshou.movie.scripts.adapter.controller;
 import com.liangshou.movie.scripts.common.enums.ErrorCodeEnum;
 import com.liangshou.movie.scripts.common.exceptions.BizException;
 import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptEpisodeSupport;
+import com.liangshou.movie.scripts.service.IScriptEpisodeService;
 import com.liangshou.movie.scripts.service.dto.ScriptEpisodeDTO;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
@@ -25,7 +26,7 @@ public class ScriptEpisodeController {
     private static final Logger logger = LoggerFactory.getLogger(ScriptEpisodeController.class);
 
     @Resource
-    private IScriptEpisodeSupport scriptEpisodeService;
+    private IScriptEpisodeService scriptEpisodeService;
 
     /**
      * 创建桥段内容

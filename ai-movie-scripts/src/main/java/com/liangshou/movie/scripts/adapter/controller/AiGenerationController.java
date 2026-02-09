@@ -1,6 +1,6 @@
 package com.liangshou.movie.scripts.adapter.controller;
 
-import com.liangshou.movie.scripts.service.impl.AIScriptWritingAgent;
+import com.liangshou.movie.scripts.service.agents.agentimpl.AIScriptWritingAgent;
 import jakarta.annotation.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

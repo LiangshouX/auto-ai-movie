@@ -1,6 +1,7 @@
 package com.liangshou.movie.scripts.adapter.controller;
 
 import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptCharacterSupport;
+import com.liangshou.movie.scripts.service.IScriptCharacterService;
 import com.liangshou.movie.scripts.service.dto.ScriptCharacterDTO;
 import jakarta.annotation.Resource;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ import java.util.List;
 public class ScriptCharacterController {
 
     @Resource
-    private IScriptCharacterSupport scriptCharacterService;
+    private IScriptCharacterService scriptCharacterService;
 
     /**
      * 创建角色

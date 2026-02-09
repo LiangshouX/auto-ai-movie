@@ -1,6 +1,7 @@
 package com.liangshou.movie.scripts.adapter.controller;
 
 import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptProjectSupport;
+import com.liangshou.movie.scripts.service.IScriptProjectService;
 import com.liangshou.movie.scripts.service.dto.ScriptProjectDTO;
 import jakarta.annotation.Resource;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ import java.util.Map;
 public class ScriptProjectController {
 
     @Resource
-    private IScriptProjectSupport scriptProjectService;
+    private IScriptProjectService scriptProjectService;
 
     /**
      * 创建新项目
