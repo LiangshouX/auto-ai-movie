@@ -1,13 +1,15 @@
 package com.liangshou.movie.scripts.service.impl;
 
+import com.liangshou.movie.scripts.common.enums.ErrorCodeEnum;
+import com.liangshou.movie.scripts.common.exceptions.BizException;
 import com.liangshou.movie.scripts.infrastructure.datasource.po.ScriptProjectPO;
 import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptProjectSupport;
 import com.liangshou.movie.scripts.service.IScriptProjectService;
 import com.liangshou.movie.scripts.service.dto.ScriptProjectDTO;
+import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -18,11 +20,12 @@ import java.util.List;
  * 剧本项目业务服务实现类
  */
 @Service
+@SuppressWarnings("unused")
 public class IScriptProjectServiceImpl implements IScriptProjectService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IScriptProjectServiceImpl.class);
 
-    @Autowired
+    @Resource
     private IScriptProjectSupport scriptProjectSupport;
 
     @Override
@@ -42,7 +45,7 @@ public class IScriptProjectServiceImpl implements IScriptProjectService {
             // 保存到数据库
             boolean saved = scriptProjectSupport.save(entity);
             if (!saved) {
-                throw new RuntimeException("项目创建失败");
+                throw new BizException(ErrorCodeEnum.PROJECT_CREATE_FAILED);
             }
 
             // 转换PO到DTO并返回
@@ -50,8 +53,8 @@ public class IScriptProjectServiceImpl implements IScriptProjectService {
             BeanUtils.copyProperties(entity, result);
             return result;
         } catch (Exception e) {
-            LOGGER.error("创建剧本项目时发生错误", e);
-            throw new RuntimeException("创建项目失败: " + e.getMessage(), e);
+            LOGGER.error("创建剧本项目时发生错误");
+            throw new BizException(ErrorCodeEnum.PROJECT_CREATE_FAILED, e);
         }
     }
 
@@ -115,7 +118,7 @@ public class IScriptProjectServiceImpl implements IScriptProjectService {
             // 更新数据库
             boolean updated = scriptProjectSupport.updateById(entity);
             if (!updated) {
-                throw new RuntimeException("项目更新失败");
+                throw new BizException(ErrorCodeEnum.PROJECT_UPDATE_FAILED);
             }
 
             // 返回更新后的数据
@@ -123,8 +126,8 @@ public class IScriptProjectServiceImpl implements IScriptProjectService {
             BeanUtils.copyProperties(entity, result);
             return result;
         } catch (Exception e) {
-            LOGGER.error("更新剧本项目失败: id={}", id, e);
-            throw new RuntimeException("更新项目失败: " + e.getMessage(), e);
+            LOGGER.error("更新剧本项目失败: id={}", id);
+            throw new BizException(ErrorCodeEnum.PROJECT_UPDATE_FAILED, e);
         }
     }
 
@@ -145,13 +148,13 @@ public class IScriptProjectServiceImpl implements IScriptProjectService {
             // 删除项目
             boolean removed = scriptProjectSupport.removeById(id);
             if (!removed) {
-                throw new RuntimeException("项目删除失败");
+                throw new BizException(ErrorCodeEnum.PROJECT_DELETE_FAILED);
             }
 
             LOGGER.info("成功删除剧本项目: id={}", id);
         } catch (Exception e) {
-            LOGGER.error("删除剧本项目时发生错误: id={}", id, e);
-            throw new RuntimeException("删除项目失败: " + e.getMessage(), e);
+            LOGGER.error("删除剧本项目时发生错误: id={}", id);
+            throw new BizException(ErrorCodeEnum.PROJECT_DELETE_FAILED, e);
         }
     }
 
@@ -172,15 +175,15 @@ public class IScriptProjectServiceImpl implements IScriptProjectService {
 
             boolean updated = scriptProjectSupport.updateById(entity);
             if (!updated) {
-                throw new RuntimeException("更新项目主题失败");
+                throw new BizException(ErrorCodeEnum.PROJECT_UPDATE_FAILED);
             }
 
             ScriptProjectDTO dto = new ScriptProjectDTO();
             BeanUtils.copyProperties(entity, dto);
             return dto;
         } catch (Exception e) {
-            LOGGER.error("更新项目主题时发生错误: id={}, theme={}", id, theme, e);
-            throw new RuntimeException("更新项目主题失败: " + e.getMessage(), e);
+            LOGGER.error("更新项目主题时发生错误: id={}, theme={}", id, theme);
+            throw new BizException(ErrorCodeEnum.PROJECT_UPDATE_FAILED, e);
         }
     }
 
@@ -201,15 +204,15 @@ public class IScriptProjectServiceImpl implements IScriptProjectService {
 
             boolean updated = scriptProjectSupport.updateById(entity);
             if (!updated) {
-                throw new RuntimeException("更新项目摘要失败");
+                throw new BizException(ErrorCodeEnum.PROJECT_UPDATE_FAILED);
             }
 
             ScriptProjectDTO dto = new ScriptProjectDTO();
             BeanUtils.copyProperties(entity, dto);
             return dto;
         } catch (Exception e) {
-            LOGGER.error("更新项目摘要时发生错误: id={}, summary={}", id, summary, e);
-            throw new RuntimeException("更新项目摘要失败: " + e.getMessage(), e);
+            LOGGER.error("更新项目摘要时发生错误: id={}, summary={}", id, summary);
+            throw new BizException(ErrorCodeEnum.PROJECT_UPDATE_FAILED, e);
         }
     }
 
@@ -230,15 +233,15 @@ public class IScriptProjectServiceImpl implements IScriptProjectService {
 
             boolean updated = scriptProjectSupport.updateById(entity);
             if (!updated) {
-                throw new RuntimeException("更新项目状态失败");
+                throw new BizException(ErrorCodeEnum.PROJECT_UPDATE_FAILED);
             }
 
             ScriptProjectDTO dto = new ScriptProjectDTO();
             BeanUtils.copyProperties(entity, dto);
             return dto;
         } catch (Exception e) {
-            LOGGER.error("更新项目状态时发生错误: id={}, status={}", id, status, e);
-            throw new RuntimeException("更新项目状态失败: " + e.getMessage(), e);
+            LOGGER.error("更新项目状态时发生错误: id={}, status={}", id, status);
+            throw new BizException(ErrorCodeEnum.PROJECT_UPDATE_FAILED, e);
         }
     }
 }

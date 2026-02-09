@@ -1,14 +1,16 @@
 package com.liangshou.movie.scripts.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.liangshou.movie.scripts.common.enums.ErrorCodeEnum;
+import com.liangshou.movie.scripts.common.exceptions.BizException;
 import com.liangshou.movie.scripts.infrastructure.datasource.po.ScriptEpisodePO;
 import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptEpisodeSupport;
 import com.liangshou.movie.scripts.service.IScriptEpisodeService;
 import com.liangshou.movie.scripts.service.dto.ScriptEpisodeDTO;
+import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -19,6 +21,7 @@ import java.util.List;
  * 桥段内容业务服务实现类
  */
 @Service
+@SuppressWarnings("unused")
 public class IScriptEpisodeServiceImpl implements IScriptEpisodeService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IScriptEpisodeServiceImpl.class);
@@ -26,7 +29,7 @@ public class IScriptEpisodeServiceImpl implements IScriptEpisodeService {
     private static final String CHAPTER_ID_COLUMN = "chapter_id";
     private static final String EPISODE_NUMBER_COLUMN = "episode_number";
 
-    @Autowired
+    @Resource
     private IScriptEpisodeSupport scriptEpisodeSupport;
 
     @Override
@@ -57,14 +60,14 @@ public class IScriptEpisodeServiceImpl implements IScriptEpisodeService {
             // 保存到数据库
             boolean saved = scriptEpisodeSupport.save(entity);
             if (!saved) {
-                throw new RuntimeException("桥段创建失败");
+                throw new BizException(ErrorCodeEnum.CHAPTER_CREATE_FAILED);
             }
 
             // 转换PO到DTO并返回
             return convertToDTO(entity);
         } catch (Exception e) {
-            LOGGER.error("创建桥段内容时发生错误", e);
-            throw new RuntimeException("创建桥段失败: " + e.getMessage(), e);
+            LOGGER.error("创建桥段内容时发生错误: {}", episodeDTO);
+            throw new BizException(ErrorCodeEnum.CHAPTER_CREATE_FAILED, e);
         }
     }
 
@@ -198,7 +201,7 @@ public class IScriptEpisodeServiceImpl implements IScriptEpisodeService {
             // 返回更新后的数据
             return convertToDTO(entity);
         } catch (Exception e) {
-            LOGGER.error("更新桥段内容失败: id={}", id, e);
+            LOGGER.error("更新桥段内容失败: id={}", id);
             throw new RuntimeException("更新桥段失败: " + e.getMessage(), e);
         }
     }
@@ -249,13 +252,13 @@ public class IScriptEpisodeServiceImpl implements IScriptEpisodeService {
             // 批量删除
             boolean removed = scriptEpisodeSupport.removeBatchByIds(validIds);
             if (!removed) {
-                throw new RuntimeException("批量删除桥段失败");
+                throw new BizException(ErrorCodeEnum.CHAPTER_DELETE_FAILED);
             }
 
             LOGGER.info("成功批量删除桥段内容: count={}", validIds.size());
         } catch (Exception e) {
             LOGGER.error("批量删除桥段内容时发生错误", e);
-            throw new RuntimeException("批量删除桥段失败: " + e.getMessage(), e);
+            throw new BizException(ErrorCodeEnum.CHAPTER_DELETE_FAILED, e);
         }
     }
 
@@ -276,13 +279,13 @@ public class IScriptEpisodeServiceImpl implements IScriptEpisodeService {
 
             boolean updated = scriptEpisodeSupport.updateById(entity);
             if (!updated) {
-                throw new RuntimeException("更新桥段标题失败");
+                throw new BizException(ErrorCodeEnum.CHAPTER_UPDATE_FAILED);
             }
 
             return convertToDTO(entity);
         } catch (Exception e) {
             LOGGER.error("更新桥段标题时发生错误: id={}, episodeTitle={}", id, episodeTitle, e);
-            throw new RuntimeException("更新桥段标题失败: " + e.getMessage(), e);
+            throw new BizException(ErrorCodeEnum.CHAPTER_UPDATE_FAILED, e);
         }
     }
 
@@ -307,13 +310,13 @@ public class IScriptEpisodeServiceImpl implements IScriptEpisodeService {
 
             boolean updated = scriptEpisodeSupport.updateById(entity);
             if (!updated) {
-                throw new RuntimeException("更新桥段内容失败");
+                throw new BizException(ErrorCodeEnum.CHAPTER_UPDATE_FAILED);
             }
 
             return convertToDTO(entity);
         } catch (Exception e) {
             LOGGER.error("更新桥段内容时发生错误: id={}", id, e);
-            throw new RuntimeException("更新桥段内容失败: " + e.getMessage(), e);
+            throw new BizException(ErrorCodeEnum.CHAPTER_UPDATE_FAILED, e);
         }
     }
 
@@ -334,7 +337,7 @@ public class IScriptEpisodeServiceImpl implements IScriptEpisodeService {
 
             boolean updated = scriptEpisodeSupport.updateById(entity);
             if (!updated) {
-                throw new RuntimeException("更新字数统计失败");
+                throw new BizException(ErrorCodeEnum.CHAPTER_UPDATE_FAILED);
             }
 
             return convertToDTO(entity);

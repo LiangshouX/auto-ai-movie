@@ -1,6 +1,8 @@
 package com.liangshou.movie.scripts.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.liangshou.movie.scripts.common.enums.ErrorCodeEnum;
+import com.liangshou.movie.scripts.common.exceptions.BizException;
 import com.liangshou.movie.scripts.infrastructure.datasource.po.ScriptCharacterPO;
 import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptCharacterSupport;
 import com.liangshou.movie.scripts.service.IScriptCharacterService;
@@ -22,6 +24,7 @@ import java.util.List;
  * 角色信息业务服务实现类
  */
 @Service
+@SuppressWarnings("unused")
 public class IScriptCharacterServiceImpl implements IScriptCharacterService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IScriptCharacterServiceImpl.class);
@@ -61,7 +64,7 @@ public class IScriptCharacterServiceImpl implements IScriptCharacterService {
             // 保存到数据库
             boolean saved = scriptCharacterSupport.save(entity);
             if (!saved) {
-                throw new RuntimeException("角色创建失败");
+                throw new BizException(ErrorCodeEnum.CHARACTER_CREATE_FAILED);
             }
 
             // 转换PO到DTO并返回，处理JSON到数组的转换
@@ -71,8 +74,8 @@ public class IScriptCharacterServiceImpl implements IScriptCharacterService {
             result.setSkills(ArrayJsonUtil.jsonToArray(entity.getSkills()));
             return result;
         } catch (Exception e) {
-            LOGGER.error("创建角色信息时发生错误", e);
-            throw new RuntimeException("创建角色失败: " + e.getMessage(), e);
+            LOGGER.error("创建角色信息时发生错误，新建角色为：{}", characterDTO);
+            throw new BizException(ErrorCodeEnum.CHARACTER_CREATE_FAILED, e);
         }
     }
 
@@ -166,7 +169,7 @@ public class IScriptCharacterServiceImpl implements IScriptCharacterService {
             // 更新数据库
             boolean updated = scriptCharacterSupport.updateById(entity);
             if (!updated) {
-                throw new RuntimeException("角色更新失败");
+                throw new BizException(ErrorCodeEnum.CHARACTER_UPDATE_FAILED);
             }
 
             // 转换PO到DTO并返回，处理JSON到数组的转换
@@ -176,8 +179,8 @@ public class IScriptCharacterServiceImpl implements IScriptCharacterService {
             result.setSkills(ArrayJsonUtil.jsonToArray(entity.getSkills()));
             return result;
         } catch (Exception e) {
-            LOGGER.error("更新角色信息失败: id={}", characterDTO.getId(), e);
-            throw new RuntimeException("更新角色失败: " + e.getMessage(), e);
+            LOGGER.error("更新角色信息失败: id={}", characterDTO.getId());
+            throw new BizException(ErrorCodeEnum.CHARACTER_UPDATE_FAILED, e);
         }
     }
 
@@ -198,33 +201,26 @@ public class IScriptCharacterServiceImpl implements IScriptCharacterService {
             // 删除角色
             boolean removed = scriptCharacterSupport.removeById(id);
             if (!removed) {
-                throw new RuntimeException("角色删除失败");
+                throw new BizException(ErrorCodeEnum.CHARACTER_DELETE_FAILED);
             }
 
             LOGGER.info("成功删除角色信息: id={}", id);
         } catch (Exception e) {
-            LOGGER.error("删除角色信息时发生错误: id={}", id, e);
-            throw new RuntimeException("删除角色失败: " + e.getMessage(), e);
+            LOGGER.error("删除角色信息时发生错误: id={}", id);
+            throw new BizException(ErrorCodeEnum.CHARACTER_DELETE_FAILED, e);
+
         }
+
+
     }
 
     @Override
     public List<ScriptCharacterDTO> findAll() {
         try {
-            List<ScriptCharacterPO> entities = scriptCharacterSupport.list();
-            return entities.stream().map(entity -> {
-                ScriptCharacterDTO dto = new ScriptCharacterDTO();
-                BeanUtils.copyProperties(entity, dto);
-                // 将JSON字符串转换为数组
-                dto.setPersonalityTags(ArrayJsonUtil.jsonToArray(entity.getPersonalityTags()));
-                dto.setSkills(ArrayJsonUtil.jsonToArray(entity.getSkills()));
-                // 将JSON字符串转换为角色关系对象列表
-                dto.setCharacterRelationships(CharacterRelationshipUtil.fromJson(entity.getCharacterRelationships()));
-                return dto;
-            }).toList();
+            List<ScriptCharacterPO> scriptCharacterPOS = scriptCharacterSupport.list();
         } catch (Exception e) {
-            LOGGER.error("查询所有角色信息失败", e);
-            return List.of();
+            LOGGER.error("查询所有角色信息时发生错误", e);
         }
+        return List.of();
     }
 }

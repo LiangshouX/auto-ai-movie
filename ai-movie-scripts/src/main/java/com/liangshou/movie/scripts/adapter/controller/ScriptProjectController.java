@@ -1,6 +1,5 @@
 package com.liangshou.movie.scripts.adapter.controller;
 
-import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptProjectSupport;
 import com.liangshou.movie.scripts.service.IScriptProjectService;
 import com.liangshou.movie.scripts.service.dto.ScriptProjectDTO;
 import jakarta.annotation.Resource;

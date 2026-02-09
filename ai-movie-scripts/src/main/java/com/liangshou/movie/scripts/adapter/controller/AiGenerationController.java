@@ -16,6 +16,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/v1/ai")
+@SuppressWarnings("unused")
 public class AiGenerationController {
 
     @Resource

@@ -1,6 +1,5 @@
 package com.liangshou.movie.scripts.adapter.controller;
 
-import com.liangshou.movie.scripts.infrastructure.datasource.support.IScriptCharacterSupport;
 import com.liangshou.movie.scripts.service.IScriptCharacterService;
 import com.liangshou.movie.scripts.service.dto.ScriptCharacterDTO;
 import jakarta.annotation.Resource;
@@ -17,6 +16,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/v1/characters")
+@SuppressWarnings("unused")
 public class ScriptCharacterController {
 
     @Resource
