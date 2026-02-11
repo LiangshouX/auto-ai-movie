@@ -7,6 +7,7 @@ import Movies from '../pages/movie/Movies.tsx';
 import Search from '../pages/search/Search.tsx';
 import NotFound from '../pages/NotFound.tsx';
 import CharacterManager from "../pages/scripts/component/scripts-character-role/CharacterManager.tsx";
+import BasicExample from "@/pages/scripts/component/scripts-character-role/canva-demo/TLDrawBasic.tsx";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
   {
     path: 'characters',
     element: <CharacterManager/>
+  },
+  {
+    path: 'tlDemo',
+    element: <BasicExample/>
   },
   {
     path: '/movies',

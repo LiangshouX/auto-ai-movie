@@ -7,6 +7,7 @@ const Home = () => {
         { to: "/characters", emoji: '👤', title: "角色管理", desc: "创建和编辑您的人物角色" },
         { to: "/movies", emoji: "🎬", title: "电影制作", desc: "开始制作您的AI电影" },
         { to: "/search", emoji: "🔍", title: "内容搜索", desc: "搜索相关内容和素材" },
+        { to: "/tlDemo", emoji: '👤', title: "画布Demo", desc: "TLDraw画布Demo" },
     ];
 
     return (
