@@ -81,7 +81,7 @@ const CharacterCardDemo = () => {
         }))
 
         editor.createShapes(shapes)
-        message.success('已创建示例角色卡片')
+        message.success('已加载角色列表').then(() => {})
     }, [])
 
     // 处理编辑器挂载
@@ -238,29 +238,22 @@ const CharacterCardDemo = () => {
                     <Tldraw
                         shapeUtils={shapeUtils}
                         onMount={handleMount}
+                        components={{
+                            Toolbar: null,
+                            StylePanel: null,
+                            PageMenu: null,
+                            ZoomMenu: null,
+                            MainMenu: null,
+                            Minimap: null,
+                            MenuPanel: null,
+                            ContextMenu: null,
+                            HelperButtons: null,
+                        }}
                     />
                 </div>
 
                 <div style={{ marginTop: '24px', padding: '16px', backgroundColor: '#fff', borderRadius: '8px' }}>
-                    <Title level={4}>使用说明</Title>
-                    <ul>
-                        <li>
-                            <strong>点击角色卡片</strong>：选中卡片，选中后会出现蓝色边框和四个连接点
-                        </li>
-                        <li>
-                            <strong>箭头连接</strong>：点击右上角"箭头连接工具"按钮，然后从一个卡片的连接点拖动到另一个卡片的连接点
-                        </li>
-                        <li>
-                            <strong>调整大小</strong>：选中卡片后，拖动角落的控制点可以调整卡片大小
-                        </li>
-                        <li>
-                            <strong>移动卡片</strong>：拖动卡片可以移动位置
-                        </li>
-                        <li>
-                            <strong>添加/删除卡片</strong>：使用顶部按钮添加新卡片或删除选中卡片
-                        </li>
-                    </ul>
-                    
+
                     {selectedRoleId && (
                         <div style={{ marginTop: '16px' }}>
                             <Title level={5}>当前选中角色</Title>
