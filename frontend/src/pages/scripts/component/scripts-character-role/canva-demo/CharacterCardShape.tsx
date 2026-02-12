@@ -8,7 +8,7 @@ import {
     TLShape,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import React from 'react'
+import React, { useState } from 'react'
 
 // 形状类型常量
 export const CHARACTER_CARD_SHAPE_TYPE = 'character-card' as const
@@ -53,6 +53,7 @@ interface RoleCardComponentProps {
 }
 
 const RoleCardComponent: React.FC<RoleCardComponentProps> = ({ shape, isSelected }) => {
+    const [hover, setHover] = useState(false)
     const { props } = shape
     const { w, h, name, age, gender, roleInStory } = props
 
@@ -102,6 +103,8 @@ const RoleCardComponent: React.FC<RoleCardComponentProps> = ({ shape, isSelected
                     position: 'relative',
                     overflow: 'hidden',
                 }}
+                onMouseEnter={() => {setHover(true)}}
+                onMouseLeave={() => setHover(false)}
             >
                 {/* 角色名称 */}
                 <div className="role-header">
@@ -155,6 +158,63 @@ const RoleCardComponent: React.FC<RoleCardComponentProps> = ({ shape, isSelected
                 >
                     {roleInStory || '暂无描述'}
                 </div>
+
+                {/* 悬浮操作按钮 */}
+                {hover && (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                            borderRadius: '12px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            gap: '8px',
+                            zIndex: 10,
+                        }}
+                    >
+                        <button
+                            onClick={() => {
+                                const event = new CustomEvent('character-card-view', { detail: { roleId: props.roleId } })
+                                window.dispatchEvent(event)
+                            }}
+                            style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#2563eb',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                fontWeight: 'bold',
+                            }}
+                        >
+                            查看
+                        </button>
+                        <button
+                            onClick={() => {
+                                const event = new CustomEvent('character-card-edit', { detail: { roleId: props.roleId } })
+                                window.dispatchEvent(event)
+                            }}
+                            style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#10b981',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                fontWeight: 'bold',
+                            }}
+                        >
+                            编辑
+                        </button>
+                    </div>
+                )}
 
                 {/* 选中状态指示器 */}
                 {isSelected && (
