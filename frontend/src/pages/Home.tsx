@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Row, Col, Card, Typography } from 'antd';
 import './Home.css';
 
 const Home = () => {
@@ -16,20 +17,41 @@ const Home = () => {
                 <h1>Auto AI Movie</h1>
                 <p>下一代智能电影创作平台，让每一位创作者都能轻松驾驭 AI 的力量，开启电影制作的新纪元。</p>
             </div>
-            
+
             <div className="feature-grid">
-                {features.map((feature, index) => (
-                    <Link
-                        key={`${feature.to}-${index}`}
-                        to={feature.to}
-                        className="feature-card"
-                        style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                        <div className="feature-icon">{feature.emoji}</div>
-                        <h2>{feature.title}</h2>
-                        <p>{feature.desc}</p>
-                    </Link>
-                ))}
+                <Row gutter={[24, 24]} justify="center" style={{ width: '100%' }}>
+                    {features.map((feature, index) => (
+                        <Col
+                            key={`${feature.to}-${index}`}
+                            xs={24}
+                            sm={12}
+                            md={8}
+                            lg={6}
+                            xl={6}
+                            xxl={6}
+                            style={{ display: 'flex' }}
+                        >
+                            <Link to={feature.to} style={{ flex: 1 }}>
+                                <Card
+                                    hoverable
+                                    className="feature-card"
+                                    styles={{ body: { padding: 0 } }}
+                                    style={{ width: '100%', animationDelay: `${index * 0.1}s` as any }}
+                                >
+                                    <div style={{ padding: 28 }}>
+                                        <div className="feature-icon">{feature.emoji}</div>
+                                        <Typography.Title level={4} style={{ margin: '0 0 16px 0' }}>
+                                            {feature.title}
+                                        </Typography.Title>
+                                        <Typography.Paragraph style={{ margin: 0 }}>
+                                            {feature.desc}
+                                        </Typography.Paragraph>
+                                    </div>
+                                </Card>
+                            </Link>
+                        </Col>
+                    ))}
+                </Row>
             </div>
         </div>
     );
