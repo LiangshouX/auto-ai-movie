@@ -166,7 +166,7 @@ const ScriptEditor = () => {
       case 'characters':
         return (
           <CharacterDesign project={project} />
-          // <CharacterCardDemo projectId={project?.id} />
+          // <CharacterCardCanvas projectId={project?.id} />
         );
       case 'outline':
         return (

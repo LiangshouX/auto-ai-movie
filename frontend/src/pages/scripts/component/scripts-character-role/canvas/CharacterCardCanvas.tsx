@@ -12,7 +12,7 @@ interface CharacterCardDemoProps {
   projectId?: string | null;
 }
 
-const CharacterCardDemo = ({ projectId }: CharacterCardDemoProps) => {
+const CharacterCardCanvas = ({ projectId }: CharacterCardDemoProps) => {
     // const navigate = useNavigate()
     const [editor, setEditor] = useState<Editor | null>(null)
     const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null)
@@ -323,4 +323,4 @@ const CharacterCardDemo = ({ projectId }: CharacterCardDemoProps) => {
     )
 }
 
-export default CharacterCardDemo
+export default CharacterCardCanvas

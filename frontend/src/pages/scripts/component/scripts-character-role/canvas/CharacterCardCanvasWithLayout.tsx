@@ -1,17 +1,19 @@
 import 'tldraw/tldraw.css'
 import BaseLayout from "@/pages/scripts/layout/BaseLayout.tsx";
 import AppHeader from "@/pages/scripts/layout/AppHeader.tsx";
-import CharacterCardDemo from "./CharacterCardDemo.tsx";
+import CharacterCardCanvas from "./CharacterCardCanvas.tsx";
 
 interface CharacterCardDemoWithLayoutProps {
-  projectId?: string | null;
+    projectId?: string | null;
 }
 
-const CharacterCardDemoWithLayout = ({ projectId }: CharacterCardDemoWithLayoutProps) => {
+const CharacterCardCanvasWithLayout = (
+    {projectId}: CharacterCardDemoWithLayoutProps
+) => {
     return (
         <BaseLayout
-            header={<AppHeader title="人物角色卡片画布" />}
-            contentStyle={{ padding: 0 }}
+            header={<AppHeader title="人物角色卡片画布"/>}
+            contentStyle={{padding: 0}}
         >
             <div style={{
                 position: 'relative',
@@ -22,10 +24,10 @@ const CharacterCardDemoWithLayout = ({ projectId }: CharacterCardDemoWithLayoutP
                 overflow: 'hidden',
                 backgroundColor: '#fff',
             }}>
-                <CharacterCardDemo projectId={projectId}/>
+                <CharacterCardCanvas projectId={projectId}/>
             </div>
         </BaseLayout>
     )
 }
 
-export default CharacterCardDemoWithLayout
+export default CharacterCardCanvasWithLayout
