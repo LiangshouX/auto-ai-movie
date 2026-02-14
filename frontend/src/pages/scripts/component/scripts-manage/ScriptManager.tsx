@@ -1,19 +1,7 @@
-import React, {useState, useEffect} from 'react';
-import {useNavigate} from 'react-router-dom';
+import React, {useEffect, useState} from 'react';
 import {useProjectApi} from '@/hooks/useApi.ts';
-import {ScriptProject, ProjectStatus, ScriptProjectType} from '@/api/types/project-types.ts';
-import {
-    Button,
-    Input,
-    Row,
-    Col,
-    Form,
-    Typography,
-    Space,
-    message,
-    Layout,
-    Modal
-} from 'antd';
+import {ProjectStatus, ScriptProject, ScriptProjectType} from '@/api/types/project-types.ts';
+import {Button, Col, Form, message, Modal, Row, Space} from 'antd';
 
 import '../../style/ScriptManagerStyle.css';
 import ProjectCard from './ProjectCard.tsx';
@@ -21,14 +9,10 @@ import LoadingSpinner from './LoadingSpinner.tsx';
 import ErrorMessage from './ErrorMessage.tsx';
 import EmptyState from './EmptyState.tsx';
 import CreateProjectModal from './CreateProjectModal.tsx';
-import {HomeOutlined} from '@ant-design/icons'
-
-const {Title} = Typography;
-const {Search} = Input;
-const {Header, Content} = Layout;
+import BaseLayout from '../../layout/BaseLayout.tsx';
+import AppHeader from '../../layout/AppHeader.tsx';
 
 const ScriptManager = () => {
-    const navigate = useNavigate();
     const {
         loading: apiLoading,
         error: apiError,
@@ -226,132 +210,98 @@ const ScriptManager = () => {
         setNewProjectDescription(e.target.value);
     };
 
-    // 使用 Ant Design 的 Layout 结构
+    // 使用公共布局组件
     return (
-
-        <Layout style={{padding: '24px 0', height: '100vh'}}>
-            <Header style={{
-                backgroundColor: '#fff',
-                padding: '0 24px',
-                boxShadow: '0 2px 8px #f0f0f0',
-                zIndex: 100,
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                position: 'fixed',
-                justifyContent: 'space-between',
-                height: 64,
-                top: 0,
-                left: 0,
-                right: 0,
-                borderBottom: '1px solid #e0e0e0'
-            }}>
-                <Space size="large">
-                    <Button onClick={() => navigate('/')} type="text" size="large"><HomeOutlined/> 首页</Button>
-                    <Title level={2} style={{margin: 0, color: 'rgba(0, 0, 0, 0.88)'}}>AI 剧本管理</Title>
-                </Space>
-
-                <Space>
-                    <Search
-                        placeholder="搜索项目..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{width: 300, marginRight: 16}}
-                        allowClear
-                    />
-                    <Button
-                        type="default"
-                        size="large"
-                        onClick={() => {
-                            // 刷新项目列表
-                            fetchProjects();
-                        }}
-                        disabled={operationLoading || apiLoading}
-                    >
-                        刷新
-                    </Button>
-                    <Button
-                        type="primary"
-                        size="large"
-                        onClick={() => {
-                            setShowCreateModal(true);
-                            setError(null); // 清除错误状态
-                        }}
-                        disabled={operationLoading || apiLoading}
-                    >
-                        {operationLoading || apiLoading ? '处理中...' : '+ 新建项目'}
-                    </Button>
-                </Space>
-            </Header>
-
-            <Content style={{
-                flex: 1,
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                padding: 24,
-                display: 'flex',
-                flexDirection: 'column',
-                width: '100%',
-                backgroundColor: '#f9f9f9',
-                minHeight: 'calc(100vh - 64px)',
+        <BaseLayout
+            header={
+                <AppHeader
+                    title="AI 剧本管理"
+                    onSearch={setSearchTerm}
+                    searchValue={searchTerm}
+                    searchPlaceholder="搜索项目..."
+                    extra={
+                        <Space>
+                            <Button
+                                type="default"
+                                size="large"
+                                onClick={() => {
+                                    fetchProjects();
+                                }}
+                                disabled={operationLoading || apiLoading}
+                            >
+                                刷新
+                            </Button>
+                            <Button
+                                type="primary"
+                                size="large"
+                                onClick={() => {
+                                    setShowCreateModal(true);
+                                    setError(null);
+                                }}
+                                disabled={operationLoading || apiLoading}
+                            >
+                                {operationLoading || apiLoading ? '处理中...' : '+ 新建项目'}
+                            </Button>
+                        </Space>
+                    }
+                />
+            }
+            contentStyle={{
                 minWidth: 'max(1500px, calc(100vw - 200px))'
-            }}>
-
-                {(loading || apiLoading) ? (
-                    <LoadingSpinner/>
-                ) : (error || apiError) ? (
-                    <ErrorMessage
-                        error={error || apiError}
-                        onRetry={fetchProjects}
-                    />
-                ) : filteredProjects.length > 0 ? (
-                    <>
-                        <div className="card-scroll-container">
-                            <Row gutter={[16, 16]} style={{marginBottom: 30, marginTop: 30, width: '100%'}}>
-                                {filteredProjects.map((project) => (
-                                    <Col xs={24} sm={12} md={8} lg={6} key={project.id}>
-                                        <ProjectCard
-                                            project={project}
-                                            operationLoading={operationLoading}
-                                            // onClick={() => handleProjectClick(project.id!)}
-                                            onClick={() => {
-                                            }}
-                                            onDelete={handleProjectDelete}
-                                        />
-                                    </Col>
-                                ))}
-                            </Row>
-                        </div>
-                    </>
-                ) : (
-                    <EmptyState
-                        searchTerm={searchTerm}
-                        operationLoading={operationLoading}
-                        apiLoading={apiLoading}
-                        onCreateProject={() => {
-                            setShowCreateModal(true);
-                            setError(null);
-                        }}
-                    />
-                )}
-
-                {/* 创建项目模态框 */}
-                <CreateProjectModal
-                    open={showCreateModal}
+            }}
+        >
+            {(loading || apiLoading) ? (
+                <LoadingSpinner/>
+            ) : (error || apiError) ? (
+                <ErrorMessage
+                    error={error || apiError}
+                    onRetry={fetchProjects}
+                />
+            ) : filteredProjects.length > 0 ? (
+                <>
+                    <div className="card-scroll-container">
+                        <Row gutter={[16, 16]} style={{marginBottom: 30, marginTop: 30, width: '100%'}}>
+                            {filteredProjects.map((project) => (
+                                <Col xs={24} sm={12} md={8} lg={6} key={project.id}>
+                                    <ProjectCard
+                                        project={project}
+                                        operationLoading={operationLoading}
+                                        onClick={() => {
+                                        }}
+                                        onDelete={handleProjectDelete}
+                                    />
+                                </Col>
+                            ))}
+                        </Row>
+                    </div>
+                </>
+            ) : (
+                <EmptyState
+                    searchTerm={searchTerm}
                     operationLoading={operationLoading}
                     apiLoading={apiLoading}
-                    error={error}
-                    newProjectName={newProjectName}
-                    newProjectDescription={newProjectDescription}
-                    form={form}
-                    onClose={handleCloseModal}
-                    onNameChange={handleNameChange}
-                    onDescriptionChange={handleDescriptionChange}
-                    onSubmit={handleCreateProject}
+                    onCreateProject={() => {
+                        setShowCreateModal(true);
+                        setError(null);
+                    }}
                 />
-            </Content>
-        </Layout>
+            )}
 
+            {/* 创建项目模态框 */}
+            <CreateProjectModal
+                open={showCreateModal}
+                operationLoading={operationLoading}
+                apiLoading={apiLoading}
+                error={error}
+                newProjectName={newProjectName}
+                newProjectDescription={newProjectDescription}
+                form={form}
+                onClose={handleCloseModal}
+                onNameChange={handleNameChange}
+                onDescriptionChange={handleDescriptionChange}
+                onSubmit={handleCreateProject}
+            />
+        </BaseLayout>
     );
 };
 

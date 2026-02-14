@@ -1,7 +1,5 @@
-import {Button, Input, Layout, message, Modal, Space, Typography} from "antd";
-import {HomeOutlined, PlusOutlined} from "@ant-design/icons";
-// import { HomeOutlined, PlusOutlined, UserOutlined, TeamOutlined, EditOutlined, DeleteOutlined, RobotOutlined } from "@ant-design/icons";
-import {useNavigate} from "react-router-dom";
+import {Button, message, Modal, Space} from "antd";
+import {PlusOutlined} from "@ant-design/icons";
 import {useEffect, useState} from "react";
 import RoleCanvas from "./canva/RoleCanvas.tsx";
 import {
@@ -14,13 +12,10 @@ import {
 import {CharacterRelationship, CharacterRole, Gender} from "@/api/types/character-role-types.ts";
 import CharacterDetailSidebar from "./CharacterDetailSidebar.tsx";
 import CharacterDetailDrawer from "./CharacterDetailDrawer.tsx";
-
-const {Title} = Typography;
-const {Search} = Input;
-const {Header, Content} = Layout;
+import BaseLayout from "@/pages/scripts/layout/BaseLayout.tsx";
+import AppHeader from "@/pages/scripts/layout/AppHeader.tsx";
 
 const CharacterManager = () => {
-    const navigate = useNavigate();
     const [characters, setCharacters] = useState<CharacterRole[]>([]);
     const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -28,7 +23,7 @@ const CharacterManager = () => {
     // const [showRelationshipModal, setShowRelationshipModal] = useState(false);
     // const [relationshipForm] = Form.useForm();
     // const [sourceRoleId, setSourceRoleId] = useState<string>('');
-    
+
     // 初始化数据
     useEffect(() => {
         // 模拟异步加载数据
@@ -57,10 +52,10 @@ const CharacterManager = () => {
     // 处理AI角色设计
     const handleAIRoleDesign = async () => {
         try {
-            message.loading({ content: 'AI正在分析剧本并设计角色...', duration: 0, key: 'ai-loading' });
+            message.loading({content: 'AI正在分析剧本并设计角色...', duration: 0, key: 'ai-loading'});
             // 模拟AI处理时间
             await new Promise(resolve => setTimeout(resolve, 3000));
-            
+
             // 模拟AI生成的新角色
             const aiGeneratedRoles = [
                 {
@@ -86,15 +81,15 @@ const CharacterManager = () => {
                     relationships: []
                 }
             ];
-            
+
             // 添加AI生成的角色
             /*@ts-ignore*/
             const newCharacters = aiGeneratedRoles.map(roleData => addCharacter(roleData));
             setCharacters(prev => [...prev, ...newCharacters]);
-            
-            message.success({ content: 'AI角色设计完成！新增2个角色', key: 'ai-loading' });
+
+            message.success({content: 'AI角色设计完成！新增2个角色', key: 'ai-loading'});
         } catch (error) {
-            message.error({ content: 'AI角色设计失败', key: 'ai-loading' });
+            message.error({content: 'AI角色设计失败', key: 'ai-loading'});
         }
     };
 
@@ -137,7 +132,11 @@ const CharacterManager = () => {
     };
 
     // 处理添加关系
-    const handleAddRelationship = (sourceId: string, targetId: string, relationshipData: Omit<CharacterRelationship, 'relatedCharacterName'>) => {
+    const handleAddRelationship = (
+        sourceId: string,
+        targetId: string,
+        relationshipData: Omit<CharacterRelationship, 'relatedCharacterName'>
+    ) => {
         const updatedCharacters = characters.map(char => {
             if (char.id === sourceId) {
                 // 添加关系到源角色
@@ -146,7 +145,7 @@ const CharacterManager = () => {
                     ...relationshipData,
                     relatedCharacterName: targetCharacter?.name || '未知角色'
                 };
-                
+
                 return {
                     ...char,
                     relationships: [...char.characterRelationships, newRelationship]
@@ -154,7 +153,7 @@ const CharacterManager = () => {
             }
             return char;
         });
-        
+
         setCharacters(updatedCharacters);
         updateCharacter(sourceId, updatedCharacters.find(c => c.id === sourceId)!);
         message.success('角色关系添加成功！');
@@ -171,7 +170,7 @@ const CharacterManager = () => {
             }
             return char;
         });
-        
+
         setCharacters(updatedCharacters);
         updateCharacter(sourceId, updatedCharacters.find(c => c.id === sourceId)!);
         message.success('角色关系删除成功！');
@@ -211,77 +210,61 @@ const CharacterManager = () => {
     };
 
     return (
-        <Layout style={{height: '100vh'}}>
-            <Header style={{
-                backgroundColor: '#fff',
-                padding: '0 24px',
-                boxShadow: '0 2px 8px #f0f0f0',
-                zIndex: 100,
-                width: '100%',
-                minWidth: 'max(1500px, calc(100vw - 200px))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                height: 64,
-                borderBottom: '1px solid #e0e0e0'
-            }}>
-                <Space size="large">
-                    <Button onClick={() => navigate('/')} type="text" size="large">
-                        <HomeOutlined/> 首页
-                    </Button>
-                    <Title level={2} style={{margin: 0, color: 'rgba(0, 0, 0, 0.88)'}}>
-                        角色管理
-                    </Title>
-                </Space>
-
-                <Space>
-                    <Search
-                        placeholder="搜索角色..."
-                        style={{width: 300, marginRight: 16}}
-                        allowClear
-                    />
-                    <Button
-                        type="default"
-                        size="large"
-                        onClick={() => {
-                            // 刷新逻辑
-                            setIsLoading(true);
-                            setTimeout(() => {
-                                setCharacters([...mockCharacters]);
-                                setIsLoading(false);
-                                message.success('刷新成功');
-                            }, 500);
-                        }}
-                    >
-                        刷新
-                    </Button>
-                    <Button
-                        type="primary"
-                        size="large"
-                        icon={<PlusOutlined />}
-                        onClick={() => setIsModalVisible(true)}
-                    >
-                        新建角色
-                    </Button>
-                </Space>
-            </Header>
-            
-            <Content style={{
+        <BaseLayout
+            header={
+                <AppHeader
+                    title="角色管理"
+                    searchPlaceholder="搜索角色..."
+                    onSearch={(value) => {
+                        // TODO: 实现搜索逻辑
+                        console.log('Search:', value);
+                    }}
+                    extra={
+                        <Space>
+                            <Button
+                                type="default"
+                                size="large"
+                                onClick={() => {
+                                    // 刷新逻辑
+                                    setIsLoading(true);
+                                    setTimeout(() => {
+                                        setCharacters([...mockCharacters]);
+                                        setIsLoading(false);
+                                        message.success('刷新成功');
+                                    }, 500);
+                                }}
+                            >
+                                刷新
+                            </Button>
+                            <Button
+                                type="primary"
+                                size="large"
+                                icon={<PlusOutlined/>}
+                                onClick={() => setIsModalVisible(true)}
+                            >
+                                新建角色
+                            </Button>
+                        </Space>
+                    }
+                />
+            }
+            contentStyle={{
+                padding: 0, // Canvas usually needs no padding
                 marginTop: 64,
                 height: 'calc(100vh - 64px)',
                 position: 'relative'
-            }}>
-                <RoleCanvas
-                    roles={characters}
-                    onRoleClick={handleRoleClick}
-                    onCreateRole={handleCreateRole}
-                    onAIRoleDesign={handleAIRoleDesign}
-                    isLoading={isLoading}
-                    onRelationshipAdd={handleAddRelationship}
-                    onRelationshipRemove={handleRemoveRelationship}
-                />
-            </Content>
-            
+            }}
+        >
+            <RoleCanvas
+                roles={characters}
+                onRoleClick={handleRoleClick}
+                onCreateRole={handleCreateRole}
+                onAIRoleDesign={handleAIRoleDesign}
+                isLoading={isLoading}
+                onRelationshipAdd={handleAddRelationship}
+                onRelationshipRemove={handleRemoveRelationship}
+            />
+
             {/* 创建角色模态框 */}
             <CharacterDetailDrawer
                 character={null}
@@ -299,7 +282,7 @@ const CharacterManager = () => {
                 onEdit={handleEditCharacter}
                 onDelete={handleDeleteCharacter}
             />
-        </Layout>
+        </BaseLayout>
     );
 }
 

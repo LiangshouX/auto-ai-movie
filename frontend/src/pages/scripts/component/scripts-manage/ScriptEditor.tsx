@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Layout, Button, Typography, Card, Alert, Spin, message, Flex } from 'antd';
+import { Button, Typography, Card, Alert, Spin, message, Flex } from 'antd';
 import api from '../../../../api';
 import { ScriptProject } from '@/api/types/project-types.ts';
 import { projectApi } from '@/api/service/scripts-project.ts';
@@ -10,8 +10,7 @@ import BackgroundSetting from '../scripts-backgound-plot/BackgroundSetting.tsx';
 import PlotSummary from '../scripts-backgound-plot/PlotSummary.tsx';
 import CharacterDesign from '../scripts-character-role/CharacterDesign.tsx';
 import ScriptOutline from '../scripts-outline-chapter/ScriptOutline.tsx';
-
-const { Content } = Layout;
+import BaseLayout from '../../layout/BaseLayout.tsx';
 const { Title, Text } = Typography;
 
 const ScriptEditor = () => {
@@ -183,86 +182,77 @@ const ScriptEditor = () => {
 
   if (loading) {
     return (
-      <Layout style={{ height: '100vh' }}>
-        <EditorHeader
-          title="剧本创作"
-          projectTitle={project?.title || '加载中...'}
-          onBackClick={handleBackClick}
-          onHomeClick={handleGoHome}
-          onSaveClick={handleSave}
-          onCancelClick={handleCancelClick}
-          onExportClick={handleExportClick}
-        />
-        <Content style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 24 }}>
-          <Flex vertical align="center" justify="center" style={{ height: '100%', padding: 24 }}>
-            <Spin size="large" tip="加载中..." />
-            <Title level={3}>正在获取项目信息，请稍候</Title>
-          </Flex>
-        </Content>
-      </Layout>
+      <BaseLayout
+        header={
+          <EditorHeader
+            title="剧本创作"
+            projectTitle={project?.title || '加载中...'}
+            onBackClick={handleBackClick}
+            onHomeClick={handleGoHome}
+            onSaveClick={handleSave}
+            onCancelClick={handleCancelClick}
+            onExportClick={handleExportClick}
+          />
+        }
+      >
+        <Flex vertical align="center" justify="center" style={{ height: '100%', padding: 24 }}>
+          <Spin size="large" tip="加载中..." />
+          <Title level={3}>正在获取项目信息，请稍候</Title>
+        </Flex>
+      </BaseLayout>
     );
   }
 
   if (error) {
     return (
-      <Layout style={{ height: '100vh' }}>
+      <BaseLayout
+        header={
+          <EditorHeader
+            title="剧本创作"
+            projectTitle={project?.title || '错误'}
+            onBackClick={handleBackClick}
+            onHomeClick={handleGoHome}
+            onSaveClick={handleSave}
+            onCancelClick={handleCancelClick}
+            onExportClick={handleExportClick}
+          />
+        }
+      >
+        <Alert
+          title="错误"
+          description={error}
+          type="error"
+          showIcon
+          action={
+            <Button onClick={handleBackClick}>返回剧本管理</Button>
+          }
+        />
+      </BaseLayout>
+    );
+  }
+
+  return (
+    <BaseLayout
+      header={
         <EditorHeader
           title="剧本创作"
-          projectTitle={project?.title || '错误'}
+          projectTitle={project?.title || '未命名项目'}
           onBackClick={handleBackClick}
           onHomeClick={handleGoHome}
           onSaveClick={handleSave}
           onCancelClick={handleCancelClick}
           onExportClick={handleExportClick}
         />
-        <Content style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 24 }}>
-          <Alert
-            title="错误"
-            description={error}
-            type="error"
-            showIcon
-            action={
-              <Button onClick={handleBackClick}>返回剧本管理</Button>
-            }
-          />
-        </Content>
-      </Layout>
-    );
-  }
-
-  return (
-    <Layout style={{ height: '100vh' }}>
-      <EditorHeader
-        title="剧本创作"
-        projectTitle={project?.title || '未命名项目'}
-        onBackClick={handleBackClick}
-        onHomeClick={handleGoHome}
-        onSaveClick={handleSave}
-        onCancelClick={handleCancelClick}
-        onExportClick={handleExportClick}
-      />
-      
-      {/* 使用标准的Layout结构 - 修复布局问题 */}
-      <Layout style={{ marginTop: 64 }}>
+      }
+      sidebar={
         <SidebarNav 
           activeTab={activeTab} 
           onTabChange={setActiveTab} 
         />
-        {/*fixme: 小心，这里会缩起来*/}
-        <Content style={{ 
-          flex: 1,
-          overflowY: 'auto',
-          overflowX: 'auto',
-          padding: 24,
-          display: 'flex',
-          width: '100%',
-          backgroundColor: '#f9f9f9',
-          minHeight: 'calc(100vh - 64px)',
-        }}>
-          {renderContent()}
-        </Content>
-      </Layout>
-    </Layout>
+      }
+    >
+      {renderContent()}
+    </BaseLayout>
   );
 };
 
