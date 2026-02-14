@@ -10,7 +10,7 @@ interface CharacterCardDemoWithLayoutProps {
 const CharacterCardDemoWithLayout = ({ projectId }: CharacterCardDemoWithLayoutProps) => {
     return (
         <BaseLayout
-            header={<AppHeader title="人物角色卡片画布Demo" />}
+            header={<AppHeader title="人物角色卡片画布" />}
             contentStyle={{ padding: 0 }}
         >
             <div style={{

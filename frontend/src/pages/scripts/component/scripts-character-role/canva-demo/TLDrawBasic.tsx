@@ -7,7 +7,7 @@ const BasicExample= () => {
 
     return (
         <BaseLayout
-            header={<AppHeader title="画布Demo" />}
+            header={<AppHeader title="基础画布调试" />}
             contentStyle={{ padding: 0 }}
         >
             <div style={{

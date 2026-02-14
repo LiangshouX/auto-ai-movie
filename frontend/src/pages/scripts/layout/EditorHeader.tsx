@@ -15,15 +15,17 @@ interface EditorHeaderProps {
     onExportClick: () => void;
 }
 
-const EditorHeader: React.FC<EditorHeaderProps> = ({
-                                                       title,
-                                                       projectTitle,
-                                                       onBackClick,
-                                                       onHomeClick,
-                                                       onSaveClick,
-                                                       onCancelClick,
-                                                       onExportClick
-                                                   }) => {
+const EditorHeader: React.FC<EditorHeaderProps> = (
+    {
+        title,
+        projectTitle,
+        onBackClick,
+        onHomeClick,
+        onSaveClick,
+        onCancelClick,
+        onExportClick
+    }
+) => {
     return (
         <Header
             className="editor-header"

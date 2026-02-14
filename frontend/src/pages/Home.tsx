@@ -8,7 +8,7 @@ const Home = () => {
         { to: "/characters", emoji: "👤", title: "角色管理", desc: "多维塑造人物性格，构建复杂而生动的角色关系网" },
         { to: "/movies", emoji: "🎬", title: "电影制作", desc: "利用尖端 AI 技术，将文字剧本转化为视觉盛宴" },
         { to: "/search", emoji: "🔍", title: "内容搜索", desc: "海量素材库一键检索，为您的创作提供源源不断的灵感" },
-        { to: "/tlDemo", emoji: "🎨", title: "画布 Demo", desc: "交互式可视化创作空间，自由探索创意的无限可能" },
+        { to: "/tlDemo", emoji: "🎨", title: "画布调试", desc: "交互式可视化创作空间，自由探索创意的无限可能" },
     ];
 
     return (
