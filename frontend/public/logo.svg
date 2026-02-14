@@ -1,0 +1,33 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景圆形 -->
+  <circle cx="16" cy="16" r="15" fill="url(#gradient1)" stroke="white" stroke-width="1"/>
+  
+  <!-- 播放按钮形状 - 代表电影 -->
+  <path d="M12 10 L12 22 L22 16 Z" fill="white"/>
+  
+  <!-- AI芯片元素 -->
+  <rect x="8" y="8" width="3" height="3" fill="url(#gradient2)" rx="0.5"/>
+  <rect x="8" y="14.5" width="3" height="3" fill="url(#gradient2)" rx="0.5"/>
+  <rect x="8" y="21" width="3" height="3" fill="url(#gradient2)" rx="0.5"/>
+  
+  <rect x="14.5" y="8" width="3" height="3" fill="url(#gradient2)" rx="0.5"/>
+  <rect x="14.5" y="21" width="3" height="3" fill="url(#gradient2)" rx="0.5"/>
+  
+  <rect x="21" y="8" width="3" height="3" fill="url(#gradient2)" rx="0.5"/>
+  <rect x="21" y="14.5" width="3" height="3" fill="url(#gradient2)" rx="0.5"/>
+  <rect x="21" y="21" width="3" height="3" fill="url(#gradient2)" rx="0.5"/>
+  
+  <!-- 光效 -->
+  <circle cx="16" cy="16" r="12" fill="none" stroke="white" stroke-width="0.5" opacity="0.3"/>
+</svg>
