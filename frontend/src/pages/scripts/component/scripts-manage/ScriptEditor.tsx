@@ -1,16 +1,17 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Typography, Card, Alert, Spin, message, Flex } from 'antd';
+import {useCallback, useEffect, useState} from 'react';
+import {useNavigate, useParams} from 'react-router-dom';
+import {Alert, Button, Card, Flex, message, Spin, Typography} from 'antd';
 import api from '../../../../api';
-import { ScriptProject } from '@/api/types/project-types.ts';
-import { projectApi } from '@/api/service/scripts-project.ts';
+import {ScriptProject} from '@/api/types/project-types.ts';
+import {projectApi} from '@/api/service/scripts-project.ts';
 import EditorHeader from '../../layout/EditorHeader.tsx';
 import SidebarNav from '../../layout/SidebarNav.tsx';
 import BackgroundSetting from '../scripts-backgound-plot/BackgroundSetting.tsx';
 import PlotSummary from '../scripts-backgound-plot/PlotSummary.tsx';
-import CharacterDesign from '../scripts-character-role/CharacterDesign.tsx';
 import ScriptOutline from '../scripts-outline-chapter/ScriptOutline.tsx';
 import BaseLayout from '../../layout/BaseLayout.tsx';
+import CharacterDesign from "@/pages/scripts/component/scripts-character-role/CharacterDesign.tsx";
+
 const { Title, Text } = Typography;
 
 const ScriptEditor = () => {
@@ -165,6 +166,7 @@ const ScriptEditor = () => {
       case 'characters':
         return (
           <CharacterDesign project={project} />
+          // <CharacterCardDemo projectId={project?.id} />
         );
       case 'outline':
         return (

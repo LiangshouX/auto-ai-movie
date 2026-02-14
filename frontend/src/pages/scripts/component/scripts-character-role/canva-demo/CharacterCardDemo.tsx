@@ -6,12 +6,10 @@ import {Button, message, Space} from 'antd'
 import {characterRoleApi} from '@/api/service/character-role.ts'
 import {CharacterRole} from '@/api/types/character-role-types.ts'
 import CharacterDetailDrawer from '../CharacterDetailDrawer.tsx'
-import BaseLayout from "@/pages/scripts/layout/BaseLayout.tsx";
-import AppHeader from "@/pages/scripts/layout/AppHeader.tsx";
 
 // 组件Props接口
 interface CharacterCardDemoProps {
-  projectId?: string;
+  projectId?: string | null;
 }
 
 const CharacterCardDemo = ({ projectId }: CharacterCardDemoProps) => {
@@ -28,7 +26,7 @@ const CharacterCardDemo = ({ projectId }: CharacterCardDemoProps) => {
     const shapeUtils = [CharacterCardShapeUtil]
 
     // 计算实际使用的projectId
-    const actualProjectId = projectId || '16a794b15ffb94dff29e710c8f773546'
+    const actualProjectId = projectId || '07ca8285a4bfa47abd869415cf9fe404'
 
     // 加载角色数据
     useEffect(() => {
@@ -261,49 +259,46 @@ const CharacterCardDemo = ({ projectId }: CharacterCardDemoProps) => {
     }, [editor])
 
     return (
-        <BaseLayout
-            header={
-                <AppHeader
-                    title="人物角色卡片画布Demo"
-                    extra={
-                        <Space>
-                            <Button onClick={handleAddRole} type="primary">
-                                添加角色卡片
-                            </Button>
-                            <Button onClick={enableArrowTool} type="default">
-                                箭头连接工具
-                            </Button>
-                            <Button
-                                onClick={handleEditeSelected}
-                                type="default"
-                                danger
-                                disabled={!selectedRoleId}
-                            >
-                                编辑选中角色
-                            </Button>
-                            <Button 
-                                onClick={handleDeleteSelected} 
-                                type="default" 
-                                danger
-                                disabled={!selectedRoleId}
-                            >
-                                删除选中角色
-                            </Button>
-                        </Space>
-                    }
-                />
-            }
-            contentStyle={{ padding: 0 }}
-        >
-            <div style={{
-                position: 'relative',
-                inset: 0,
-                flex: 1,
-                border: '1px solid #e0e0e0',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                backgroundColor: '#fff',
-            }}>
+        <>
+            <div style={{ padding: 12 }}>
+                <Space>
+                    <Button onClick={handleAddRole} type="primary">
+                        添加角色卡片
+                    </Button>
+                    <Button onClick={enableArrowTool} type="default">
+                        箭头连接工具
+                    </Button>
+                    <Button
+                        onClick={handleEditeSelected}
+                        type="default"
+                        danger
+                        disabled={!selectedRoleId}
+                    >
+                        编辑选中角色
+                    </Button>
+                    <Button
+                        onClick={handleDeleteSelected}
+                        type="default"
+                        danger
+                        disabled={!selectedRoleId}
+                    >
+                        删除选中角色
+                    </Button>
+                </Space>
+            </div>
+            <div
+                style={{
+                    position: 'relative',
+                    inset: 0,
+                    flex: 1,
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    backgroundColor: '#fff',
+                    margin: '0 12px 12px',
+                    minHeight: 480,
+                }}
+            >
                 <Tldraw
                     shapeUtils={shapeUtils}
                     onMount={handleMount}
@@ -315,8 +310,6 @@ const CharacterCardDemo = ({ projectId }: CharacterCardDemoProps) => {
                     }}
                 />
             </div>
-
-            {/* 角色详情抽屉 */}
             <CharacterDetailDrawer
                 character={selectedRole}
                 characters={roles}
@@ -326,7 +319,7 @@ const CharacterCardDemo = ({ projectId }: CharacterCardDemoProps) => {
                 onClose={() => setDrawerOpen(false)}
                 onSuccess={handleCharacterSuccess}
             />
-        </BaseLayout>
+        </>
     )
 }
 

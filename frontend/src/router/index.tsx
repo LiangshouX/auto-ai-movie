@@ -7,7 +7,8 @@ import Movies from '../pages/movie/Movies.tsx';
 import Search from '../pages/search/Search.tsx';
 import NotFound from '../pages/NotFound.tsx';
 import CharacterManager from "../pages/scripts/component/scripts-character-role/CharacterManager.tsx";
-import CharacterCardDemo from "@/pages/scripts/component/scripts-character-role/canva-demo/CharacterCardDemo.tsx";
+import CharacterCardDemoWithLayout
+  from "@/pages/scripts/component/scripts-character-role/canva-demo/CharacterCardDemoWithLayout.tsx";
 
 const router = createBrowserRouter([
   {
@@ -32,7 +33,7 @@ const router = createBrowserRouter([
   },
   {
     path: 'tlDemo',
-    element: <CharacterCardDemo/>
+    element: <CharacterCardDemoWithLayout/>
   },
   {
     path: '/movies',
