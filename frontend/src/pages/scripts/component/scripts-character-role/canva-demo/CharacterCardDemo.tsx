@@ -28,7 +28,7 @@ const CharacterCardDemo = ({ projectId }: CharacterCardDemoProps) => {
     const shapeUtils = [CharacterCardShapeUtil]
 
     // 计算实际使用的projectId
-    const actualProjectId = projectId || '07ca8285a4bfa47abd869415cf9fe404'
+    const actualProjectId = projectId || '16a794b15ffb94dff29e710c8f773546'
 
     // 加载角色数据
     useEffect(() => {

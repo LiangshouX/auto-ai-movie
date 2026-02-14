@@ -1,31 +1,32 @@
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import './Home.css';
 
 const Home = () => {
     const features = [
-        { to: "/scripts", emoji: "📝", title: "剧本管理", desc: "创建和编辑您的电影剧本" },
-        { to: "/characters", emoji: '👤', title: "角色管理", desc: "创建和编辑您的人物角色" },
-        { to: "/movies", emoji: "🎬", title: "电影制作", desc: "开始制作您的AI电影" },
-        { to: "/search", emoji: "🔍", title: "内容搜索", desc: "搜索相关内容和素材" },
-        { to: "/tlDemo", emoji: '👤', title: "画布Demo", desc: "TLDraw画布Demo" },
+        { to: "/scripts", emoji: "📝", title: "剧本管理", desc: "从灵感到大纲，AI 助力打造引人入胜的故事情节" },
+        { to: "/characters", emoji: "👤", title: "角色管理", desc: "多维塑造人物性格，构建复杂而生动的角色关系网" },
+        { to: "/movies", emoji: "🎬", title: "电影制作", desc: "利用尖端 AI 技术，将文字剧本转化为视觉盛宴" },
+        { to: "/search", emoji: "🔍", title: "内容搜索", desc: "海量素材库一键检索，为您的创作提供源源不断的灵感" },
+        { to: "/tlDemo", emoji: "🎨", title: "画布 Demo", desc: "交互式可视化创作空间，自由探索创意的无限可能" },
     ];
 
     return (
         <div className="home-container">
             <div className="hero-section">
-                <h1>欢迎来到 Auto AI Movie 应用!</h1>
-                <p>这是一个智能化的电影制作平台，帮助您轻松创建AI驱动的电影内容。</p>
+                <h1>Auto AI Movie</h1>
+                <p>下一代智能电影创作平台，让每一位创作者都能轻松驾驭 AI 的力量，开启电影制作的新纪元。</p>
             </div>
             
             <div className="feature-grid">
                 {features.map((feature, index) => (
-                    <Link 
-                        key={`${feature.to}-${index}`} 
-                        to={feature.to} 
+                    <Link
+                        key={`${feature.to}-${index}`}
+                        to={feature.to}
                         className="feature-card"
                         style={{ animationDelay: `${index * 0.1}s` }}
                     >
-                        <h2>{feature.emoji} {feature.title}</h2>
+                        <div className="feature-icon">{feature.emoji}</div>
+                        <h2>{feature.title}</h2>
                         <p>{feature.desc}</p>
                     </Link>
                 ))}
