@@ -32,7 +32,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onTabChange }) => {
       style={{
         backgroundColor: '#fff',
         borderRight: '1px solid #f0f0f0',
-        height: 'calc(100vh - 64px)',
+        height: 'calc(h - 64px)',
         position: 'relative',
         zIndex: 1,
         overflowY: 'auto'

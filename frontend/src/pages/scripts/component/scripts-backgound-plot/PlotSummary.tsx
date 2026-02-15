@@ -155,16 +155,16 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
 
     return (
         <div style={{
-            height: '100%',
             display: 'flex',
             flex: 1,
             flexDirection: 'column',
-            minHeight: 'calc(100vh - 128px)',
-            minWidth: 'max(1200px, calc(100vw - 340px))'
+            minHeight: 0,
+            overflow: 'hidden',
+            width: '100%'
         }}>
-            <Row gutter={[24, 24]} style={{flex: 1, width: '100%'}}>
+            <Row gutter={[24, 24]} style={{flex: 1, width: '100%', minHeight: 0}}>
                 {/* 左侧文本编辑区 */}
-                <Col xs={24} md={12}>
+                <Col xs={24} md={12} style={{minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
                     <TextEditorPanel
                         // title="剧情梗概"
                         // subtitle="请在此处编写剧本的剧情梗概内容"
@@ -177,7 +177,7 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
                 </Col>
 
                 {/* 右侧AI对话区 */}
-                <Col xs={24} md={12} style={{height: '100%'}}>
+                <Col xs={24} md={12} style={{minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
                     <AiChatPanel
                         title="AI剧情顾问"
                         subtitle="与AI助手讨论剧情结构与叙事技巧"

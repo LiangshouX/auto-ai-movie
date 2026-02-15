@@ -156,16 +156,16 @@ const BackgroundSetting: React.FC<BackgroundSettingProps> = ({project, onContent
 
     return (
         <div style={{
-            height: '100%',
             display: 'flex',
             flex: 1,
             flexDirection: 'column',
-            minHeight: 'calc(100vh - 128px)',
-            minWidth: 'max(1200px, calc(100vw - 340px))'
+            minHeight: 0,
+            overflow: 'hidden',
+            width: '100%'
         }}>
-            <Row gutter={[24, 24]} style={{flex: 1, width: '100%'}}>
+            <Row gutter={[24, 24]} style={{flex: 1, width: '100%', minHeight: 0}}>
                 {/* 左侧文本编辑区 */}
-                <Col xs={24} md={12} style={{height: '100%'}}>
+                <Col xs={24} md={12} style={{minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
                     <TextEditorPanel
                         // title="背景设定"
                         // subtitle="请在此处编写剧本的背景设定内容"
@@ -178,7 +178,7 @@ const BackgroundSetting: React.FC<BackgroundSettingProps> = ({project, onContent
                 </Col>
 
                 {/* 右侧AI对话区 */}
-                <Col xs={24} md={12} style={{height: '100%'}}>
+                <Col xs={24} md={12} style={{minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
                     <AiChatPanel
                         title="AI创作助手"
                         subtitle="与AI助手讨论背景设定与创作灵感"
