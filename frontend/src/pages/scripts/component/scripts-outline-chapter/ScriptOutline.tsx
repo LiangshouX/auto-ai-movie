@@ -1,10 +1,9 @@
-import React, {useEffect, useState} from 'react';
-import {Button, Card, Drawer, Flex, message, Modal, Space, Tree, Typography} from 'antd';
+import React, {useCallback, useEffect, useState} from 'react';
+import {Button, Drawer, Flex, message, Modal, Space} from 'antd';
 import {
     DeleteOutlined,
     ExclamationCircleOutlined,
     FundProjectionScreenOutlined,
-    InfoCircleOutlined,
     PlusOutlined,
     ReadOutlined,
     ReloadOutlined,
@@ -16,26 +15,16 @@ import {scriptsOutlineApi} from '@/api/service/scripts-outline';
 import {scriptsEpisodeApi} from '@/api/service/scripts-episode';
 
 import type {OutlineEpisodeDTO, StoryOutlineDTO, StructureType} from '@/api/types/scripts-outline-types';
-import type {CreateScriptEpisodeData, ScriptEpisodeDTO} from '@/api/types/scripts-episode-types';
-import type {DataNode} from 'antd/es/tree';
+import type {ScriptEpisodeDTO} from '@/api/types/scripts-episode-types';
 
 import {createDefaultOutlineStructure, generateOutlineText, recalculateNumbers} from './utils/outline-utils';
 import CreateOutlineModal from './components/CreateOutlineModal';
 import NodeEditorDrawer from './components/NodeEditorDrawer';
-
-const {Paragraph} = Typography;
+import EpisodeEditorDrawer from './components/EpisodeEditorDrawer';
+import ScriptOutlineFlow from './ScriptOutlineFlow';
 
 interface ScriptOutlineProps {
     projectTitle: string;
-}
-
-// 定义树节点的数据类型
-interface TreeNode extends DataNode {
-    title: React.ReactNode;
-    key: string;
-    nodeType: 'project' | 'section' | 'chapter' | 'episode' | 'inline-editor';
-    nodeData?: any;
-    children?: TreeNode[];
 }
 
 const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
@@ -45,7 +34,6 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
     // 状态管理
     const [outline, setOutline] = useState<StoryOutlineDTO | null>(null);
     const [loading, setLoading] = useState(false);
-    const [treeData, setTreeData] = useState<TreeNode[]>([]);
     const [episodeDrawerVisible, setEpisodeDrawerVisible] = useState(false);
     const [readDrawerVisible, setReadDrawerVisible] = useState(false);
     const [createModalVisible, setCreateModalVisible] = useState(false);
@@ -55,17 +43,10 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
     const [editingNodeType, setEditingNodeType] = useState<'section' | 'chapter' | 'episode' | null>(null);
     const [editingNodeData, setEditingNodeData] = useState<any>(null);
     const [editingParentId, setEditingParentId] = useState<string>('');
-    
-    // 内联编辑器状态
-    // const [inlineEditorVisible, setInlineEditorVisible] = useState(false);
-    // const [inlineEditorNodeType, setInlineEditorNodeType] = useState<'section' | 'chapter' | 'episode' | null>(null);
-    // const [inlineEditorParentId, setInlineEditorParentId] = useState<string>('');
-    
-    // 悬浮状态
-    const [hoveredNodeId, setHoveredNodeId] = useState<string>('');
+    const [currentEpisode, setCurrentEpisode] = useState<OutlineEpisodeDTO | null>(null);
 
     // 获取大纲数据
-    const fetchOutline = async () => {
+    const fetchOutline = useCallback(async () => {
         if (!projectId) return;
 
         setLoading(true);
@@ -73,263 +54,37 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             const response = await scriptsOutlineApi.getOutlineByProject({projectId});
             if (response.success && response.data) {
                 setOutline(response.data as StoryOutlineDTO);
-                buildTreeData(response.data as StoryOutlineDTO);
             } else {
                 setOutline(null);
-                setTreeData([]);
             }
         } catch (error) {
             console.error('获取大纲失败:', error);
             message.error('获取大纲数据失败');
             setOutline(null);
-            setTreeData([]);
         } finally {
             setLoading(false);
         }
-    };
-
-    // 构建树形数据
-    const buildTreeData = (outlineData: StoryOutlineDTO) => {
-        const rootNode: TreeNode = {
-            title: (
-                <div style={{padding: '12px 16px', fontWeight: 'bold', fontSize: '16px'}}>
-                    {projectTitle || '剧本大纲'}
-                </div>
-            ),
-            key: `project-${outlineData.projectId}`,
-            nodeType: 'project',
-            nodeData: outlineData,
-            children: outlineData.sections.map(section => {
-                const sectionNode: TreeNode = {
-                    title: (
-                        <div 
-                            style={{
-                                padding: '12px 16px',
-                                border: '1px solid #e8e8e8',
-                                borderRadius: '6px',
-                                backgroundColor: '#fafafa',
-                                marginBottom: '8px',
-                                position: 'relative',
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-                                setHoveredNodeId(`section-${section.sectionId}`);
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.boxShadow = 'none';
-                                if (hoveredNodeId === `section-${section.sectionId}`) {
-                                    setHoveredNodeId('');
-                                }
-                            }}
-                        >
-                            <div style={{fontWeight: 'bold', color: '#1890ff', marginBottom: '4px'}}>
-                                {section.sectionTitle}
-
-                            </div>
-                            <div style={{fontSize: '12px', color: '#666', marginTop: '4px'}}>{section.description}</div>
-                            <div style={{
-                                fontSize: '11px',
-                                color: '#999',
-                                marginTop: '4px'
-                            }}>
-                                章节: {section.chapterCount}
-                                <Button
-                                    type="text"
-                                    icon={<DeleteOutlined />}
-                                    size="small"
-                                    danger
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteSection(section.sectionId);
-                                    }}
-                                    style={{marginLeft: '8px', padding: '0 4px'}}
-                                />
-                            </div>
-                        </div>
-                    ),
-                    key: `section-${section.sectionId}`,
-                    nodeType: 'section',
-                    nodeData: section,
-                    children: [
-                        ...section.chapters.map(chapter => {
-                            const chapterNode: TreeNode = {
-                                title: (
-                                    <div 
-                                        style={{
-                                            padding: '10px 14px',
-                                            border: '1px solid #d9d9d9',
-                                            borderRadius: '4px',
-                                            backgroundColor: '#fff',
-                                            marginBottom: '6px',
-                                            cursor: 'pointer',
-                                            position: 'relative',
-                                            transition: 'all 0.2s'
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-                                            setHoveredNodeId(`chapter-${chapter.chapterId}`);
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.boxShadow = 'none';
-                                            if (hoveredNodeId === `chapter-${chapter.chapterId}`) {
-                                                setHoveredNodeId('');
-                                            }
-                                        }}
-                                    >
-                                        <div style={{fontWeight: '500', marginBottom: '4px'}}>
-                                            {chapter.chapterTitle}
-                                        </div>
-                                        <div style={{
-                                            fontSize: '12px',
-                                            color: '#666',
-                                            marginBottom: '4px'
-                                        }}>{chapter.chapterSummary}</div>
-                                        <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            fontSize: '11px',
-                                            color: '#999'
-                                        }}>
-                                            <span>桥段: {chapter.episodeCount}</span>
-                                            <span>
-                                                字数: {chapter.wordCount}
-                                                <Button
-                                                    type="text"
-                                                    icon={<DeleteOutlined />}
-                                                    size="small"
-                                                    danger
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDeleteChapter(chapter.chapterId);
-                                                    }}
-                                                    style={{marginLeft: '4px', padding: '0 4px'}}
-                                                />
-                                            </span>
-                                        </div>
-                                    </div>
-                                ),
-                                key: `chapter-${chapter.chapterId}`,
-                                nodeType: 'chapter',
-                                nodeData: chapter,
-                                children: [
-                                    ...chapter.episodes.map(episode => ({
-                                        title: (
-                                            <div 
-                                                style={{
-                                                    padding: '8px 12px',
-                                                    border: '1px dashed #d9d9d9',
-                                                    borderRadius: '4px',
-                                                    backgroundColor: '#fff',
-                                                    marginBottom: '4px',
-                                                    cursor: 'pointer',
-                                                    position: 'relative',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.backgroundColor = '#f0f7ff';
-                                                    e.currentTarget.style.borderColor = '#1890ff';
-                                                    setHoveredNodeId(`episode-${episode.episodeId}`);
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.backgroundColor = '#fff';
-                                                    e.currentTarget.style.borderColor = '#d9d9d9';
-                                                    if (hoveredNodeId === `episode-${episode.episodeId}`) {
-                                                        setHoveredNodeId('');
-                                                    }
-                                                }}
-                                            >
-                                                <div style={{fontWeight: 'normal', fontSize: '13px'}}>
-                                                    {episode.episodeTitle}
-                                                    {hoveredNodeId === `episode-${episode.episodeId}` && (
-                                                        <Button
-                                                            type="text"
-                                                            icon={<DeleteOutlined />}
-                                                            size="small"
-                                                            danger
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDeleteEpisode(episode.episodeId);
-                                                            }}
-                                                            style={{marginLeft: '8px', padding: '0 4px'}}
-                                                        />
-                                                    )}
-                                                </div>
-                                                <div style={{
-                                                    fontSize: '11px',
-                                                    color: '#999',
-                                                    marginTop: '2px'
-                                                }}>#{episode.episodeNumber}</div>
-                                            </div>
-                                        ),
-                                        key: `episode-${episode.episodeId}`,
-                                        nodeType: 'episode',
-                                        nodeData: episode
-                                    } as TreeNode))
-                                ]
-                            };
-                            return chapterNode;
-                        })
-                    ]
-                };
-                return sectionNode;
-            })
-        };
-
-        setTreeData([rootNode]);
-    };
+    }, [projectId]);
 
     // 处理节点点击
-    const handleNodeSelect = async (_selectedKeys: React.Key[], info: any) => {
-        const node = info.node as TreeNode;
-
-        // 打开对应的编辑抽屉
-        switch (node.nodeType) {
+    const handleNodeSelect = async (nodeType: 'section' | 'chapter' | 'episode', data: any) => {
+        switch (nodeType) {
             case 'section':
                 setEditingNodeType('section');
-                setEditingNodeData(node.nodeData);
-                setEditingParentId(node.nodeData.sectionId);
+                setEditingNodeData(data);
+                setEditingParentId(data.sectionId);
                 setEditorDrawerVisible(true);
                 break;
             case 'chapter':
                 setEditingNodeType('chapter');
-                setEditingNodeData(node.nodeData);
-                setEditingParentId(node.nodeData.chapterId);
+                setEditingNodeData(data);
+                setEditingParentId(data.chapterId);
                 setEditorDrawerVisible(true);
                 break;
             case 'episode':
-                // 对于episode，先获取最新数据再打开编辑器
-                try {
-                    if (node.nodeData.episodeId) {
-                        const response = await scriptsEpisodeApi.getEpisodeById({
-                            id: node.nodeData.episodeId
-                        });
-                        if (response.success && response.data) {
-                            const episodeData = response.data as ScriptEpisodeDTO;
-                            setEditingNodeType('episode');
-                            setEditingNodeData({
-                                ...node.nodeData,
-                                episodeContent: episodeData.episodeContent,
-                                wordCount: episodeData.wordCount
-                            });
-                        } else {
-                            setEditingNodeType('episode');
-                            setEditingNodeData(node.nodeData);
-                        }
-                    } else {
-                        setEditingNodeType('episode');
-                        setEditingNodeData(node.nodeData);
-                    }
-                    setEditingParentId(node.nodeData.chapterId);
-                    setEditorDrawerVisible(true);
-                } catch (error) {
-                    console.error('获取桥段详情失败:', error);
-                    // 即使获取失败也打开编辑器
-                    setEditingNodeType('episode');
-                    setEditingNodeData(node.nodeData);
-                    setEditingParentId(node.nodeData.chapterId);
-                    setEditorDrawerVisible(true);
-                }
+                setCurrentEpisode(data as OutlineEpisodeDTO);
+                setEditingParentId(data.chapterId);
+                setEpisodeDrawerVisible(true);
                 break;
         }
     };
@@ -356,7 +111,6 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             if (response.success && response.data) {
                 message.success('大纲创建成功');
                 setOutline(response.data as StoryOutlineDTO);
-                buildTreeData(response.data as StoryOutlineDTO);
                 setCreateModalVisible(false);
             }
         } catch (error) {
@@ -367,7 +121,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
         }
     };
 
-    // 保存节点编辑
+    // 保存节点编辑 (Section/Chapter)
     const handleNodeSave = async (updatedData: any) => {
         if (!outline) return;
 
@@ -412,49 +166,6 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                             return section;
                         });
                         break;
-                    case 'episode':
-                        // 新建桥段 - 使用专门的episode API
-                        const episodeData: CreateScriptEpisodeData = {
-                            projectId: outline.projectId,
-                            chapterId: editingParentId,
-                            episodeNumber: updatedData.episodeNumber || 1,
-                            episodeTitle: updatedData.episodeTitle,
-                            episodeContent: '',
-                            wordCount: 0
-                        };
-
-                        const episodeResponse = await scriptsEpisodeApi.createEpisode(episodeData);
-                        if (episodeResponse.success && episodeResponse.data) {
-                            // 将返回的完整episode数据添加到outline中
-                            const newEpisode = episodeResponse.data as ScriptEpisodeDTO;
-                            const outlineEpisode: OutlineEpisodeDTO = {
-                                episodeId: newEpisode.id || '',
-                                projectId: newEpisode.projectId || '',
-                                chapterId: newEpisode.chapterId || '',
-                                episodeTitle: newEpisode.episodeTitle || '',
-                                episodeNumber: newEpisode.episodeNumber || 1,
-                                createdAt: newEpisode.createdAt || new Date().toISOString(),
-                                updatedAt: newEpisode.updatedAt || new Date().toISOString()
-                            };
-
-                            updatedOutline.sections = updatedOutline.sections.map(section => ({
-                                ...section,
-                                chapters: section.chapters.map(chapter => {
-                                    if (chapter.chapterId === editingParentId) {
-                                        return {
-                                            ...chapter,
-                                            episodes: [
-                                                ...chapter.episodes,
-                                                outlineEpisode
-                                            ],
-                                            episodeCount: chapter.episodes.length + 1
-                                        };
-                                    }
-                                    return chapter;
-                                })
-                            }));
-                        }
-                        break;
                 }
             } else {
                 // 编辑现有节点
@@ -474,51 +185,90 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                             )
                         }));
                         break;
-                    case 'episode':
-                        // 更新桥段 - 使用专门的episode API
-                        const updateEpisodeData = {
-                            id: updatedData.episodeId,
-                            episodeTitle: updatedData.episodeTitle
-                        };
-
-                        await scriptsEpisodeApi.updateEpisode(updateEpisodeData);
-
-                        // 同时更新outline中的episode数据
-                        updatedOutline.sections = updatedOutline.sections.map(section => ({
-                            ...section,
-                            chapters: section.chapters.map(chapter => ({
-                                ...chapter,
-                                episodes: chapter.episodes.map(episode =>
-                                    episode.episodeId === updatedData.episodeId ? updatedData : episode
-                                )
-                            }))
-                        }));
-                        break;
                 }
             }
 
             // 重新计算编号
             updatedOutline = recalculateNumbers(updatedOutline);
 
-            // 更新到后端（除了episode，因为episode已经单独更新了）
-            if (editingNodeType !== 'episode') {
-                const response = await scriptsOutlineApi.updateSections({
-                    projectId: outline.projectId,
-                    sections: updatedOutline.sections
-                });
+            // 更新到后端
+            const response = await scriptsOutlineApi.updateSections({
+                projectId: outline.projectId,
+                sections: updatedOutline.sections
+            });
 
-                if (!response.success) {
-                    throw new Error('更新大纲失败');
-                }
+            if (!response.success) {
+                throw new Error('更新大纲失败');
             }
 
             setOutline(updatedOutline);
-            buildTreeData(updatedOutline);
             message.success('保存成功');
         } catch (error) {
             console.error('保存节点失败:', error);
             message.error('保存节点失败');
         }
+    };
+
+    // 处理桥段保存
+    const handleEpisodeSave = async (updatedEpisode: ScriptEpisodeDTO) => {
+        if (!outline) return;
+        
+        // 更新本地 outline 状态以反映最新的标题和字数
+        const updatedOutline = {...outline};
+        
+        updatedOutline.sections = updatedOutline.sections.map(section => ({
+            ...section,
+            chapters: section.chapters.map(chapter => {
+                if (chapter.chapterId === updatedEpisode.chapterId) {
+                    return {
+                        ...chapter,
+                        episodes: chapter.episodes.map(ep => {
+                            if (ep.episodeId === updatedEpisode.id) {
+                                return {
+                                    ...ep,
+                                    episodeTitle: updatedEpisode.episodeTitle,
+                                    // episodeNumber: updatedEpisode.episodeNumber, // Assuming number doesn't change here
+                                    updatedAt: new Date().toISOString()
+                                };
+                            }
+                            return ep;
+                        })
+                    };
+                }
+                return chapter;
+            })
+        }));
+        
+        setOutline(updatedOutline);
+    };
+
+    // 处理添加同级节点
+    const handleAddSibling = (id: string, nodeType: 'section' | 'chapter' | 'episode') => {
+        if (!outline) return;
+
+        if (nodeType === 'section') {
+             handleAddSection(); 
+        } else if (nodeType === 'chapter') {
+             // Find parent section
+             const section = outline.sections.find(s => s.chapters.some(c => c.chapterId === id));
+             if (section) {
+                 handleFlowAddChild(section.sectionId, 'chapter'); 
+             }
+        } else if (nodeType === 'episode') {
+             // Find parent chapter
+             for (const section of outline.sections) {
+                 const chapter = section.chapters.find(c => c.episodes.some(e => e.episodeId === id));
+                 if (chapter) {
+                     handleFlowAddChild(chapter.chapterId, 'episode');
+                     break;
+                 }
+             }
+        }
+    };
+
+    // 处理复制节点
+    const handleCopyNode = (_id: string, _nodeType: 'section' | 'chapter' | 'episode') => {
+        message.info('复制功能暂未实现');
     };
 
     // 创建子节点
@@ -550,7 +300,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                     return section;
                 });
             } else if (editingNodeType === 'chapter') {
-                // 在章节下创建新桥段
+                 // 在章节下创建新桥段
                 // 使用专门的episode API创建桥段
                 const episodeData = {
                     projectId: outline.projectId,
@@ -607,13 +357,36 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             }
 
             setOutline(updatedOutline);
-            buildTreeData(updatedOutline);
             message.success('子节点创建成功');
         } catch (error) {
             console.error('创建子节点失败:', error);
             message.error('创建子节点失败');
         }
     };
+
+    // 处理 Flow 中直接添加子节点
+    const handleFlowAddChild = (parentId: string, nodeType: 'section' | 'chapter' | 'episode') => {
+        setEditingParentId(parentId);
+        
+        if (nodeType === 'episode') {
+             setEditingNodeType('episode');
+             setCurrentEpisode(null); // New episode
+             setEpisodeDrawerVisible(true);
+        } else {
+             setEditingNodeType(nodeType as 'section' | 'chapter');
+             setEditingNodeData(null); // New Section/Chapter
+             setEditorDrawerVisible(true);
+        }
+    };
+
+    // 处理 Flow 中添加 Section
+    const handleAddSection = () => {
+         setEditingNodeType('section');
+         setEditingNodeData(null); // New Section
+         setEditingParentId(''); // No parent for section
+         setEditorDrawerVisible(true);
+    };
+
 
     // 删除大纲
     const handleDeleteOutline = () => {
@@ -632,7 +405,6 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                     if (response.success) {
                         message.success('大纲删除成功');
                         setOutline(null);
-                        setTreeData([]);
                     }
                 } catch (error) {
                     console.error('删除大纲失败:', error);
@@ -642,95 +414,14 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
         });
     };
 
-    // 显示内联编辑器
-    // const showInlineEditor = (nodeType: 'section' |'chapter' | 'episode', parentId: string) => {
-    //     setInlineEditorVisible(true);
-    //     setInlineEditorNodeType(nodeType);
-    //     setInlineEditorParentId(parentId);
-    //     console.log(`点击内联编辑按钮，nodeType: ${nodeType} parentId: ${parentId} inlineEditorVisible:${inlineEditorVisible}`)
-    //     setHoveredNodeId(''); // 清除悬浮状态
-    // };
-
-    // 处理内联保存
-    /*@ts-ignore*/
-    const handleInlineSave = async (nodeType: 'chapter' | 'episode', parentId: string, data: any) => {
-        if (!outline) return;
-
-        try {
-            let updatedOutline = {...outline};
-
-            if (nodeType === 'chapter') {
-                // 在章节下创建新章节
-                updatedOutline.sections = updatedOutline.sections.map(section => {
-                    if (section.sectionId === parentId) {
-                        const newChapter = {
-                            ...data,
-                            chapterId: `chapter_${Date.now()}`,
-                            projectId: outline.projectId,
-                            sectionId: parentId,
-                            createdAt: new Date().toISOString(),
-                            updatedAt: new Date().toISOString()
-                        };
-                        const newChapters = [...section.chapters, newChapter];
-                        return {
-                            ...section,
-                            chapters: newChapters,
-                            chapterCount: newChapters.length
-                        };
-                    }
-                    return section;
-                });
-            } else if (nodeType === 'episode') {
-                // episode已经在InlineEditor中创建了，这里只需要更新outline结构
-                updatedOutline.sections = updatedOutline.sections.map(section => ({
-                    ...section,
-                    chapters: section.chapters.map(chapter => {
-                        if (chapter.chapterId === parentId) {
-                            // 由于episode已经在API中创建，我们需要从API获取最新的数据
-                            // 这里暂时使用传入的数据，实际应用中应该重新获取
-                            const outlineEpisode = {
-                                episodeId: data.episodeId,
-                                projectId: data.projectId,
-                                chapterId: data.chapterId,
-                                episodeTitle: data.episodeTitle,
-                                episodeNumber: data.episodeNumber,
-                                createdAt: new Date().toISOString(),
-                                updatedAt: new Date().toISOString()
-                            };
-                            const newEpisodes = [...chapter.episodes, outlineEpisode];
-                            return {
-                                ...chapter,
-                                episodes: newEpisodes,
-                                episodeCount: newEpisodes.length
-                            };
-                        }
-                        return chapter;
-                    })
-                }));
-            }
-
-            // 重新计算编号
-            updatedOutline = recalculateNumbers(updatedOutline);
-
-            // 更新到后端
-            const response = await scriptsOutlineApi.updateSections({
-                projectId: outline.projectId,
-                sections: updatedOutline.sections
-            });
-
-            if (response.success) {
-                setOutline(updatedOutline);
-                buildTreeData(updatedOutline);
-            } else {
-                console.error('更新大纲失败');
-            }
-        } catch (error) {
-            console.error('内联保存失败:', error);
-            message.error('保存失败');
-        }
+    // 删除节点
+    const handleDeleteNode = (id: string, nodeType: 'section' | 'chapter' | 'episode') => {
+        if (nodeType === 'section') handleDeleteSection(id);
+        if (nodeType === 'chapter') handleDeleteChapter(id);
+        if (nodeType === 'episode') handleDeleteEpisode(id);
     };
 
-    // 删除章节
+    // 删除章节 (Section)
     const handleDeleteSection = (sectionId: string) => {
         if (!outline) return;
 
@@ -769,7 +460,6 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
 
                     if (response.success) {
                         setOutline(updatedOutline);
-                        buildTreeData(updatedOutline);
                         message.success('章节删除成功');
                     }
                 } catch (error) {
@@ -780,7 +470,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
         });
     };
 
-    // 删除章节
+    // 删除章节 (Chapter)
     const handleDeleteChapter = (chapterId: string) => {
         if (!outline) return;
 
@@ -838,7 +528,6 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
 
                     if (response.success) {
                         setOutline(updatedOutline);
-                        buildTreeData(updatedOutline);
                         message.success('章节删除成功');
                     }
                 } catch (error) {
@@ -910,7 +599,6 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
 
                     if (response.success) {
                         setOutline(updatedOutline);
-                        buildTreeData(updatedOutline);
                         message.success('桥段删除成功');
                     }
                 } catch (error) {
@@ -938,17 +626,13 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
     // 初始化加载
     useEffect(() => {
         fetchOutline();
-    }, [projectId]);
+    }, [fetchOutline]);
 
     return (
         <Flex vertical style={{
             height: '100%',
-            display: 'flex',
-            flex: 1,
-            flexDirection: 'column',
-            minHeight: 'calc(100vh - 115px)',
-            maxHeight: 'calc(100vh - 115px)',
-            minWidth: 'max(1200px, calc(100vw - 340px))'
+            width: '100%',
+            overflow: 'hidden'
         }}>
             {/* 工具栏 */}
             <Flex justify="space-between" align="center" style={{
@@ -1010,76 +694,26 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                 </Space>
             </Flex>
 
-            {/* 主内容区域 */}
-            <Card style={{flex: 1, margin: '16px', overflow: 'scroll'}}>
-                <Flex style={{gap: '24px', height: '100%', overflow: 'scroll'}}>
-                    {/* 大纲树形结构 */}
-                    <Flex flex={3} vertical style={{overflow: 'hidden'}}>
-                        {outline ? (
-                            <Tree
-                                defaultExpandAll
-                                showLine={{showLeafIcon: false}}
-                                treeData={treeData}
-                                onSelect={handleNodeSelect}
-                                draggable
-                                onDrop={(info) => {
-                                    console.log('拖拽信息:', info);
-                                    // TODO: 实现拖拽逻辑
-                                }}
-                            />
-                        ) : (
-                            <Flex vertical align="center" justify="center" style={{height: '100%', color: '#999'}}>
-                                <FundProjectionScreenOutlined style={{fontSize: '48px', marginBottom: '16px'}}/>
-                                <div>暂无剧本大纲</div>
-                                <div style={{marginTop: '8px', fontSize: '12px'}}>点击"新建剧本"开始创作</div>
-                            </Flex>
-                        )}
+            {/* 主内容区域 - React Flow */}
+            <div style={{flex: 1, margin: '16px', border: '1px solid #e8e8e8', borderRadius: 8, background: '#fff', overflow: 'hidden'}}>
+                {outline ? (
+                    <ScriptOutlineFlow 
+                        outline={outline}
+                        onNodeClick={handleNodeSelect}
+                        onAddChild={handleFlowAddChild}
+                        onDeleteNode={handleDeleteNode}
+                        onAddSection={handleAddSection}
+                        onAddSibling={handleAddSibling}
+                        onCopyNode={handleCopyNode}
+                    />
+                ) : (
+                    <Flex vertical align="center" justify="center" style={{height: '100%', color: '#999'}}>
+                        <FundProjectionScreenOutlined style={{fontSize: '48px', marginBottom: '16px'}}/>
+                        <div>暂无剧本大纲</div>
+                        <div style={{marginTop: '8px', fontSize: '12px'}}>点击&quot;新建剧本&quot;开始创作</div>
                     </Flex>
-
-                    {/* 说明面板 */}
-                    <Flex flex={1} vertical>
-                        <Card
-                            title={
-                                <Space>
-                                    <InfoCircleOutlined/>
-                                    <span>使用说明</span>
-                                </Space>
-                            }
-                            size="small"
-                            style={{height: 'fit-content'}}
-                        >
-                            <Paragraph>
-                                <ul style={{paddingLeft: '16px'}}>
-                                    <li>左侧展示剧本大纲的层级结构</li>
-                                    <li>支持拖拽调整节点顺序</li>
-                                    <li>点击桥段卡片可在右侧编辑</li>
-                                    <li>通过工具栏管理大纲生命周期</li>
-                                    <li>支持两种经典剧本结构模板</li>
-                                </ul>
-                            </Paragraph>
-                        </Card>
-
-                        {outline && (
-                            <Card
-                                title="当前项目信息"
-                                size="small"
-                                style={{marginTop: '16px', height: 'fit-content'}}
-                            >
-                                <div style={{fontSize: '12px', lineHeight: '1.8'}}>
-                                    <div><strong>项目ID:</strong> {outline.projectId}</div>
-                                    <div>
-                                        <strong>结构类型:</strong> {outline.structureType === 'BEGINNING_RISING_ACTION_CLIMAX_END' ? '起承转合' : '引起承转合'}
-                                    </div>
-                                    <div>
-                                        <strong>章节总数:</strong> {outline.sections.reduce((sum, section) => sum + section.chapterCount, 0)}
-                                    </div>
-                                    <div><strong>最后更新:</strong> {new Date(outline.updatedAt).toLocaleString()}</div>
-                                </div>
-                            </Card>
-                        )}
-                    </Flex>
-                </Flex>
-            </Card>
+                )}
+            </div>
 
             {/* 新建大纲模态框 */}
             <CreateOutlineModal
@@ -1089,7 +723,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                 loading={creating}
             />
 
-            {/* 节点编辑抽屉 */}
+            {/* 节点编辑抽屉 (Section/Chapter) */}
             <NodeEditorDrawer
                 open={editorDrawerVisible}
                 onClose={() => {
@@ -1118,16 +752,18 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                 }}
             />
 
-            {/* 桥段编辑抽屉 - 待实现 */}
-            <Drawer
-                title="桥段编辑"
-                placement="right"
-                size={600}
+            {/* 桥段编辑抽屉 */}
+            <EpisodeEditorDrawer
                 open={episodeDrawerVisible}
-                onClose={() => setEpisodeDrawerVisible(false)}
-            >
-                <div>桥段编辑功能待实现</div>
-            </Drawer>
+                onClose={() => {
+                    setEpisodeDrawerVisible(false);
+                    setCurrentEpisode(null);
+                }}
+                episode={currentEpisode}
+                projectId={outline?.projectId || ''}
+                chapterId={editingParentId}
+                onSave={handleEpisodeSave}
+            />
 
             {/* 剧本阅读抽屉 */}
             <Drawer
@@ -1140,7 +776,6 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                     <Button
                         type="primary"
                         onClick={() => {
-                            // TODO: 实现导出功能
                             const blob = new Blob([outlineText], {type: 'text/plain;charset=utf-8'});
                             const url = URL.createObjectURL(blob);
                             const a = document.createElement('a');

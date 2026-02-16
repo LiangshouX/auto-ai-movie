@@ -120,6 +120,7 @@ const CharacterRelationshipEditor: React.FC<CharacterRelationshipEditorProps> = 
                             style={{marginBottom: 12}}
                             actions={editingRelationshipIndex === index ? [
                                 <Button
+                                    key="cancel"
                                     size="small"
                                     onClick={() => handleCancelEditRelationship(index)}
                                 >
@@ -127,6 +128,7 @@ const CharacterRelationshipEditor: React.FC<CharacterRelationshipEditorProps> = 
                                 </Button>
                             ] : [
                                 <Button
+                                    key="edit"
                                     type="link"
                                     size="small"
                                     onClick={() => setEditingRelationshipIndex(index)}
@@ -134,6 +136,7 @@ const CharacterRelationshipEditor: React.FC<CharacterRelationshipEditorProps> = 
                                     编辑
                                 </Button>,
                                 <Popconfirm
+                                    key="delete"
                                     title="确定要删除这个关系吗？"
                                     onConfirm={() => handleRemoveRelationship(index)}
                                     okText="确定"

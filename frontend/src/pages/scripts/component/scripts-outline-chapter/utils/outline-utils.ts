@@ -6,6 +6,7 @@ import type {
   CreateStoryOutlineData,
   StructureType, OutlineChapterDTO, OutlineEpisodeDTO
 } from '@/api/types/scripts-outline-types';
+import { Node, Edge } from '@xyflow/react';
 
 // 结构类型模板定义
 export const STRUCTURE_TEMPLATES = {
@@ -398,4 +399,63 @@ export const generateOutlineText = (outline: StoryOutlineDTO): string => {
   });
   
   return content;
+};
+
+// 转换大纲数据为 React Flow 数据
+export const convertOutlineToFlowData = (outline: StoryOutlineDTO) => {
+  const nodes: Node[] = [];
+  const edges: Edge[] = [];
+
+  outline.sections.forEach((section) => {
+    // Create Section Node
+    const sectionNode: Node = {
+      id: section.sectionId,
+      type: 'section',
+      data: { ...section, label: section.sectionTitle },
+      position: { x: 0, y: 0 }
+    };
+    nodes.push(sectionNode);
+
+    section.chapters.forEach((chapter) => {
+      // Create Chapter Node
+      const chapterNode: Node = {
+        id: chapter.chapterId,
+        type: 'chapter',
+        data: { ...chapter, label: chapter.chapterTitle },
+        position: { x: 0, y: 0 }
+      };
+      nodes.push(chapterNode);
+
+      // Edge Section -> Chapter
+      edges.push({
+        id: `e-${section.sectionId}-${chapter.chapterId}`,
+        source: section.sectionId,
+        target: chapter.chapterId,
+        type: 'smoothstep',
+        animated: true,
+      });
+
+      chapter.episodes.forEach((episode) => {
+        // Create Episode Node
+        const episodeNode: Node = {
+          id: episode.episodeId,
+          type: 'episode',
+          data: { ...episode, label: episode.episodeTitle },
+          position: { x: 0, y: 0 }
+        };
+        nodes.push(episodeNode);
+
+        // Edge Chapter -> Episode
+        edges.push({
+          id: `e-${chapter.chapterId}-${episode.episodeId}`,
+          source: chapter.chapterId,
+          target: episode.episodeId,
+          type: 'smoothstep',
+          animated: false,
+        });
+      });
+    });
+  });
+
+  return { nodes, edges };
 };

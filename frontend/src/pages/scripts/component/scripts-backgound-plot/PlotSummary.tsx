@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Col, message, Row} from 'antd';
 import {ScriptProject} from '@/api/types/project-types.ts';
-import {projectApi} from '@/api/service/scripts-project.ts';
 import {AiChatPanel} from './AiChatPanel.tsx';
 import {TextEditorPanel} from './TextEditorPanel.tsx';
 import {AiMessage, AiThought, AiThoughtChain, ConversationSession, createDefaultMessage, createDefaultConversation} from '@/api/types/ai-chat-types.ts';
@@ -20,7 +19,7 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
     const [conversations, setConversations] = useState<ConversationSession[]>([]);
     const [inputMessage, setInputMessage] = useState<string>('');
     const [isStreaming, setIsStreaming] = useState<boolean>(false);
-    const [, setSaving] = useState<boolean>(false);
+    // const [, setSaving] = useState<boolean>(false);
 
     // 初始化session_id和对话历史
     useEffect(() => {
@@ -37,24 +36,24 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
     // 当左侧内容变化时，通知父组件
     useEffect(() => {
         onContentChange(leftContent);
-    }, [leftContent]);
+    }, [leftContent, onContentChange]);
 
     /*@ts-ignore*/
-    const handleSave = async () => {
-        if (!project?.id) return;
-
-        try {
-            setSaving(true);
-            // 更新项目摘要字段
-            await projectApi.updateProjectSummary(project.id, leftContent);
-            message.success('剧情梗概保存成功！');
-        } catch (error) {
-            console.error('保存剧情梗概失败:', error);
-            message.error('保存失败，请重试');
-        } finally {
-            setSaving(false);
-        }
-    };
+    // const handleSave = async () => {
+    //     if (!project?.id) return;
+    //
+    //     try {
+    //         setSaving(true);
+    //         // 更新项目摘要字段
+    //         await projectApi.updateProjectSummary(project.id, leftContent);
+    //         message.success('剧情梗概保存成功！');
+    //     } catch (error) {
+    //         console.error('保存剧情梗概失败:', error);
+    //         message.error('保存失败，请重试');
+    //     } finally {
+    //         setSaving(false);
+    //     }
+    // };
 
     const handleSendToAI = () => {
         if (!inputMessage.trim()) return;

@@ -26,7 +26,7 @@ const BaseLayout: React.FC<BaseLayoutProps> = ({
   return (
     <Layout style={{ height: '100vh', ...layoutStyle }} className={className}>
       {header}
-      <Layout style={{ marginTop: header ? 64 : 0, height: header ? 'calc(100vh - 64px)' : '100vh' }}>
+      <Layout hasSider style={{ marginTop: header ? 64 : 0, height: header ? 'calc(100vh - 64px)' : '100vh' }}>
         {sidebar}
         <Content
           style={{

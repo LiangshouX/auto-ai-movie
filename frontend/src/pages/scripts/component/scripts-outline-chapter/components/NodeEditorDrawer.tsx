@@ -393,6 +393,7 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
                     <List.Item
                         actions={onDeleteChild ? [
                             <Popconfirm
+                                key="delete"
                                 title="确认删除"
                                 description={`确定要删除"${getChildTitle(child)}"吗？`}
                                 onConfirm={() => onDeleteChild(child.chapterId || child.episodeId)}

@@ -14,12 +14,14 @@ interface ProjectCardProps {
     onDelete: (id: string, projectName: string) => void;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({
-                                                     project,
-                                                     operationLoading,
-                                                     onClick,
-                                                     onDelete
-                                                 }) => {
+const ProjectCard: React.FC<ProjectCardProps> = (
+    {
+        project,
+        operationLoading,
+        onClick,
+        onDelete
+    }
+) => {
     const navigate = useNavigate();
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [form] = Form.useForm();
@@ -233,16 +235,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                         </Form.Item>
 
                         <Form.Item name="status" label="状态" rules={[{required: true, message: '请选择状态'}]}>
-                            <Select 
+                            <Select
                                 placeholder="请选择项目状态"
                                 options={[
-                                    { value: ProjectStatus.CREATED, label: '已创建' },
-                                    { value: ProjectStatus.DRAFT, label: '草稿' },
-                                    { value: ProjectStatus.IN_PROGRESS, label: '进行中' },
-                                    { value: ProjectStatus.REVIEW, label: '审核中' },
-                                    { value: ProjectStatus.COMPLETED, label: '已完成' },
-                                    { value: ProjectStatus.ARCHIVED, label: '已归档' },
-                                    { value: ProjectStatus.DELETED, label: '已删除' },
+                                    {value: ProjectStatus.CREATED, label: '已创建'},
+                                    {value: ProjectStatus.DRAFT, label: '草稿'},
+                                    {value: ProjectStatus.IN_PROGRESS, label: '进行中'},
+                                    {value: ProjectStatus.REVIEW, label: '审核中'},
+                                    {value: ProjectStatus.COMPLETED, label: '已完成'},
+                                    {value: ProjectStatus.ARCHIVED, label: '已归档'},
+                                    {value: ProjectStatus.DELETED, label: '已删除'},
                                 ]}
                             />
                         </Form.Item>

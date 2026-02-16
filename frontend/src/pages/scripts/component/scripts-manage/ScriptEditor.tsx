@@ -118,7 +118,7 @@ const ScriptEditor = () => {
     if (!project || !hasUnsavedChanges) return;
 
     try {
-      let updateData: Partial<ScriptProject> = {};
+      const updateData: Partial<ScriptProject> = {};
       
       switch (activeTab) {
         case 'background':

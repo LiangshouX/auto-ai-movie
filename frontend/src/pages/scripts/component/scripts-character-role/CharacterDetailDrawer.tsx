@@ -259,12 +259,6 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
             throw new Error('项目ID不能为空');
         }
 
-        // 使用状态中的标签数据
-        /*@ts-ignore*/
-        const personalityTagsArray = parseTagsInput(personalityTags);
-        /*@ts-ignore*/
-        const skillsArray = parseTagsInput(skills);
-
         // 年龄验证和转换
         let age: number | undefined = undefined;
         if (values.age !== undefined && values.age !== null && values.age !== '') {

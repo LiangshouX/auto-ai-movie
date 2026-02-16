@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Drawer, Form, Input, Button, Space, message, Spin } from 'antd';
-import { SaveOutlined, CloseOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Drawer, Form, Input, Button, Space, message, Spin, Typography } from 'antd';
+import { SaveOutlined, CloseOutlined, CheckCircleOutlined, LoadingOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { scriptsEpisodeApi } from '@/api/service/scripts-episode';
 import type { OutlineEpisodeDTO } from '@/api/types/scripts-outline-types';
 import type { ScriptEpisodeDTO } from '@/api/types/scripts-episode-types';
+import { TextEditorPanel } from '../../scripts-backgound-plot/TextEditorPanel';
+
+const { Text } = Typography;
 
 interface EpisodeEditorDrawerProps {
   open: boolean;
@@ -26,20 +29,28 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
   const [loading, setLoading] = useState(false);
   const [episodeContent, setEpisodeContent] = useState<ScriptEpisodeDTO | null>(null);
   const [contentLoading, setContentLoading] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error' | 'unsaved'>('saved');
+  const lastSavedContent = useRef<string>('');
+  const lastSavedTitle = useRef<string>('');
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const titleSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 获取桥段详细内容
-  const fetchEpisodeContent = async () => {
+  const fetchEpisodeContent = useCallback(async () => {
     if (!episode?.episodeId) return;
     
     setContentLoading(true);
     try {
       const response = await scriptsEpisodeApi.getEpisodeById({ id: episode.episodeId });
       if (response.success && response.data) {
-        setEpisodeContent(response.data as ScriptEpisodeDTO);
+        const data = response.data as ScriptEpisodeDTO;
+        setEpisodeContent(data);
         form.setFieldsValue({
-          episodeTitle: (response.data as ScriptEpisodeDTO).episodeTitle,
-          episodeContent: (response.data as ScriptEpisodeDTO).episodeContent
+          episodeTitle: data.episodeTitle,
+          episodeContent: data.episodeContent
         });
+        lastSavedContent.current = data.episodeContent || '';
+        lastSavedTitle.current = data.episodeTitle || '';
       } else {
         // 如果桥段内容不存在，创建默认内容
         const defaultContent: ScriptEpisodeDTO = {
@@ -58,30 +69,31 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
           episodeTitle: episode.episodeTitle,
           episodeContent: ''
         });
+        lastSavedContent.current = '';
+        lastSavedTitle.current = episode.episodeTitle;
       }
+      setSaveStatus('saved');
     } catch (error) {
       console.error('获取桥段内容失败:', error);
       message.error('获取桥段内容失败');
     } finally {
       setContentLoading(false);
     }
-  };
+  }, [episode, form, projectId, chapterId]);
 
   // 保存桥段内容
-  const handleSave = async () => {
+  const performSave = async (values: any) => {
     if (!episodeContent) return;
     
+    setSaveStatus('saving');
+    
     try {
-      const values = await form.validateFields();
-      
-      setLoading(true);
-      
       // 准备更新数据
       const updateData = {
         id: episodeContent.id,
         episodeTitle: values.episodeTitle,
         episodeContent: values.episodeContent,
-        wordCount: values.episodeContent.length
+        wordCount: calculateWordCount(values.episodeContent)
       };
       
       let response;
@@ -97,22 +109,70 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
           episodeNumber: episode?.episodeNumber || 1,
           episodeTitle: values.episodeTitle,
           episodeContent: values.episodeContent,
-          wordCount: values.episodeContent.length
+          wordCount: calculateWordCount(values.episodeContent)
         };
         response = await scriptsEpisodeApi.createEpisode(createData);
       }
       
       if (response.success && response.data) {
-        message.success('保存成功');
         setEpisodeContent(response.data as ScriptEpisodeDTO);
+        lastSavedContent.current = values.episodeContent;
+        lastSavedTitle.current = values.episodeTitle;
+        setSaveStatus('saved');
         onSave?.(response.data as ScriptEpisodeDTO);
+      } else {
+          setSaveStatus('error');
       }
     } catch (error) {
       console.error('保存桥段失败:', error);
-      message.error('保存桥段失败');
+      setSaveStatus('error');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleManualSave = async () => {
+      setLoading(true);
+      const values = await form.validateFields();
+      await performSave(values);
+      message.success('保存成功');
+  };
+
+  const calculateWordCount = (content: string) => {
+      // Remove HTML tags for word count
+      const text = content.replace(/<[^>]*>/g, '');
+      return text.length;
+  };
+
+  // Auto-save logic for Content (2 seconds debounce)
+  const handleContentChange = (content: string) => {
+    form.setFieldValue('episodeContent', content);
+    
+    if (content !== lastSavedContent.current) {
+        setSaveStatus('unsaved');
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+        saveTimeoutRef.current = setTimeout(() => {
+            const values = form.getFieldsValue();
+            performSave(values);
+        }, 2000);
+    }
+  };
+
+  // Auto-save logic for Title (300ms debounce)
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const title = e.target.value;
+      if (title !== lastSavedTitle.current) {
+          setSaveStatus('unsaved');
+          if (titleSaveTimeoutRef.current) {
+              clearTimeout(titleSaveTimeoutRef.current);
+          }
+          titleSaveTimeoutRef.current = setTimeout(() => {
+              const values = form.getFieldsValue();
+              performSave(values);
+          }, 300);
+      }
   };
 
   // 监听桥段变化
@@ -122,36 +182,63 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
     } else {
       form.resetFields();
       setEpisodeContent(null);
+      setSaveStatus('saved');
     }
-  }, [open, episode]);
+    return () => {
+        if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+        if (titleSaveTimeoutRef.current) clearTimeout(titleSaveTimeoutRef.current);
+    };
+  }, [open, episode, fetchEpisodeContent, form]);
 
   const handleClose = () => {
+    // If unsaved changes, maybe prompt? For now just close.
     form.resetFields();
     setEpisodeContent(null);
     onClose();
   };
 
+  const renderSaveStatus = () => {
+      switch (saveStatus) {
+          case 'saved':
+              return <Space><CheckCircleOutlined style={{ color: '#52c41a' }} /><Text type="secondary" style={{ fontSize: 12 }}>已保存</Text></Space>;
+          case 'saving':
+              return <Space><LoadingOutlined style={{ color: '#1890ff' }} /><Text type="secondary" style={{ fontSize: 12 }}>保存中...</Text></Space>;
+          case 'error':
+              return <Space><ExclamationCircleOutlined style={{ color: '#ff4d4f' }} /><Text type="danger" style={{ fontSize: 12 }}>保存失败</Text></Space>;
+          case 'unsaved':
+              return <Text type="warning" style={{ fontSize: 12 }}>未保存</Text>;
+          default:
+              return null;
+      }
+  };
+
   return (
     <Drawer
-      title={`编辑桥段 #${episode?.episodeNumber || ''}`}
+      title={
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <span>编辑桥段 #{episode?.episodeNumber || ''}</span>
+              <div style={{ marginRight: 24 }}>{renderSaveStatus()}</div>
+          </div>
+      }
       placement="right"
-      width={700}
+      width={800}
       open={open}
       onClose={handleClose}
       destroyOnClose
+      maskClosable={false} // Prevent accidental close
       extra={
         <Space>
           <Button 
             icon={<CloseOutlined />} 
             onClick={handleClose}
           >
-            取消
+            关闭
           </Button>
           <Button 
             type="primary" 
             icon={<SaveOutlined />} 
-            onClick={handleSave}
-            loading={loading}
+            onClick={handleManualSave}
+            loading={loading || saveStatus === 'saving'}
             disabled={contentLoading}
           >
             保存
@@ -163,7 +250,6 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
         <Form
           form={form}
           layout="vertical"
-          onFinish={handleSave}
         >
           <Form.Item
             name="episodeTitle"
@@ -175,8 +261,8 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
           >
             <Input 
               placeholder="请输入桥段标题" 
+              onChange={handleTitleChange}
               autoFocus
-              onPressEnter={handleSave}
             />
           </Form.Item>
           
@@ -187,12 +273,10 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
               { required: true, message: '请输入桥段内容' }
             ]}
           >
-            <Input.TextArea
-              placeholder="请输入桥段详细内容..."
-              autoSize={{ minRows: 15, maxRows: 30 }}
-              showCount
-              maxLength={10000}
-              style={{ fontFamily: 'monospace' }}
+            <TextEditorPanel
+                value={form.getFieldValue('episodeContent') || ''}
+                onChange={handleContentChange}
+                placeholder="请输入桥段详细内容..."
             />
           </Form.Item>
           
@@ -201,10 +285,9 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
               fontSize: '12px', 
               color: '#666', 
               textAlign: 'right',
-              marginTop: '-16px',
-              marginBottom: '16px'
+              marginTop: '8px'
             }}>
-              字数统计: {(form.getFieldValue('episodeContent') || '').length} 字
+              字数统计: {calculateWordCount(form.getFieldValue('episodeContent') || '')} 字
               {episodeContent.createdAt && (
                 <span style={{ marginLeft: '16px' }}>
                   创建时间: {new Date(episodeContent.createdAt).toLocaleString()}

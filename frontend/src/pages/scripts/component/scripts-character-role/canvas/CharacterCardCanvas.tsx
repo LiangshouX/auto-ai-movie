@@ -124,7 +124,7 @@ const CharacterCardCanvas = ({ projectId }: CharacterCardDemoProps) => {
         toolsToDisable.forEach(tool => {
             try {
                 (editor as any).removeTool?.(tool, true);
-            } catch (e) {
+            } catch {
                 // 工具不存在时忽略
             }
         });
