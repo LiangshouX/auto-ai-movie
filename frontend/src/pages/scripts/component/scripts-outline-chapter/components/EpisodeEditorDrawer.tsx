@@ -39,9 +39,34 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
   const fetchEpisodeContent = useCallback(async () => {
     if (!episode?.episodeId) return;
     
+    console.log('[EpisodeEditor] Fetching content for:', episode.episodeId);
     setContentLoading(true);
+
+    const setDefaultContent = () => {
+        const defaultContent: ScriptEpisodeDTO = {
+            id: episode.episodeId,
+            projectId,
+            chapterId,
+            episodeNumber: episode.episodeNumber,
+            episodeTitle: episode.episodeTitle,
+            episodeContent: '',
+            wordCount: 0,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        setEpisodeContent(defaultContent);
+        form.setFieldsValue({
+            episodeTitle: episode.episodeTitle,
+            episodeContent: ''
+        });
+        lastSavedContent.current = '';
+        lastSavedTitle.current = episode.episodeTitle;
+    };
+
     try {
       const response = await scriptsEpisodeApi.getEpisodeById({ id: episode.episodeId });
+      console.log('[EpisodeEditor] Fetch response:', response);
+      
       if (response.success && response.data) {
         const data = response.data as ScriptEpisodeDTO;
         setEpisodeContent(data);
@@ -52,30 +77,14 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
         lastSavedContent.current = data.episodeContent || '';
         lastSavedTitle.current = data.episodeTitle || '';
       } else {
-        // 如果桥段内容不存在，创建默认内容
-        const defaultContent: ScriptEpisodeDTO = {
-          id: episode.episodeId,
-          projectId,
-          chapterId,
-          episodeNumber: episode.episodeNumber,
-          episodeTitle: episode.episodeTitle,
-          episodeContent: '',
-          wordCount: 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        setEpisodeContent(defaultContent);
-        form.setFieldsValue({
-          episodeTitle: episode.episodeTitle,
-          episodeContent: ''
-        });
-        lastSavedContent.current = '';
-        lastSavedTitle.current = episode.episodeTitle;
+        console.warn('[EpisodeEditor] Content not found or empty, creating default');
+        setDefaultContent();
       }
       setSaveStatus('saved');
     } catch (error) {
       console.error('获取桥段内容失败:', error);
-      message.error('获取桥段内容失败');
+      // Initialize with default content on error so user can still edit/save
+      setDefaultContent();
     } finally {
       setContentLoading(false);
     }
@@ -83,36 +92,47 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
 
   // 保存桥段内容
   const performSave = async (values: any) => {
-    if (!episodeContent) return;
+    // Check if we are in create mode (empty episodeId) or update mode
+    const isCreate = !episode?.episodeId;
+    const targetId = episodeContent?.id || episode?.episodeId;
     
+    if (!isCreate && !targetId) {
+        console.error('[EpisodeEditor] No target ID available for save');
+        setLoading(false);
+        return;
+    }
+    
+    console.log('[EpisodeEditor] Performing save. Create mode:', isCreate, 'TargetID:', targetId);
     setSaveStatus('saving');
     
     try {
-      // 准备更新数据
-      const updateData = {
-        id: episodeContent.id,
-        episodeTitle: values.episodeTitle,
-        episodeContent: values.episodeContent,
-        wordCount: calculateWordCount(values.episodeContent)
-      };
-      
       let response;
-      
-      if (episodeContent.id && episodeContent.createdAt) {
-        // 更新现有桥段
-        response = await scriptsEpisodeApi.updateEpisode(updateData);
+
+      if (isCreate) {
+          // Create new episode
+          const createData = {
+              projectId,
+              chapterId,
+              episodeNumber: episode?.episodeNumber || 1,
+              episodeTitle: values.episodeTitle,
+              episodeContent: values.episodeContent,
+              wordCount: calculateWordCount(values.episodeContent)
+          };
+          console.log('[EpisodeEditor] Create payload:', createData);
+          response = await scriptsEpisodeApi.createEpisode(createData);
       } else {
-        // 创建新桥段
-        const createData = {
-          projectId,
-          chapterId,
-          episodeNumber: episode?.episodeNumber || 1,
-          episodeTitle: values.episodeTitle,
-          episodeContent: values.episodeContent,
-          wordCount: calculateWordCount(values.episodeContent)
-        };
-        response = await scriptsEpisodeApi.createEpisode(createData);
+          // Update existing episode
+          const updateData = {
+            id: targetId!,
+            episodeTitle: values.episodeTitle,
+            episodeContent: values.episodeContent,
+            wordCount: calculateWordCount(values.episodeContent)
+          };
+          console.log('[EpisodeEditor] Update payload:', updateData);
+          response = await scriptsEpisodeApi.updateEpisode(updateData);
       }
+      
+      console.log('[EpisodeEditor] Save response:', response);
       
       if (response.success && response.data) {
         setEpisodeContent(response.data as ScriptEpisodeDTO);
@@ -132,10 +152,18 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
   };
 
   const handleManualSave = async () => {
+      console.log('[EpisodeEditor] Manual save initiated');
       setLoading(true);
-      const values = await form.validateFields();
-      await performSave(values);
-      message.success('保存成功');
+      try {
+          const values = await form.validateFields();
+          await performSave(values);
+          message.success('保存成功');
+      } catch (error) {
+          console.error('[EpisodeEditor] Manual save failed:', error);
+          // Don't show success message if failed
+      } finally {
+          setLoading(false);
+      }
   };
 
   const calculateWordCount = (content: string) => {

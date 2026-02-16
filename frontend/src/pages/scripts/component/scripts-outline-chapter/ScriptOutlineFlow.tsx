@@ -14,7 +14,9 @@ import {
     EdgeChange,
     NodeChange,
     applyNodeChanges,
-    applyEdgeChanges
+    applyEdgeChanges,
+    NodeTypes,
+    Edge
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Button, Space } from 'antd';
@@ -28,10 +30,10 @@ import { convertOutlineToFlowData } from './utils/outline-utils';
 import { getLayoutedElements } from './utils/layout-utils';
 
 // Node Types
-const nodeTypes = {
-    section: SectionNode,
-    chapter: ChapterNode,
-    episode: EpisodeNode,
+const nodeTypes: NodeTypes = {
+    section: SectionNode as any,
+    chapter: ChapterNode as any,
+    episode: EpisodeNode as any,
 };
 
 // Props
@@ -54,8 +56,8 @@ const ScriptOutlineFlow: React.FC<ScriptOutlineFlowProps> = ({
     onAddSibling,
     onCopyNode
 }) => {
-    const [nodes, setNodes] = useNodesState([]);
-    const [edges, setEdges] = useEdgesState([]);
+    const [nodes, setNodes] = useNodesState<Node>([]);
+    const [edges, setEdges] = useEdgesState<Edge>([]);
     const [layoutDirection, setLayoutDirection] = useState('LR');
     const [menu, setMenu] = useState<{id: string; top: number; left: number; type: string} | null>(null);
     const ref = useRef<HTMLDivElement>(null);

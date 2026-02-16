@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu } from 'antd';
+import { Menu, MenuProps } from 'antd';
 import { 
   DeleteOutlined, 
   CopyOutlined, 
@@ -25,7 +25,7 @@ export default function ContextMenu({
   onAction,
   ...props
 }: ContextMenuProps) {
-  const items = [
+  const items: MenuProps['items'] = [
     {
       key: 'insert-after',
       icon: <EnterOutlined />,

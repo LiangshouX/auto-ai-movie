@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card, Typography, Space, Tooltip, Badge, Button } from 'antd';
 import { EditOutlined } from '@ant-design/icons';
@@ -28,7 +28,7 @@ const EpisodeNode = memo(({ data, isConnectable }: NodeProps<any>) => {
       
       <div className="custom-drag-handle" style={{ cursor: 'move' }}>
         <Space direction="vertical" size={2} style={{ width: '100%' }}>
-          <Space justify="space-between" style={{ width: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
             <Text strong>{data.episodeTitle}</Text>
             <Space size={4}>
                <Tooltip title="编辑内容">
@@ -43,7 +43,7 @@ const EpisodeNode = memo(({ data, isConnectable }: NodeProps<any>) => {
                  />
                </Tooltip>
             </Space>
-          </Space>
+          </div>
           <Space size={8} style={{ marginTop: 4 }}>
             <Badge 
               status="processing" 

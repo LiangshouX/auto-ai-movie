@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card, Typography, Space, Tooltip, Button } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
@@ -20,7 +20,7 @@ const SectionNode = memo(({ data, isConnectable }: NodeProps<any>) => {
     >
       <div className="custom-drag-handle" style={{ cursor: 'move' }}>
         <Space direction="vertical" size={0} style={{ width: '100%' }}>
-          <Space justify="space-between" style={{ width: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
             <Title level={5} style={{ margin: 0, color: '#1890ff' }}>
               {data.sectionTitle}
             </Title>
@@ -38,7 +38,7 @@ const SectionNode = memo(({ data, isConnectable }: NodeProps<any>) => {
                  />
                </Tooltip>
             </Space>
-          </Space>
+          </div>
           <Text type="secondary" ellipsis={{ tooltip: true }} style={{ fontSize: 12 }}>
             {data.description}
           </Text>

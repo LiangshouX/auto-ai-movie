@@ -220,19 +220,39 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             ...section,
             chapters: section.chapters.map(chapter => {
                 if (chapter.chapterId === updatedEpisode.chapterId) {
-                    return {
-                        ...chapter,
-                        episodes: chapter.episodes.map(ep => {
+                    const exists = chapter.episodes.some(ep => ep.episodeId === updatedEpisode.id);
+                    let newEpisodes;
+                    
+                    if (exists) {
+                        newEpisodes = chapter.episodes.map(ep => {
                             if (ep.episodeId === updatedEpisode.id) {
                                 return {
                                     ...ep,
                                     episodeTitle: updatedEpisode.episodeTitle,
-                                    // episodeNumber: updatedEpisode.episodeNumber, // Assuming number doesn't change here
+                                    // episodeNumber: updatedEpisode.episodeNumber,
                                     updatedAt: new Date().toISOString()
                                 };
                             }
                             return ep;
-                        })
+                        });
+                    } else {
+                        // 新增桥段
+                        const newEp: OutlineEpisodeDTO = {
+                            episodeId: updatedEpisode.id,
+                            projectId: updatedEpisode.projectId,
+                            chapterId: updatedEpisode.chapterId,
+                            episodeTitle: updatedEpisode.episodeTitle,
+                            episodeNumber: updatedEpisode.episodeNumber,
+                            createdAt: updatedEpisode.createdAt || new Date().toISOString(),
+                            updatedAt: updatedEpisode.updatedAt || new Date().toISOString()
+                        };
+                        newEpisodes = [...chapter.episodes, newEp];
+                    }
+
+                    return {
+                        ...chapter,
+                        episodes: newEpisodes,
+                        episodeCount: newEpisodes.length
                     };
                 }
                 return chapter;
@@ -240,6 +260,21 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
         }));
         
         setOutline(updatedOutline);
+        
+        // 如果是新增，可能需要关闭 drawer 或者更新 currentEpisode
+        if (currentEpisode && !currentEpisode.episodeId) {
+             // 之前是新建模式，现在保存了，更新 currentEpisode 为真实数据
+             // 或者直接关闭，用户体验可能更好？这里选择不关闭，允许继续编辑
+             setCurrentEpisode({
+                 episodeId: updatedEpisode.id,
+                 projectId: updatedEpisode.projectId,
+                 chapterId: updatedEpisode.chapterId,
+                 episodeTitle: updatedEpisode.episodeTitle,
+                 episodeNumber: updatedEpisode.episodeNumber,
+                 createdAt: updatedEpisode.createdAt,
+                 updatedAt: updatedEpisode.updatedAt
+             });
+        }
     };
 
     // 处理添加同级节点
@@ -370,7 +405,30 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
         
         if (nodeType === 'episode') {
              setEditingNodeType('episode');
-             setCurrentEpisode(null); // New episode
+             
+             // Calculate next episode number
+             let nextNumber = 1;
+             if (outline) {
+                 for (const section of outline.sections) {
+                     const chapter = section.chapters.find(c => c.chapterId === parentId);
+                     if (chapter) {
+                         nextNumber = (chapter.episodes.length || 0) + 1;
+                         break;
+                     }
+                 }
+             }
+
+             const newEpisodeStub: OutlineEpisodeDTO = {
+                 episodeId: '', // Empty ID indicates new
+                 projectId: outline?.projectId || '',
+                 chapterId: parentId,
+                 episodeNumber: nextNumber,
+                 episodeTitle: '新桥段',
+                 createdAt: new Date().toISOString(),
+                 updatedAt: new Date().toISOString()
+             };
+
+             setCurrentEpisode(newEpisodeStub); 
              setEpisodeDrawerVisible(true);
         } else {
              setEditingNodeType(nodeType as 'section' | 'chapter');
