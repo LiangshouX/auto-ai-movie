@@ -1,0 +1,226 @@
+{
+  "info": {
+    "name": "auto-ai-movie 新建节点全链路回归",
+    "_postman_id": "b5f144c1-1a55-4c75-8a6b-4a55d4d76c4a",
+    "description": "回归验证：新建 section → chapter → episode 全链路数据正确性与 id 唯一性。",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1) Create Outline (projectId unique)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const projectId = pm.variables.replaceIn('{{$guid}}').replace(/-/g,'');",
+              "const sectionId = pm.variables.replaceIn('{{$guid}}').replace(/-/g,'');",
+              "const chapterId = pm.variables.replaceIn('{{$guid}}').replace(/-/g,'');",
+              "pm.environment.set('projectId', projectId);",
+              "pm.environment.set('sectionId', sectionId);",
+              "pm.environment.set('chapterId', chapterId);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.code === 200);",
+              "const json = pm.response.json();",
+              "pm.test('outline.id exists', () => pm.expect(json.id).to.be.ok);",
+              "pm.environment.set('outlineId', json.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"projectId\": \"{{projectId}}\",\n  \"structureType\": \"BEGINNING_RISING_ACTION_CLIMAX_END\",\n  \"sections\": [\n    {\n      \"sectionId\": \"{{sectionId}}\",\n      \"sectionTitle\": \"开始\",\n      \"description\": \"回归测试 section\",\n      \"sequence\": 1,\n      \"chapterCount\": 1,\n      \"chapters\": [\n        {\n          \"chapterId\": \"{{chapterId}}\",\n          \"chapterTitle\": \"第一章\",\n          \"chapterSummary\": \"回归测试 chapter\",\n          \"chapterNumber\": 1,\n          \"episodeCount\": 0,\n          \"wordCount\": 0,\n          \"episodes\": []\n        }\n      ]\n    }\n  ]\n}\n"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/outlines",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "outlines"
+          ]
+        }
+      }
+    },
+    {
+      "name": "2) Create Episode (must include chapterId)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.code === 200);",
+              "const json = pm.response.json();",
+              "pm.test('episode.id exists', () => pm.expect(json.id).to.be.ok);",
+              "pm.test('episode.chapterId == env.chapterId', () => pm.expect(json.chapterId).to.eql(pm.environment.get('chapterId')));",
+              "pm.environment.set('episodeId', json.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"projectId\": \"{{projectId}}\",\n  \"chapterId\": \"{{chapterId}}\",\n  \"episodeNumber\": 1,\n  \"episodeTitle\": \"回归测试 episode\",\n  \"episodeContent\": \"\",\n  \"wordCount\": 0\n}\n"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/episodes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "episodes"
+          ]
+        }
+      }
+    },
+    {
+      "name": "3) Update Outline Sections (link episodeId into outline JSON)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.code === 200);",
+              "const json = pm.response.json();",
+              "pm.test('outline.projectId == env.projectId', () => pm.expect(json.projectId).to.eql(pm.environment.get('projectId')));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"projectId\": \"{{projectId}}\",\n  \"sections\": [\n    {\n      \"sectionId\": \"{{sectionId}}\",\n      \"sectionTitle\": \"开始\",\n      \"description\": \"回归测试 section\",\n      \"sequence\": 1,\n      \"chapterCount\": 1,\n      \"chapters\": [\n        {\n          \"chapterId\": \"{{chapterId}}\",\n          \"chapterTitle\": \"第一章\",\n          \"chapterSummary\": \"回归测试 chapter\",\n          \"chapterNumber\": 1,\n          \"episodeCount\": 1,\n          \"wordCount\": 0,\n          \"episodes\": [\n            {\n              \"episodeId\": \"{{episodeId}}\",\n              \"projectId\": \"{{projectId}}\",\n              \"chapterId\": \"{{chapterId}}\",\n              \"episodeTitle\": \"回归测试 episode\",\n              \"episodeNumber\": 1\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}\n"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/outlines/sections",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "outlines",
+            "sections"
+          ]
+        }
+      }
+    },
+    {
+      "name": "4) Get Outline By Project (verify structure persisted)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.code === 200);",
+              "const json = pm.response.json();",
+              "const sectionId = pm.environment.get('sectionId');",
+              "const chapterId = pm.environment.get('chapterId');",
+              "const episodeId = pm.environment.get('episodeId');",
+              "const sec = (json.sections || []).find(s => s.sectionId === sectionId);",
+              "pm.test('section exists', () => pm.expect(sec).to.be.ok);",
+              "const ch = (sec?.chapters || []).find(c => c.chapterId === chapterId);",
+              "pm.test('chapter exists', () => pm.expect(ch).to.be.ok);",
+              "const ep = (ch?.episodes || []).find(e => e.episodeId === episodeId);",
+              "pm.test('episode reference exists', () => pm.expect(ep).to.be.ok);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/outlines/project/{{projectId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "outlines",
+            "project",
+            "{{projectId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "5) Get Episode By Id (verify created record)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.code === 200);",
+              "const json = pm.response.json();",
+              "pm.test('episode.id matches', () => pm.expect(json.id).to.eql(pm.environment.get('episodeId')));",
+              "pm.test('episode.chapterId matches', () => pm.expect(json.chapterId).to.eql(pm.environment.get('chapterId')));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/episodes/{{episodeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "episodes",
+            "{{episodeId}}"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ]
+}

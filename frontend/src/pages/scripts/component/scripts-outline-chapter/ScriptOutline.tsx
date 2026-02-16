@@ -17,7 +17,7 @@ import {scriptsEpisodeApi} from '@/api/service/scripts-episode';
 import type {OutlineEpisodeDTO, StoryOutlineDTO, StructureType} from '@/api/types/scripts-outline-types';
 import type {ScriptEpisodeDTO} from '@/api/types/scripts-episode-types';
 
-import {createDefaultOutlineStructure, generateOutlineText, recalculateNumbers} from './utils/outline-utils';
+import {createClientNodeId, createDefaultOutlineStructure, generateOutlineText, recalculateNumbers} from './utils/outline-utils';
 import CreateOutlineModal from './components/CreateOutlineModal';
 import NodeEditorDrawer from './components/NodeEditorDrawer';
 import EpisodeEditorDrawer from './components/EpisodeEditorDrawer';
@@ -133,11 +133,16 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                 // 新建节点
                 switch (editingNodeType) {
                     case 'section':
-                        // 新建章节
+                        // 新建卷
                         updatedOutline.sections = [
                             ...updatedOutline.sections,
                             {
-                                ...updatedData,
+                                sectionId: createClientNodeId('section'),
+                                sectionTitle: updatedData.sectionTitle,
+                                description: updatedData.description,
+                                sequence: (updatedOutline.sections?.length || 0) + 1,
+                                chapterCount: 0,
+                                chapters: [],
                                 projectId: outline.projectId,
                                 createdAt: new Date().toISOString(),
                                 updatedAt: new Date().toISOString()
@@ -148,19 +153,26 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                         // 新建章节
                         updatedOutline.sections = updatedOutline.sections.map(section => {
                             if (section.sectionId === editingParentId) {
+                                const nextChapterNumber = (section.chapters?.length || 0) + 1;
                                 return {
                                     ...section,
                                     chapters: [
-                                        ...section.chapters,
+                                        ...(section.chapters || []),
                                         {
-                                            ...updatedData,
+                                            chapterId: createClientNodeId('chapter'),
+                                            chapterTitle: updatedData.chapterTitle,
+                                            chapterSummary: updatedData.chapterSummary,
+                                            chapterNumber: nextChapterNumber,
+                                            episodeCount: 0,
+                                            wordCount: 0,
+                                            episodes: [],
                                             projectId: outline.projectId,
                                             sectionId: editingParentId,
                                             createdAt: new Date().toISOString(),
                                             updatedAt: new Date().toISOString()
                                         }
                                     ],
-                                    chapterCount: section.chapters.length + 1
+                                    chapterCount: (section.chapters?.length || 0) + 1
                                 };
                             }
                             return section;
@@ -212,9 +224,14 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
     // 处理桥段保存
     const handleEpisodeSave = async (updatedEpisode: ScriptEpisodeDTO) => {
         if (!outline) return;
+        if (!updatedEpisode?.id || updatedEpisode.id.length > 32) {
+            message.error('桥段ID非法（长度需≤32），请检查后端ID生成策略');
+            return;
+        }
         
         // 更新本地 outline 状态以反映最新的标题和字数
         const updatedOutline = {...outline};
+        let isNewEpisode = false;
         
         updatedOutline.sections = updatedOutline.sections.map(section => ({
             ...section,
@@ -237,6 +254,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                         });
                     } else {
                         // 新增桥段
+                        isNewEpisode = true;
                         const newEp: OutlineEpisodeDTO = {
                             episodeId: updatedEpisode.id,
                             projectId: updatedEpisode.projectId,
@@ -260,6 +278,25 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
         }));
         
         setOutline(updatedOutline);
+
+        if (isNewEpisode) {
+            try {
+                const response = await scriptsOutlineApi.updateSections({
+                    projectId: outline.projectId,
+                    sections: recalculateNumbers(updatedOutline).sections
+                });
+                if (!response.success) {
+                    throw new Error('更新大纲失败');
+                }
+            } catch (error) {
+                try {
+                    await scriptsEpisodeApi.deleteEpisode({id: updatedEpisode.id});
+                } catch { /* empty */ }
+                await fetchOutline();
+                message.error('桥段已创建，但更新大纲结构失败，已回滚');
+                return;
+            }
+        }
         
         // 如果是新增，可能需要关闭 drawer 或者更新 currentEpisode
         if (currentEpisode && !currentEpisode.episodeId) {
@@ -312,6 +349,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
 
         try {
             let updatedOutline = {...outline};
+            let createdEpisodeIdForRollback: string | undefined;
 
             if (editingNodeType === 'section') {
                 // 在章节下创建新章节
@@ -325,7 +363,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                             createdAt: new Date().toISOString(),
                             updatedAt: new Date().toISOString()
                         };
-                        const newChapters = [...section.chapters, newChapter];
+                        const newChapters = [...(section.chapters || []), {...newChapter, chapterNumber: (section.chapters?.length || 0) + 1}];
                         return {
                             ...section,
                             chapters: newChapters,
@@ -337,10 +375,14 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             } else if (editingNodeType === 'chapter') {
                  // 在章节下创建新桥段
                 // 使用专门的episode API创建桥段
+                const parentChapter = updatedOutline.sections
+                    .flatMap(s => s.chapters || [])
+                    .find(c => c.chapterId === parentId);
+                const nextEpisodeNumber = (parentChapter?.episodes?.length || 0) + 1;
                 const episodeData = {
                     projectId: outline.projectId,
                     chapterId: parentId,
-                    episodeNumber: childData.episodeNumber || 1,
+                    episodeNumber: nextEpisodeNumber,
                     episodeTitle: childData.episodeTitle,
                     episodeContent: '',
                     wordCount: 0
@@ -349,6 +391,10 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                 const episodeResponse = await scriptsEpisodeApi.createEpisode(episodeData);
                 if (episodeResponse.success && episodeResponse.data) {
                     const newEpisode = episodeResponse.data as ScriptEpisodeDTO;
+                    if (!newEpisode?.id || newEpisode.id.length > 32) {
+                        throw new Error('桥段ID非法（长度需≤32）');
+                    }
+                    createdEpisodeIdForRollback = newEpisode.id;
                     const outlineEpisode: OutlineEpisodeDTO = {
                         episodeId: newEpisode.id || '',
                         projectId: newEpisode.projectId || '',
@@ -361,9 +407,9 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
 
                     updatedOutline.sections = updatedOutline.sections.map(section => ({
                         ...section,
-                        chapters: section.chapters.map(chapter => {
+                        chapters: (section.chapters || []).map(chapter => {
                             if (chapter.chapterId === parentId) {
-                                const newEpisodes = [...chapter.episodes, outlineEpisode];
+                                const newEpisodes = [...(chapter.episodes || []), outlineEpisode];
                                 return {
                                     ...chapter,
                                     episodes: newEpisodes,
@@ -373,22 +419,26 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                             return chapter;
                         })
                     }));
+                } else {
+                    throw new Error('创建桥段失败');
                 }
             }
 
             // 重新计算编号
             updatedOutline = recalculateNumbers(updatedOutline);
 
-            // 更新到后端（除了episode，因为episode已经单独创建了）
-            if (editingNodeType !== 'chapter') {
-                const response = await scriptsOutlineApi.updateSections({
-                    projectId: outline.projectId,
-                    sections: updatedOutline.sections
-                });
+            const response = await scriptsOutlineApi.updateSections({
+                projectId: outline.projectId,
+                sections: updatedOutline.sections
+            });
 
-                if (!response.success) {
-                    throw new Error('更新大纲失败');
+            if (!response.success) {
+                if (editingNodeType === 'chapter' && createdEpisodeIdForRollback) {
+                    try {
+                        await scriptsEpisodeApi.deleteEpisode({id: createdEpisodeIdForRollback});
+                    } catch { /* empty */ }
                 }
+                throw new Error('更新大纲失败');
             }
 
             setOutline(updatedOutline);

@@ -8,12 +8,38 @@ import {
   UpdateStructureTypeData
 } from '@/api';
 
+const sanitizeSections = (sections: any[]) =>
+  (sections || []).map((section) => {
+    const { createdAt, updatedAt, ...sectionRest } = section || {};
+    return {
+      ...sectionRest,
+      chapters: (sectionRest.chapters || []).map((chapter: any) => {
+        const { createdAt: cAt, updatedAt: uAt, ...chapterRest } = chapter || {};
+        return {
+          ...chapterRest,
+          episodes: (chapterRest.episodes || []).map((episode: any) => {
+            const { createdAt: eAt, updatedAt: eUt, ...episodeRest } = episode || {};
+            return episodeRest;
+          })
+        };
+      })
+    };
+  });
+
+const sanitizeCreateOutline = (data: CreateStoryOutlineData) => {
+  if (!data?.sections) return data;
+  return {
+    ...data,
+    sections: sanitizeSections(data.sections as any[])
+  };
+};
+
 // 故事大纲服务接口
 class ScriptsOutlineService {
   // 创建故事大纲
   async createOutline(outlineData: CreateStoryOutlineData) {
     return ApiUtils.createResource(
-      (data: CreateStoryOutlineData) => apiClient.post('/v1/outlines', data),
+      (data: CreateStoryOutlineData) => apiClient.post('/v1/outlines', sanitizeCreateOutline(data)),
       outlineData
     );
   }
@@ -71,7 +97,7 @@ class ScriptsOutlineService {
   async updateSections(outlineData: UpdateSectionsData) {
     return ApiUtils.createResource(
       (data: UpdateSectionsData) => 
-        apiClient.post('/v1/outlines/sections', data),
+        apiClient.post('/v1/outlines/sections', { ...data, sections: sanitizeSections(data.sections as any[]) }),
       outlineData
     );
   }

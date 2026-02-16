@@ -64,11 +64,32 @@ export const STRUCTURE_TEMPLATES = {
   ]
 } as const;
 
+let __clientNodeIdSeq = 0;
+
+export const createClientNodeId = (prefix: string): string => {
+  void prefix;
+  if (typeof crypto !== 'undefined' && typeof (crypto as any).randomUUID === 'function') {
+    return (crypto as any).randomUUID().replace(/-/g, '');
+  }
+  if (typeof crypto !== 'undefined' && typeof (crypto as any).getRandomValues === 'function') {
+    const bytes = new Uint8Array(16);
+    (crypto as any).getRandomValues(bytes);
+    return Array.from(bytes)
+      .map((b: number) => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+  __clientNodeIdSeq += 1;
+  const raw = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/[x]/g, () => {
+    const r = (Math.random() * 16) | 0;
+    return r.toString(16);
+  });
+  const seq = (__clientNodeIdSeq % 0xffff).toString(16).padStart(4, '0');
+  return (raw.slice(0, 28) + seq).slice(0, 32);
+};
+
 // 生成章节ID
-export const generateChapterId = (sectionId: string): string => {
-  // 使用sectionId的后8位+时间戳生成
-  const sectionSuffix = sectionId.slice(-8);
-  return `${sectionSuffix}_${Date.now()}`;
+export const generateChapterId = (_sectionId: string): string => {
+  return createClientNodeId('chapter');
 };
 
 // 创建默认章节对象
@@ -106,8 +127,8 @@ export const createDefaultOutlineStructure = (
 ): CreateStoryOutlineData => {
   const template = STRUCTURE_TEMPLATES[structureType];
   
-  const sections: OutlineSectionDTO[] = template.map((sectionTemplate, index) => ({
-    sectionId: `section_${Date.now()}_${index}`,
+  const sections: OutlineSectionDTO[] = template.map((sectionTemplate, _index) => ({
+    sectionId: createClientNodeId('section'),
     sectionTitle: sectionTemplate.sectionTitle,
     description: sectionTemplate.description,
     sequence: sectionTemplate.sequence,
@@ -126,18 +147,21 @@ export const createDefaultOutlineStructure = (
 
 // 重新计算章节和桥段编号
 export const recalculateNumbers = (outline: StoryOutlineDTO): StoryOutlineDTO => {
-  const updatedSections = [...outline.sections].sort((a, b) => a.sequence - b.sequence);
+  const sections = Array.isArray(outline.sections) ? outline.sections : [];
+  const updatedSections = [...sections].sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
   
   updatedSections.forEach((section, sectionIndex) => {
     section.sequence = sectionIndex + 1;
+    section.chapters = Array.isArray(section.chapters) ? section.chapters : [];
     section.chapterCount = section.chapters.length;
     
-    const sortedChapters = [...section.chapters].sort((a, b) => a.chapterNumber - b.chapterNumber);
+    const sortedChapters = [...section.chapters].sort((a, b) => (a.chapterNumber || 0) - (b.chapterNumber || 0));
     sortedChapters.forEach((chapter, chapterIndex) => {
       chapter.chapterNumber = chapterIndex + 1;
+      chapter.episodes = Array.isArray(chapter.episodes) ? chapter.episodes : [];
       chapter.episodeCount = chapter.episodes.length;
       
-      const sortedEpisodes = [...chapter.episodes].sort((a, b) => a.episodeNumber - b.episodeNumber);
+      const sortedEpisodes = [...chapter.episodes].sort((a, b) => (a.episodeNumber || 0) - (b.episodeNumber || 0));
       sortedEpisodes.forEach((episode, episodeIndex) => {
         episode.episodeNumber = episodeIndex + 1;
       });

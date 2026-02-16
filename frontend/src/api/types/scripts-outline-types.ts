@@ -14,6 +14,8 @@ export interface OutlineEpisodeDTO {
 // 大纲章节数据传输对象
 export interface OutlineChapterDTO {
   chapterId: string;
+  sectionId?: string;
+  projectId?: string;
   chapterTitle: string;
   chapterSummary: string;
   chapterNumber: number;
@@ -27,6 +29,7 @@ export interface OutlineChapterDTO {
 // 大纲章节结构数据传输对象
 export interface OutlineSectionDTO {
   sectionId: string;
+  projectId?: string;
   sectionTitle: string;
   description: string;
   sequence: number;

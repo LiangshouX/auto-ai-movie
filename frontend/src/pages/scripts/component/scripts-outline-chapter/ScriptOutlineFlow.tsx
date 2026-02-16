@@ -138,7 +138,8 @@ const ScriptOutlineFlow: React.FC<ScriptOutlineFlowProps> = ({
                  onAddSibling(id, type as any);
                  break;
             case 'insert-child':
-                 onAddChild(id, type as any);
+                 if (type === 'section') onAddChild(id, 'chapter');
+                 if (type === 'chapter') onAddChild(id, 'episode');
                  break;
             case 'delete':
                  onDeleteNode(id, type as any);
