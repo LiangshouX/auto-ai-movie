@@ -695,7 +695,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
             {/* 工具栏 */}
             <Flex justify="space-between" align="center" style={{
                 marginBottom: 0, position: 'sticky', top: 0, zIndex: 1, background: '#fff',
-                padding: '16px 24px', borderBottom: '1px solid #f0f0f0'
+                // padding: '16px 24px', borderBottom: '1px solid #f0f0f0'
             }}>
                 <Title level={3} style={{margin: 0}}>
                     <Space>
