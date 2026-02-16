@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Col, message, Row} from 'antd';
 import {ScriptProject} from '@/api/types/project-types.ts';
 import {AiChatPanel} from './AiChatPanel.tsx';
@@ -18,6 +18,7 @@ interface BackgroundSettingProps {
 }
 
 const BackgroundSetting: React.FC<BackgroundSettingProps> = ({project, onContentChange}) => {
+    const layoutScopeAttrValue = useMemo(() => `background-setting-${Math.random().toString(36).slice(2)}`, [])
     const [leftContent, setLeftContent] = useState<string>(project?.theme || '');
     const [aiMessages, setAiMessages] = useState<AiMessage[]>([]);
     const [aiThoughts, setAiThoughts] = useState<AiThought[]>([]);
@@ -154,17 +155,30 @@ const BackgroundSetting: React.FC<BackgroundSettingProps> = ({project, onContent
     };
 
     return (
-        <div style={{
+        <div data-layout-scope={layoutScopeAttrValue} style={{
             display: 'flex',
             flex: 1,
             flexDirection: 'column',
+            height: '100%',
             minHeight: 0,
             overflow: 'hidden',
             width: '100%'
         }}>
-            <Row gutter={[24, 24]} style={{flex: 1, width: '100%', minHeight: 0}}>
+            <style>{`
+                [data-layout-scope="${layoutScopeAttrValue}"] .bg-row {
+                    overflow: hidden;
+                }
+                @media (max-width: 767px) {
+                    [data-layout-scope="${layoutScopeAttrValue}"] .bg-row {
+                        overflow-y: auto;
+                        -webkit-overflow-scrolling: touch;
+                        overscroll-behavior: contain;
+                    }
+                }
+            `}</style>
+            <Row className="bg-row" gutter={[24, 24]} style={{flex: 1, height: '100%', width: '100%', minHeight: 0, alignItems: 'stretch'}}>
                 {/* 左侧文本编辑区 */}
-                <Col xs={24} md={12} style={{minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
+                <Col xs={24} md={12} style={{height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
                     <TextEditorPanel
                         // title="背景设定"
                         // subtitle="请在此处编写剧本的背景设定内容"
@@ -177,7 +191,7 @@ const BackgroundSetting: React.FC<BackgroundSettingProps> = ({project, onContent
                 </Col>
 
                 {/* 右侧AI对话区 */}
-                <Col xs={24} md={12} style={{minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
+                <Col xs={24} md={12} style={{height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
                     <AiChatPanel
                         title="AI创作助手"
                         subtitle="与AI助手讨论背景设定与创作灵感"

@@ -3,6 +3,28 @@ import {Editor, Toolbar} from '@wangeditor/editor-for-react'
 import '@wangeditor/editor/dist/css/style.css'
 import {IDomEditor, IEditorConfig, IToolbarConfig} from "@wangeditor/editor";
 
+const escapeHtml = (s: string) =>
+    s.replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+
+const plainTextToHtml = (text: string) => {
+    const normalized = text.replace(/\r\n/g, '\n')
+    const blocks = normalized.split(/\n{2,}/)
+    const htmlBlocks = blocks.map((block) => {
+        const content = escapeHtml(block).replace(/\n/g, '<br/>')
+        return `<p>${content || '<br/>'}</p>`
+    })
+    return htmlBlocks.join('')
+}
+
+const normalizeIncomingValueToHtml = (value: string) => {
+    if (!value) return '<p><br></p>'
+    const looksLikeHtml = /<[a-z][\s\S]*>/i.test(value)
+    return looksLikeHtml ? value : plainTextToHtml(value)
+}
 
 interface TextEditorPanelProps {
     value: string;
@@ -47,7 +69,7 @@ export const TextEditorPanel: React.FC<TextEditorPanelProps> = (
 
     useEffect(() => {
         if (value === lastEmittedValueRef.current) return
-        setHtml(value)
+        setHtml(normalizeIncomingValueToHtml(value))
     }, [value])
 
     // 及时销毁 editor ，重要！
@@ -83,8 +105,11 @@ export const TextEditorPanel: React.FC<TextEditorPanelProps> = (
                     }
                     [data-wangeditor-scope="${scopeAttrValue}"] .w-e-text-container .w-e-scroll{
                         flex: 1;
+                        height: 100%;
                         min-height: 0;
                         overflow-y: auto;
+                        overscroll-behavior: contain;
+                        -webkit-overflow-scrolling: touch;
                     }
                     [data-wangeditor-scope="${scopeAttrValue}"] .w-e-text-container [data-slate-editor]{
                         font-family: "SimSun", "宋体", serif;
