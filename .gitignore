@@ -25,6 +25,8 @@ replay_pid*
 
 # IDEA
 /.idea
+/.trae
+/.vscode
 
 # Target && Node_Modules
 */target
