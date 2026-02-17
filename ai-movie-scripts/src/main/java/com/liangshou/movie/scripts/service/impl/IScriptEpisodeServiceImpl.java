@@ -28,6 +28,7 @@ public class IScriptEpisodeServiceImpl implements IScriptEpisodeService {
     private static final String PROJECT_ID_COLUMN = "project_id";
     private static final String CHAPTER_ID_COLUMN = "chapter_id";
     private static final String EPISODE_NUMBER_COLUMN = "episode_number";
+    private static final String EPISODE_TITLE_COLUMN = "episode_title";
 
     @Resource
     private IScriptEpisodeSupport scriptEpisodeSupport;
@@ -50,6 +51,19 @@ public class IScriptEpisodeServiceImpl implements IScriptEpisodeService {
 
             if (episodeDTO.getEpisodeNumber() == null) {
                 throw new IllegalArgumentException("桥段号不能为空");
+            }
+
+            if (StringUtils.hasText(episodeDTO.getEpisodeTitle())) {
+                QueryWrapper<ScriptEpisodePO> queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq(PROJECT_ID_COLUMN, episodeDTO.getProjectId());
+                queryWrapper.eq(CHAPTER_ID_COLUMN, episodeDTO.getChapterId());
+                queryWrapper.eq(EPISODE_TITLE_COLUMN, episodeDTO.getEpisodeTitle());
+                queryWrapper.orderByAsc("created_at");
+                queryWrapper.last("LIMIT 1");
+                ScriptEpisodePO existing = scriptEpisodeSupport.getOne(queryWrapper, false);
+                if (existing != null) {
+                    return convertToDTO(existing);
+                }
             }
 
             // 转换DTO到PO

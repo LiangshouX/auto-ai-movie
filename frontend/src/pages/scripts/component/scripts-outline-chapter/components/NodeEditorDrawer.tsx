@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Button, Drawer, Form, Input, message, Space, Tabs, List, Card, Popconfirm} from 'antd';
 import {
     CloseOutlined,
@@ -9,6 +9,7 @@ import {
     ExclamationCircleOutlined
 } from '@ant-design/icons';
 import {createDefaultChapter, createDefaultEpisode} from '../utils/outline-utils';
+import apiClient from '@/api/request.ts';
 import {scriptsEpisodeApi} from '@/api/service/scripts-episode';
 import type {ScriptEpisodeDTO} from '@/api/types/scripts-episode-types';
 
@@ -43,6 +44,7 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
     const [activeTab, setActiveTab] = useState('basic');
     const [episodeContent, setEpisodeContent] = useState('');
     const [wordCount, setWordCount] = useState(0);
+    const abortRef = useRef<AbortController | null>(null);
 
     // 设置表单初始值
     useEffect(() => {
@@ -95,20 +97,24 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
         if (!episodeId) return;
 
         try {
-            const response = await scriptsEpisodeApi.getEpisodeById({id: episodeId});
-            if (response.success && response.data) {
-                const episode = response.data as ScriptEpisodeDTO;
-                setEpisodeContent(episode.episodeContent);
-                setWordCount(episode.wordCount);
-            }
+            abortRef.current?.abort();
+            const controller = new AbortController();
+            abortRef.current = controller;
+            const response: any = await apiClient.get(`/v1/episodes/${episodeId}`, { signal: controller.signal });
+            const ep = response?.data as ScriptEpisodeDTO | undefined;
+            if (!ep) return;
+            setEpisodeContent(ep.episodeContent || '');
+            setWordCount(typeof ep.wordCount === 'number' ? ep.wordCount : 0);
         } catch (error) {
-            console.error('加载桥段内容失败:', error);
+            const aborted = abortRef.current?.signal?.aborted;
+            if (!aborted) message.warning('加载桥段内容失败');
         }
     };
 
     // 计算字数
-    const calculateWordCount = (content: string): number => {
-        return content.replace(/\s+/g, '').length;
+    const calculateWordCount = (content?: unknown): number => {
+        const raw = typeof content === 'string' ? content : '';
+        return raw.replace(/\s+/g, '').length;
     };
 
     // 处理内容变化
@@ -116,6 +122,12 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
         setEpisodeContent(content);
         setWordCount(calculateWordCount(content));
     };
+
+    useEffect(() => {
+        return () => {
+            abortRef.current?.abort();
+        };
+    }, []);
 
     const handleSave = async () => {
         try {
@@ -158,7 +170,6 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
                                 wordCount: wordCount
                             });
                         } catch (error) {
-                            console.error('更新桥段内容失败:', error);
                             message.error('更新桥段内容失败');
                             setLoading(false);
                             return;
@@ -171,7 +182,6 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
             message.success('保存成功');
             onClose();
         } catch (error) {
-            console.error('保存失败:', error);
             message.error('保存失败');
         } finally {
             setLoading(false);
@@ -207,7 +217,6 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
                 onClose();
             }
         } catch (error) {
-            console.error('创建子节点失败:', error);
             message.error('创建子节点失败');
         } finally {
             setLoading(false);

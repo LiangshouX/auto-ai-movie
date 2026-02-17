@@ -3,15 +3,14 @@
  */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import EpisodeEditorDrawer from './EpisodeEditorDrawer';
-import { scriptsEpisodeApi } from '@/api/service/scripts-episode';
+import EpisodeEditorDrawer, { calculateWordCountSafe } from './EpisodeEditorDrawer';
+import apiClient from '@/api/request.ts';
 
-// Mock API
-vi.mock('@/api/service/scripts-episode', () => ({
-  scriptsEpisodeApi: {
-    getEpisodeById: vi.fn(),
-    createEpisode: vi.fn(),
-    updateEpisode: vi.fn(),
+vi.mock('@/api/request.ts', () => ({
+  default: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
   },
 }));
 
@@ -42,6 +41,11 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+Object.defineProperty(window, 'getComputedStyle', {
+  writable: true,
+  value: vi.fn().mockReturnValue({}),
+});
+
 describe('EpisodeEditorDrawer', () => {
   const mockOnClose = vi.fn();
   const mockOnSave = vi.fn();
@@ -64,25 +68,36 @@ describe('EpisodeEditorDrawer', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
   it('renders correctly and fetches content', async () => {
-    (scriptsEpisodeApi.getEpisodeById as any).mockResolvedValue({
-        success: true,
-        data: { ...defaultProps.episode, episodeContent: 'Content' }
+    (apiClient.get as any).mockResolvedValue({
+      success: true,
+      data: {
+        id: 'e1',
+        projectId: 'p1',
+        chapterId: 'c1',
+        episodeTitle: 'Test Episode',
+        episodeNumber: 1,
+        createdAt: '2023-01-01',
+        updatedAt: '2023-01-01',
+        episodeContent: 'Content',
+        wordCount: 7
+      }
     });
 
     render(<EpisodeEditorDrawer {...defaultProps} />);
     
     await waitFor(() => {
-        expect(scriptsEpisodeApi.getEpisodeById).toHaveBeenCalledWith({ id: 'e1' });
+      expect(apiClient.get).toHaveBeenCalledWith('/v1/episodes/e1', expect.any(Object));
     });
     
     // Check if title is present
     expect(screen.getByText('编辑桥段 #1')).toBeTruthy();
   });
 
-  it('handles create mode (empty episodeId)', async () => {
+  it('does not create episode on title/content input (create mode)', async () => {
       // Create mode props
       const createProps = {
           ...defaultProps,
@@ -94,15 +109,66 @@ describe('EpisodeEditorDrawer', () => {
 
       render(<EpisodeEditorDrawer {...createProps} />);
       
-      // Should NOT call getEpisodeById
-      expect(scriptsEpisodeApi.getEpisodeById).not.toHaveBeenCalled();
+      expect(apiClient.get).not.toHaveBeenCalled();
       
-      // Enter content
-      // Use getAllByPlaceholderText because Antd Drawer might render multiple instances or hidden inputs in test env
+      // Enter title/content without clicking save
       const titleInputs = screen.getAllByPlaceholderText('请输入桥段标题');
       const titleInput = titleInputs[titleInputs.length - 1]; // Use the last one (usually the active one in portal)
       fireEvent.change(titleInput, { target: { value: 'New Title' } });
       
+      const contentInputs = screen.getAllByPlaceholderText('请输入桥段详细内容...');
+      const contentInput = contentInputs[contentInputs.length - 1];
+      fireEvent.change(contentInput, { target: { value: 'New Content' } });
+
+      expect(apiClient.post).not.toHaveBeenCalled();
+      expect(apiClient.put).not.toHaveBeenCalled();
+  });
+
+  it('creates once on save, then updates on next save (create mode)', async () => {
+      const createProps = {
+          ...defaultProps,
+          episode: {
+              ...defaultProps.episode,
+              episodeId: ''
+          }
+      };
+
+      (apiClient.post as any).mockResolvedValue({
+          success: true,
+          data: {
+              id: 'newidnewidnewidnewidnewidnewid',
+              episodeTitle: 'New Title',
+              episodeContent: 'New Content',
+              projectId: 'p1',
+              chapterId: 'c1',
+              episodeNumber: 1,
+              wordCount: 11,
+              createdAt: '2023-01-01',
+              updatedAt: '2023-01-01'
+          }
+      });
+
+      (apiClient.put as any).mockResolvedValue({
+          success: true,
+          data: {
+              id: 'newidnewidnewidnewidnewidnewid',
+              episodeTitle: 'New Title 2',
+              episodeContent: 'New Content 2',
+              projectId: 'p1',
+              chapterId: 'c1',
+              episodeNumber: 1,
+              wordCount: 13,
+              createdAt: '2023-01-01',
+              updatedAt: '2023-01-01'
+          }
+      });
+
+      render(<EpisodeEditorDrawer {...createProps} />);
+
+      const titleInputs = screen.getAllByPlaceholderText('请输入桥段标题');
+      const titleInput = titleInputs[titleInputs.length - 1];
+      fireEvent.change(titleInput, { target: { value: 'New Title' } });
+
       const contentInputs = screen.getAllByPlaceholderText('请输入桥段详细内容...');
       const contentInput = contentInputs[contentInputs.length - 1];
       fireEvent.change(contentInput, { target: { value: 'New Content' } });
@@ -111,30 +177,23 @@ describe('EpisodeEditorDrawer', () => {
       const saveBtns = screen.getAllByText('保存');
       const saveBtn = saveBtns[saveBtns.length - 1];
       
-      // Mock create response
-      (scriptsEpisodeApi.createEpisode as any).mockResolvedValue({
-          success: true,
-          data: { 
-              id: 'new-id', 
-              episodeTitle: 'New Title', 
-              episodeContent: 'New Content',
-              projectId: 'p1',
-              chapterId: 'c1'
-          }
-      });
-
       fireEvent.click(saveBtn);
       
       await waitFor(() => {
-          expect(scriptsEpisodeApi.createEpisode).toHaveBeenCalledWith(expect.objectContaining({
-              episodeTitle: 'New Title',
-              episodeContent: 'New Content'
-          }));
+          expect(apiClient.post).toHaveBeenCalledTimes(1);
           expect(mockOnSave).toHaveBeenCalled();
+      });
+
+      fireEvent.change(titleInput, { target: { value: 'New Title 2' } });
+      fireEvent.change(contentInput, { target: { value: 'New Content 2' } });
+      fireEvent.click(saveBtn);
+
+      await waitFor(() => {
+          expect(apiClient.put).toHaveBeenCalledTimes(1);
       });
   });
 
-  it('handles save error gracefully', async () => {
+  it('handles save error gracefully and does not throw after close', async () => {
       const createProps = {
           ...defaultProps,
           episode: { ...defaultProps.episode, episodeId: '' }
@@ -145,22 +204,209 @@ describe('EpisodeEditorDrawer', () => {
       const titleInputs = screen.getAllByPlaceholderText('请输入桥段标题');
       const titleInput = titleInputs[titleInputs.length - 1];
       fireEvent.change(titleInput, { target: { value: 'New Title' } });
+
+      const contentInputs = screen.getAllByPlaceholderText('请输入桥段详细内容...');
+      const contentInput = contentInputs[contentInputs.length - 1];
+      fireEvent.change(contentInput, { target: { value: 'New Content' } });
       
       const saveBtns = screen.getAllByText('保存');
       const saveBtn = saveBtns[saveBtns.length - 1];
       
-      (scriptsEpisodeApi.createEpisode as any).mockRejectedValue(new Error('Network Error'));
+      (apiClient.post as any).mockRejectedValue({ status: null, message: 'Network Error' });
 
       fireEvent.click(saveBtn);
       
       await waitFor(() => {
-          expect(scriptsEpisodeApi.createEpisode).toHaveBeenCalled();
-          // Verify loading state is cleared (button enabled/not loading)
-          // Antd button loading adds a class or disabled attribute
-          // When not loading, disabled attribute should not be present (unless other logic disables it)
-          // But Antd button might put loading state in a class or internal span.
-          // However, we are checking if it's clickable/not disabled.
+          expect(apiClient.post).toHaveBeenCalled();
           expect(saveBtn.hasAttribute('disabled')).toBe(false);
       });
+
+      const closeBtns = screen.getAllByText('关闭');
+      const closeBtn = closeBtns[closeBtns.length - 1];
+      fireEvent.click(closeBtn);
+  });
+
+  it('flushes offline queue on open when online', async () => {
+    localStorage.setItem(
+      'episode_save_queue_v1',
+      JSON.stringify([
+        {
+          id: 'k1',
+          method: 'POST',
+          url: '/v1/episodes',
+          headers: { 'Idempotency-Key': 'k1' },
+          body: { projectId: 'p1', chapterId: 'c1', episodeNumber: 1, episodeTitle: 'T', episodeContent: 'C', wordCount: 1 },
+          createdAt: Date.now(),
+          attempt: 0
+        }
+      ])
+    );
+
+    (apiClient.post as any).mockResolvedValue({ success: true, data: { id: 'x', projectId: 'p1', chapterId: 'c1' } });
+
+    const createProps = {
+      ...defaultProps,
+      episode: { ...defaultProps.episode, episodeId: '' }
+    };
+
+    render(<EpisodeEditorDrawer {...createProps} />);
+
+    await waitFor(() => {
+      expect(apiClient.post).toHaveBeenCalled();
+    });
+  });
+
+  it('rejects too-long saved id', async () => {
+    const createProps = {
+      ...defaultProps,
+      episode: { ...defaultProps.episode, episodeId: '' }
+    };
+
+    (apiClient.post as any).mockResolvedValue({
+      success: true,
+      data: {
+        id: 'x'.repeat(33),
+        episodeTitle: 'New Title',
+        episodeContent: 'New Content',
+        projectId: 'p1',
+        chapterId: 'c1',
+        episodeNumber: 1,
+        wordCount: 11,
+        createdAt: '2023-01-01',
+        updatedAt: '2023-01-01'
+      }
+    });
+
+    render(<EpisodeEditorDrawer {...createProps} />);
+
+    const titleInputs = screen.getAllByPlaceholderText('请输入桥段标题');
+    const titleInput = titleInputs[titleInputs.length - 1];
+    fireEvent.change(titleInput, { target: { value: 'New Title' } });
+
+    const contentInputs = screen.getAllByPlaceholderText('请输入桥段详细内容...');
+    const contentInput = contentInputs[contentInputs.length - 1];
+    fireEvent.change(contentInput, { target: { value: 'New Content' } });
+
+    const saveBtns = screen.getAllByText('保存');
+    const saveBtn = saveBtns[saveBtns.length - 1];
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      expect(mockOnSave).not.toHaveBeenCalled();
+    });
+  });
+
+  it('does not enqueue on non-network error', async () => {
+    const createProps = {
+      ...defaultProps,
+      episode: { ...defaultProps.episode, episodeId: '' }
+    };
+
+    (apiClient.post as any).mockRejectedValue({ status: 400, message: 'Bad Request' });
+
+    render(<EpisodeEditorDrawer {...createProps} />);
+
+    const titleInputs = screen.getAllByPlaceholderText('请输入桥段标题');
+    const titleInput = titleInputs[titleInputs.length - 1];
+    fireEvent.change(titleInput, { target: { value: 'New Title' } });
+
+    const contentInputs = screen.getAllByPlaceholderText('请输入桥段详细内容...');
+    const contentInput = contentInputs[contentInputs.length - 1];
+    fireEvent.change(contentInput, { target: { value: 'New Content' } });
+
+    const saveBtns = screen.getAllByText('保存');
+    const saveBtn = saveBtns[saveBtns.length - 1];
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      expect(apiClient.post).toHaveBeenCalledTimes(1);
+    });
+
+    expect(localStorage.getItem('episode_save_queue_v1')).toBeNull();
+  });
+
+  it('keeps failed queued item and increments attempt', async () => {
+    localStorage.setItem(
+      'episode_save_queue_v1',
+      JSON.stringify([
+        {
+          id: 'k1',
+          method: 'POST',
+          url: '/v1/episodes',
+          headers: { 'Idempotency-Key': 'k1' },
+          body: { projectId: 'p1', chapterId: 'c1', episodeNumber: 1, episodeTitle: 'T', episodeContent: 'C', wordCount: 1 },
+          createdAt: Date.now(),
+          attempt: 0
+        }
+      ])
+    );
+
+    (apiClient.post as any).mockRejectedValue({ status: null, message: 'Network Error' });
+
+    const createProps = {
+      ...defaultProps,
+      episode: { ...defaultProps.episode, episodeId: '' }
+    };
+
+    render(<EpisodeEditorDrawer {...createProps} />);
+
+    await waitFor(() => {
+      expect(apiClient.post).toHaveBeenCalled();
+    });
+
+    const stored = JSON.parse(localStorage.getItem('episode_save_queue_v1') || '[]');
+    expect(stored[0].attempt).toBe(1);
+  });
+
+  it('skips queue items when attempt reached max', async () => {
+    localStorage.setItem(
+      'episode_save_queue_v1',
+      JSON.stringify([
+        {
+          id: 'k1',
+          method: 'POST',
+          url: '/v1/episodes',
+          headers: { 'Idempotency-Key': 'k1' },
+          body: { projectId: 'p1', chapterId: 'c1', episodeNumber: 1, episodeTitle: 'T', episodeContent: 'C', wordCount: 1 },
+          createdAt: Date.now(),
+          attempt: 10
+        }
+      ])
+    );
+
+    (apiClient.post as any).mockResolvedValue({ success: true, data: { id: 'x' } });
+
+    const createProps = {
+      ...defaultProps,
+      episode: { ...defaultProps.episode, episodeId: '' }
+    };
+
+    render(<EpisodeEditorDrawer {...createProps} />);
+
+    await waitFor(() => {
+      const stored = JSON.parse(localStorage.getItem('episode_save_queue_v1') || '[]');
+      expect(stored[0].attempt).toBe(10);
+    });
+
+    expect(apiClient.post).not.toHaveBeenCalled();
+  });
+
+  it('aborts in-flight operations on unmount', async () => {
+    const createProps = {
+      ...defaultProps,
+      episode: { ...defaultProps.episode, episodeId: '' }
+    };
+
+    const { unmount } = render(<EpisodeEditorDrawer {...createProps} />);
+    unmount();
+  });
+});
+
+describe('calculateWordCountSafe', () => {
+  it('handles undefined/null and strips html', () => {
+    expect(calculateWordCountSafe(undefined)).toBe(0);
+    expect(calculateWordCountSafe(null)).toBe(0);
+    expect(calculateWordCountSafe('abc')).toBe(3);
+    expect(calculateWordCountSafe('<p>ab</p>')).toBe(2);
   });
 });

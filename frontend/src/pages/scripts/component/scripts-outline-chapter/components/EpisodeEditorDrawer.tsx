@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Drawer, Form, Input, Button, Space, message, Spin, Typography } from 'antd';
 import { SaveOutlined, CloseOutlined, CheckCircleOutlined, LoadingOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import { scriptsEpisodeApi } from '@/api/service/scripts-episode';
+import apiClient from '@/api/request.ts';
 import type { OutlineEpisodeDTO } from '@/api/types/scripts-outline-types';
-import type { ScriptEpisodeDTO } from '@/api/types/scripts-episode-types';
+import type { CreateScriptEpisodeData, ScriptEpisodeDTO, UpdateScriptEpisodeData } from '@/api/types/scripts-episode-types';
+import { createClientNodeId } from '../utils/outline-utils';
 import { TextEditorPanel } from '../../scripts-backgound-plot/TextEditorPanel';
 
 const { Text } = Typography;
@@ -17,6 +18,74 @@ interface EpisodeEditorDrawerProps {
   onSave?: (updatedEpisode: ScriptEpisodeDTO) => void;
 }
 
+type SaveStatus = 'saved' | 'saving' | 'error' | 'unsaved';
+
+type DraftEpisode = {
+  id?: string;
+  draftKey: string;
+  projectId: string;
+  chapterId: string;
+  episodeNumber: number;
+  episodeTitle: string;
+  episodeContent: string;
+  wordCount: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type SaveQueueItem = {
+  id: string;
+  method: 'POST' | 'PUT';
+  url: string;
+  headers: Record<string, string>;
+  body: any;
+  createdAt: number;
+  attempt: number;
+};
+
+const SAVE_QUEUE_KEY = 'episode_save_queue_v1';
+const SAVE_QUEUE_MAX = 50;
+const SAVE_QUEUE_MAX_ATTEMPT = 10;
+
+const normalizeString = (v: unknown): string => (typeof v === 'string' ? v : '');
+
+export const calculateWordCountSafe = (content?: unknown): number => {
+  const raw = normalizeString(content);
+  if (!raw) return 0;
+  const text = raw.replace(/<[^>]*>/g, '');
+  return text.length;
+};
+
+const loadSaveQueue = (): SaveQueueItem[] => {
+  try {
+    const raw = localStorage.getItem(SAVE_QUEUE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveSaveQueue = (items: SaveQueueItem[]) => {
+  try {
+    localStorage.setItem(SAVE_QUEUE_KEY, JSON.stringify(items.slice(0, SAVE_QUEUE_MAX)));
+  } catch {
+  }
+};
+
+const enqueueSave = (item: SaveQueueItem) => {
+  const items = loadSaveQueue();
+  saveSaveQueue([item, ...items]);
+};
+
+const isNetworkLikeError = (err: any) => {
+  const status = err?.status ?? err?.originalError?.response?.status ?? null;
+  if (status === null) return true;
+  if (status >= 500) return true;
+  return false;
+};
+
 const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
   open,
   onClose,
@@ -29,199 +98,269 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
   const [loading, setLoading] = useState(false);
   const [episodeContent, setEpisodeContent] = useState<ScriptEpisodeDTO | null>(null);
   const [contentLoading, setContentLoading] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error' | 'unsaved'>('saved');
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
+  const [draftEpisode, setDraftEpisode] = useState<DraftEpisode | null>(null);
   const lastSavedContent = useRef<string>('');
   const lastSavedTitle = useRef<string>('');
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const titleSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const unmountedRef = useRef(false);
+  const flushingRef = useRef(false);
 
-  // 获取桥段详细内容
-  const fetchEpisodeContent = useCallback(async () => {
-    if (!episode?.episodeId) return;
-    
-    console.log('[EpisodeEditor] Fetching content for:', episode.episodeId);
-    setContentLoading(true);
-
-    const setDefaultContent = () => {
-        const defaultContent: ScriptEpisodeDTO = {
-            id: episode.episodeId,
-            projectId,
-            chapterId,
-            episodeNumber: episode.episodeNumber,
-            episodeTitle: episode.episodeTitle,
-            episodeContent: '',
-            wordCount: 0,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-        setEpisodeContent(defaultContent);
-        form.setFieldsValue({
-            episodeTitle: episode.episodeTitle,
-            episodeContent: ''
-        });
-        lastSavedContent.current = '';
-        lastSavedTitle.current = episode.episodeTitle;
-    };
-
+  const flushQueue = useCallback(async () => {
+    if (flushingRef.current) return;
+    if (!navigator.onLine) return;
+    flushingRef.current = true;
     try {
-      const response = await scriptsEpisodeApi.getEpisodeById({ id: episode.episodeId });
-      console.log('[EpisodeEditor] Fetch response:', response);
-      
-      if (response.success && response.data) {
-        const data = response.data as ScriptEpisodeDTO;
-        setEpisodeContent(data);
-        form.setFieldsValue({
-          episodeTitle: data.episodeTitle,
-          episodeContent: data.episodeContent
-        });
-        lastSavedContent.current = data.episodeContent || '';
-        lastSavedTitle.current = data.episodeTitle || '';
-      } else {
-        console.warn('[EpisodeEditor] Content not found or empty, creating default');
-        setDefaultContent();
+      const items = loadSaveQueue();
+      if (!items.length) return;
+      const remain: SaveQueueItem[] = [];
+      for (const item of items) {
+        if (item.attempt >= SAVE_QUEUE_MAX_ATTEMPT) {
+          remain.push(item);
+          continue;
+        }
+        const controller = new AbortController();
+        try {
+          if (item.method === 'POST') {
+            await apiClient.post(item.url, item.body, { headers: item.headers, signal: controller.signal });
+          } else {
+            await apiClient.put(item.url, item.body, { headers: item.headers, signal: controller.signal });
+          }
+        } catch {
+          remain.push({ ...item, attempt: item.attempt + 1 });
+        }
       }
+      saveSaveQueue(remain);
+    } finally {
+      flushingRef.current = false;
+    }
+  }, []);
+
+  const fetchEpisodeContent = useCallback(async () => {
+    if (!episode) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setContentLoading(true);
+    try {
+      const baseDraft: DraftEpisode = {
+        draftKey: createClientNodeId('episode'),
+        projectId,
+        chapterId,
+        episodeNumber: episode.episodeNumber,
+        episodeTitle: normalizeString(episode.episodeTitle),
+        episodeContent: '',
+        wordCount: 0
+      };
+
+      if (!episode.episodeId) {
+        form.setFieldsValue({ episodeTitle: baseDraft.episodeTitle, episodeContent: '' });
+        lastSavedContent.current = '';
+        lastSavedTitle.current = baseDraft.episodeTitle;
+        setEpisodeContent(null);
+        setDraftEpisode(baseDraft);
+        setSaveStatus('saved');
+        return;
+      }
+
+      const response: any = await apiClient.get(`/v1/episodes/${episode.episodeId}`, { signal: controller.signal });
+      const data = response?.data as ScriptEpisodeDTO | undefined;
+
+      if (!data?.id) {
+        form.setFieldsValue({ episodeTitle: baseDraft.episodeTitle, episodeContent: '' });
+        lastSavedContent.current = '';
+        lastSavedTitle.current = baseDraft.episodeTitle;
+        setEpisodeContent(null);
+        setDraftEpisode(baseDraft);
+        setSaveStatus('saved');
+        return;
+      }
+
+      const title = normalizeString(data.episodeTitle);
+      const content = normalizeString(data.episodeContent);
+      form.setFieldsValue({ episodeTitle: title, episodeContent: content });
+      lastSavedContent.current = content;
+      lastSavedTitle.current = title;
+      setEpisodeContent(data);
+      setDraftEpisode({
+        ...baseDraft,
+        id: data.id,
+        projectId: data.projectId,
+        chapterId: data.chapterId,
+        episodeNumber: data.episodeNumber,
+        episodeTitle: title,
+        episodeContent: content,
+        wordCount: calculateWordCountSafe(content),
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      });
       setSaveStatus('saved');
-    } catch (error) {
-      console.error('获取桥段内容失败:', error);
-      // Initialize with default content on error so user can still edit/save
-      setDefaultContent();
+    } catch (error: any) {
+      if (controller.signal.aborted) return;
+      message.warning('获取桥段内容失败，将以草稿模式打开');
+      const title = normalizeString(episode.episodeTitle);
+      form.setFieldsValue({ episodeTitle: title, episodeContent: '' });
+      setEpisodeContent(null);
+      setDraftEpisode({
+        draftKey: createClientNodeId('episode'),
+        projectId,
+        chapterId,
+        episodeNumber: episode.episodeNumber,
+        episodeTitle: title,
+        episodeContent: '',
+        wordCount: 0
+      });
+      setSaveStatus('saved');
     } finally {
       setContentLoading(false);
     }
   }, [episode, form, projectId, chapterId]);
 
-  // 保存桥段内容
-  const performSave = async (values: any) => {
-    // Check if we are in create mode (empty episodeId) or update mode
-    const isCreate = !episode?.episodeId;
-    const targetId = episodeContent?.id || episode?.episodeId;
-    
-    if (!isCreate && !targetId) {
-        console.error('[EpisodeEditor] No target ID available for save');
-        setLoading(false);
-        return;
-    }
-    
-    console.log('[EpisodeEditor] Performing save. Create mode:', isCreate, 'TargetID:', targetId);
-    setSaveStatus('saving');
-    
-    try {
-      let response;
+  const handleManualSave = async () => {
+    if (loading || contentLoading) return;
+    const localDraft = draftEpisode;
+    if (!localDraft) return;
 
-      if (isCreate) {
-          // Create new episode
-          const createData = {
-              projectId,
-              chapterId,
-              episodeNumber: episode?.episodeNumber || 1,
-              episodeTitle: values.episodeTitle,
-              episodeContent: values.episodeContent,
-              wordCount: calculateWordCount(values.episodeContent)
-          };
-          console.log('[EpisodeEditor] Create payload:', createData);
-          response = await scriptsEpisodeApi.createEpisode(createData);
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setLoading(true);
+    setSaveStatus('saving');
+    try {
+      const values = await form.validateFields();
+      const title = normalizeString(values.episodeTitle);
+      const content = normalizeString(values.episodeContent);
+      const wordCount = calculateWordCountSafe(content);
+
+      const idempotencyKey = localDraft.draftKey;
+      const headers: Record<string, string> = {
+        'Idempotency-Key': idempotencyKey,
+        'X-Client-Request-Id': idempotencyKey
+      };
+
+      let saved: ScriptEpisodeDTO | null = null;
+      if (!localDraft.id) {
+        const payload: CreateScriptEpisodeData = {
+          projectId,
+          chapterId,
+          episodeNumber: episode?.episodeNumber || 1,
+          episodeTitle: title,
+          episodeContent: content,
+          wordCount
+        };
+        const response: any = await apiClient.post('/v1/episodes', payload, { headers, signal: controller.signal });
+        saved = response?.data as ScriptEpisodeDTO;
       } else {
-          // Update existing episode
-          const updateData = {
-            id: targetId!,
-            episodeTitle: values.episodeTitle,
-            episodeContent: values.episodeContent,
-            wordCount: calculateWordCount(values.episodeContent)
-          };
-          console.log('[EpisodeEditor] Update payload:', updateData);
-          response = await scriptsEpisodeApi.updateEpisode(updateData);
+        const payload: UpdateScriptEpisodeData = {
+          id: localDraft.id,
+          episodeTitle: title,
+          episodeContent: content,
+          wordCount
+        };
+        const response: any = await apiClient.put(`/v1/episodes/${localDraft.id}`, payload, { headers, signal: controller.signal });
+        saved = response?.data as ScriptEpisodeDTO;
       }
-      
-      console.log('[EpisodeEditor] Save response:', response);
-      
-      if (response.success && response.data) {
-        setEpisodeContent(response.data as ScriptEpisodeDTO);
-        lastSavedContent.current = values.episodeContent;
-        lastSavedTitle.current = values.episodeTitle;
-        setSaveStatus('saved');
-        onSave?.(response.data as ScriptEpisodeDTO);
-      } else {
-          setSaveStatus('error');
-      }
-    } catch (error) {
-      console.error('保存桥段失败:', error);
+
+      if (!saved?.id) throw new Error('保存失败');
+      if (saved.id.length > 32) throw new Error('桥段ID非法（长度需≤32），请检查后端ID生成策略');
+      if (unmountedRef.current) return;
+
+      setEpisodeContent(saved);
+      lastSavedContent.current = content;
+      lastSavedTitle.current = title;
+      setDraftEpisode({
+        ...localDraft,
+        id: saved.id,
+        episodeTitle: saved.episodeTitle,
+        episodeContent: saved.episodeContent,
+        wordCount: saved.wordCount,
+        createdAt: saved.createdAt,
+        updatedAt: saved.updatedAt
+      });
+      setSaveStatus('saved');
+      onSave?.(saved);
+      message.success('保存成功');
+      flushQueue();
+    } catch (error: any) {
+      if (controller.signal.aborted) return;
       setSaveStatus('error');
+      if (isNetworkLikeError(error)) {
+        const values = form.getFieldsValue();
+        const title = normalizeString(values.episodeTitle);
+        const content = normalizeString(values.episodeContent);
+        const wordCount = calculateWordCountSafe(content);
+        const idempotencyKey = localDraft.draftKey;
+        const headers: Record<string, string> = {
+          'Idempotency-Key': idempotencyKey,
+          'X-Client-Request-Id': idempotencyKey
+        };
+        const method: 'POST' | 'PUT' = localDraft.id ? 'PUT' : 'POST';
+        const url = localDraft.id ? `/v1/episodes/${localDraft.id}` : '/v1/episodes';
+        const body = localDraft.id
+          ? ({ id: localDraft.id, episodeTitle: title, episodeContent: content, wordCount } as UpdateScriptEpisodeData)
+          : ({ projectId, chapterId, episodeNumber: episode?.episodeNumber || 1, episodeTitle: title, episodeContent: content, wordCount } as CreateScriptEpisodeData);
+        enqueueSave({ id: idempotencyKey, method, url, headers, body, createdAt: Date.now(), attempt: 0 });
+        message.warning('保存失败，已加入离线重发队列');
+      } else {
+        message.error(error?.message || '保存失败');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleManualSave = async () => {
-      console.log('[EpisodeEditor] Manual save initiated');
-      setLoading(true);
-      try {
-          const values = await form.validateFields();
-          await performSave(values);
-          message.success('保存成功');
-      } catch (error) {
-          console.error('[EpisodeEditor] Manual save failed:', error);
-          // Don't show success message if failed
-      } finally {
-          setLoading(false);
-      }
-  };
-
-  const calculateWordCount = (content: string) => {
-      // Remove HTML tags for word count
-      const text = content.replace(/<[^>]*>/g, '');
-      return text.length;
-  };
-
-  // Auto-save logic for Content (2 seconds debounce)
   const handleContentChange = (content: string) => {
     form.setFieldValue('episodeContent', content);
-    
-    if (content !== lastSavedContent.current) {
-        setSaveStatus('unsaved');
-        if (saveTimeoutRef.current) {
-            clearTimeout(saveTimeoutRef.current);
-        }
-        saveTimeoutRef.current = setTimeout(() => {
-            const values = form.getFieldsValue();
-            performSave(values);
-        }, 2000);
-    }
+    setDraftEpisode((prev) => {
+      if (!prev) return prev;
+      return { ...prev, episodeContent: content, wordCount: calculateWordCountSafe(content) };
+    });
+    if (content !== lastSavedContent.current) setSaveStatus('unsaved');
   };
 
-  // Auto-save logic for Title (300ms debounce)
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const title = e.target.value;
-      if (title !== lastSavedTitle.current) {
-          setSaveStatus('unsaved');
-          if (titleSaveTimeoutRef.current) {
-              clearTimeout(titleSaveTimeoutRef.current);
-          }
-          titleSaveTimeoutRef.current = setTimeout(() => {
-              const values = form.getFieldsValue();
-              performSave(values);
-          }, 300);
-      }
+  const onValuesChange = (_: any, allValues: any) => {
+    const title = normalizeString(allValues?.episodeTitle);
+    setDraftEpisode((prev) => {
+      if (!prev) return prev;
+      return { ...prev, episodeTitle: title };
+    });
+    if (title !== lastSavedTitle.current) setSaveStatus('unsaved');
   };
 
-  // 监听桥段变化
   useEffect(() => {
-    if (open && episode) {
-      fetchEpisodeContent();
-    } else {
+    const handler = () => flushQueue();
+    window.addEventListener('online', handler);
+    return () => window.removeEventListener('online', handler);
+  }, [flushQueue]);
+
+  useEffect(() => {
+    unmountedRef.current = false;
+    if (open && episode) fetchEpisodeContent();
+    if (!open) {
+      abortRef.current?.abort();
       form.resetFields();
       setEpisodeContent(null);
+      setDraftEpisode(null);
       setSaveStatus('saved');
     }
     return () => {
-        if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-        if (titleSaveTimeoutRef.current) clearTimeout(titleSaveTimeoutRef.current);
+      abortRef.current?.abort();
+      unmountedRef.current = true;
     };
   }, [open, episode, fetchEpisodeContent, form]);
 
+  useEffect(() => {
+    if (open) flushQueue();
+  }, [open, flushQueue]);
+
   const handleClose = () => {
-    // If unsaved changes, maybe prompt? For now just close.
+    abortRef.current?.abort();
     form.resetFields();
     setEpisodeContent(null);
+    setDraftEpisode(null);
     onClose();
   };
 
@@ -267,7 +406,7 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
             icon={<SaveOutlined />} 
             onClick={handleManualSave}
             loading={loading || saveStatus === 'saving'}
-            disabled={contentLoading}
+            disabled={contentLoading || loading}
           >
             保存
           </Button>
@@ -278,6 +417,8 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
         <Form
           form={form}
           layout="vertical"
+          disabled={loading || contentLoading}
+          onValuesChange={onValuesChange}
         >
           <Form.Item
             name="episodeTitle"
@@ -289,7 +430,6 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
           >
             <Input 
               placeholder="请输入桥段标题" 
-              onChange={handleTitleChange}
               autoFocus
             />
           </Form.Item>
@@ -315,7 +455,7 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
               textAlign: 'right',
               marginTop: '8px'
             }}>
-              字数统计: {calculateWordCount(form.getFieldValue('episodeContent') || '')} 字
+              字数统计: {calculateWordCountSafe(form.getFieldValue('episodeContent') || '')} 字
               {episodeContent.createdAt && (
                 <span style={{ marginLeft: '16px' }}>
                   创建时间: {new Date(episodeContent.createdAt).toLocaleString()}
