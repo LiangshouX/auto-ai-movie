@@ -73,38 +73,11 @@ const ProjectCard: React.FC<ProjectCardProps> = (
     return (
         <Card
             hoverable
-            style={{
-                height: 340,
-                width: 320,
-                display: 'flex',
-                flexDirection: 'column',
-                padding: 16
-            }}
+            className={`script-project-card${operationLoading ? ' script-project-card-disabled' : ''}`}
             onClick={onClick}
             cover={
-                <div style={{
-                    height: 100,
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    position: 'relative'
-                }}>
-                    <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: -5,
-                        width: 5,
-                        height: 300,
-                        background: 'linear-gradient(to right, #5a67d8, #4c51bf)',
-                        borderRadius: '0 3px 3px 0'
-                    }}></div>
-                    <div style={{
-                        position: 'absolute',
-                        top: 5,
-                        left: 5,
-                        right: 5,
-                        bottom: 5,
-                        border: '1px solid rgba(255,255,255,0.3)',
-                        borderRadius: 3
-                    }}></div>
+                <div className="script-project-card-cover">
+                    <div className="script-project-card-frame" />
                 </div>
             }
         >

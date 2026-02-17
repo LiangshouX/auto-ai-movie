@@ -49,3 +49,80 @@
 .project-card-button {
   margin-top: 10px;
 }
+
+.script-project-card {
+  position: relative;
+  height: 340px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+
+  --script-card-accent-from: #1677ff;
+  --script-card-accent-to: #13c2c2;
+  --script-card-accent-from-hover: #0958d9;
+  --script-card-accent-to-hover: #08979c;
+  --script-card-accent-from-active: #003eb3;
+  --script-card-accent-to-active: #006d75;
+}
+
+.script-project-card .ant-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  min-height: 0;
+}
+
+.script-project-card::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 4px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, var(--script-card-accent-from), var(--script-card-accent-to));
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.script-project-card-cover {
+  position: relative;
+  height: 100px;
+  margin: 12px 12px 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--script-card-accent-from) 0%, var(--script-card-accent-to) 100%);
+}
+
+.script-project-card-frame {
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgb(255 255 255 / 40%);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.script-project-card.ant-card-hoverable:hover {
+  --script-card-accent-from: var(--script-card-accent-from-hover);
+  --script-card-accent-to: var(--script-card-accent-to-hover);
+}
+
+.script-project-card.ant-card-hoverable:active {
+  --script-card-accent-from: var(--script-card-accent-from-active);
+  --script-card-accent-to: var(--script-card-accent-to-active);
+}
+
+.script-project-card-disabled {
+  --script-card-accent-from: #8c8c8c;
+  --script-card-accent-to: #bfbfbf;
+}
+
+.script-project-card-disabled.ant-card-hoverable:hover,
+.script-project-card-disabled.ant-card-hoverable:active {
+  --script-card-accent-from: #8c8c8c;
+  --script-card-accent-to: #bfbfbf;
+}
+
+.script-project-card-disabled::before {
+  opacity: 0.55;
+}
