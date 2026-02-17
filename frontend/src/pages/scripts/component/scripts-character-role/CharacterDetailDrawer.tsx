@@ -300,7 +300,7 @@ const CharacterDetailDrawer: React.FC<CharacterManageDrawerProps> = (
                 } else {
                     message.error(response.message || '创建角色失败');
                 }
-            } else if (mode === 'edit' && character) {
+            } else if (character && (mode === 'edit' || isEditing)) {
                 // 更新现有角色
                 // 准备基础更新数据
                 const baseUpdateData: Partial<CharacterRole> = {

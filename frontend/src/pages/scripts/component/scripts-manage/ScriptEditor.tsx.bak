@@ -10,7 +10,7 @@ import BackgroundSetting from '../scripts-backgound-plot/BackgroundSetting.tsx';
 import PlotSummary from '../scripts-backgound-plot/PlotSummary.tsx';
 import ScriptOutline from '../scripts-outline-chapter/ScriptOutline.tsx';
 import BaseLayout from '../../layout/BaseLayout.tsx';
-import CharacterCardCanvas from "@/pages/scripts/component/scripts-character-role/canvas/CharacterCardCanvas.tsx";
+import CharacterDesign from "@/pages/scripts/component/scripts-character-role/CharacterDesign.tsx";
 
 const { Title, Text } = Typography;
 
@@ -165,7 +165,8 @@ const ScriptEditor = () => {
         );
       case 'characters':
         return (
-          <CharacterCardCanvas project={project} projectId={project?.id} />
+          <CharacterDesign project={project} />
+          // <CharacterCardCanvas projectId={project?.id} />
         );
       case 'outline':
         return (
