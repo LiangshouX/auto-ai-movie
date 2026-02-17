@@ -135,6 +135,10 @@ const CharacterCardCanvas = ({projectId, project}: CharacterCardDemoProps) => {
                 personalityTags: role.personalityTags,
                 skills: role.skills,
                 characterSetting: role.characterSetting,
+                relationships: (role.characterRelationships || []).map(rel => ({
+                    relationshipType: rel.relationshipType,
+                    relatedCharacterName: rel.relatedCharacterName,
+                })),
                 isSelected: false,
             },
         }))

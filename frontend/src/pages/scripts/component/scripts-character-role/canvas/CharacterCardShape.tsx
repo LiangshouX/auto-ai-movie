@@ -37,6 +37,7 @@ declare module 'tldraw' {
             personalityTags: string[]
             skills: string[]
             characterSetting: string
+            relationships: { relationshipType: string; relatedCharacterName: string }[]
             // 显示状态
             isSelected: boolean
         }
@@ -55,7 +56,7 @@ interface RoleCardComponentProps {
 const RoleCardComponent: React.FC<RoleCardComponentProps> = ({ shape, isSelected }) => {
     const [hover, setHover] = useState(false)
     const { props } = shape
-    const { w, h, name, age, gender, roleInStory } = props
+    const { w, h, name, age, gender, roleInStory, personalityTags, relationships } = props
 
     // 获取性别显示图标
     const getGenderIcon = (gender?: string) => {
@@ -73,6 +74,21 @@ const RoleCardComponent: React.FC<RoleCardComponentProps> = ({ shape, isSelected
     const getAgeDisplay = (age?: number) => {
         return age ? `${age}岁` : '年龄未知'
     }
+
+    const tagPalette = [
+        { bg: '#dbeafe', text: '#1d4ed8' },
+        { bg: '#dcfce7', text: '#166534' },
+        { bg: '#ffedd5', text: '#9a3412' },
+        { bg: '#f3e8ff', text: '#6b21a8' },
+        { bg: '#ffe4e6', text: '#9f1239' },
+        { bg: '#e0f2fe', text: '#075985' },
+    ]
+
+    const hasTags = Array.isArray(personalityTags) && personalityTags.length > 0
+    const hasRelationships = Array.isArray(relationships) && relationships.length > 0
+    const tagList = hasTags ? personalityTags.slice(0, 6) : []
+    const relationshipList = hasRelationships ? relationships.slice(0, 3) : []
+    const descriptionClamp = hasTags || hasRelationships ? 3 : 4
 
     return (
         <HTMLContainer
@@ -151,7 +167,7 @@ const RoleCardComponent: React.FC<RoleCardComponentProps> = ({ shape, isSelected
                         lineHeight: '1.4',
                         overflow: 'hidden',
                         display: '-webkit-box',
-                        WebkitLineClamp: 4,
+                        WebkitLineClamp: descriptionClamp,
                         WebkitBoxOrient: 'vertical',
                         textAlign: 'center',
                     }}
@@ -159,22 +175,136 @@ const RoleCardComponent: React.FC<RoleCardComponentProps> = ({ shape, isSelected
                     {roleInStory || '暂无描述'}
                 </div>
 
+                {/* 性格标签 */}
+                {hasTags && (
+                    <div style={{ marginTop: 8 }}>
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: 8,
+                                justifyContent: 'center',
+                            }}
+                        >
+                            {tagList.map((tag, index) => {
+                                const palette = tagPalette[index % tagPalette.length]
+                                return (
+                                    <span
+                                        key={`${tag}-${index}`}
+                                        style={{
+                                            padding: '2px 8px',
+                                            borderRadius: 8,
+                                            backgroundColor: palette.bg,
+                                            color: palette.text,
+                                            fontSize: 12,
+                                            lineHeight: '16px',
+                                            fontWeight: 500,
+                                            maxWidth: '100%',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                        }}
+                                        title={tag}
+                                    >
+                                        {tag}
+                                    </span>
+                                )
+                            })}
+                            {personalityTags.length > tagList.length && (
+                                <span
+                                    style={{
+                                        padding: '2px 8px',
+                                        borderRadius: 8,
+                                        backgroundColor: '#f1f5f9',
+                                        color: '#475569',
+                                        fontSize: 12,
+                                        lineHeight: '16px',
+                                        fontWeight: 500,
+                                    }}
+                                    title={personalityTags.join('、')}
+                                >
+                                    +{personalityTags.length - tagList.length}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* 人物关系 */}
+                {hasRelationships && (
+                    <div style={{ marginTop: 8 }}>
+                        <div
+                            style={{
+                                borderTop: '1px solid #e2e8f0',
+                                paddingTop: 8,
+                            }}
+                        >
+                            {relationshipList.map((rel, index) => (
+                                <div
+                                    key={`${rel.relationshipType}-${rel.relatedCharacterName}-${index}`}
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        gap: 6,
+                                        fontSize: 12,
+                                        lineHeight: '16px',
+                                        color: '#475569',
+                                        paddingBottom: index === relationshipList.length - 1 ? 0 : 8,
+                                        marginBottom: index === relationshipList.length - 1 ? 0 : 8,
+                                        borderBottom: index === relationshipList.length - 1 ? 'none' : '1px dashed #e2e8f0',
+                                    }}
+                                    title={`${rel.relationshipType}: ${rel.relatedCharacterName}`}
+                                >
+                                    <span style={{ fontWeight: 700, color: '#334155' }}>
+                                        {rel.relationshipType}:
+                                    </span>
+                                    <span
+                                        style={{
+                                            maxWidth: 120,
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                        }}
+                                    >
+                                        {rel.relatedCharacterName}
+                                    </span>
+                                </div>
+                            ))}
+                            {relationships.length > relationshipList.length && (
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        fontSize: 12,
+                                        lineHeight: '16px',
+                                        color: '#64748b',
+                                    }}
+                                    title={relationships.map(r => `${r.relationshipType}: ${r.relatedCharacterName}`).join('\n')}
+                                >
+                                    还有 {relationships.length - relationshipList.length} 条关系
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 {/* 悬浮操作按钮 */}
                 {hover && (
                     <div
                         style={{
                             position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                            borderRadius: '12px',
+                            left: 8,
+                            right: 8,
+                            bottom: 8,
+                            backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                            borderRadius: 10,
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
                             gap: '8px',
                             zIndex: 10,
+                            padding: 8,
+                            boxShadow: '0 6px 18px rgba(0, 0, 0, 0.18)',
                         }}
                     >
                         <button
@@ -311,6 +441,12 @@ export class CharacterCardShapeUtil extends BaseBoxShapeUtil<ICharacterCardShape
         personalityTags: T.arrayOf(T.string),
         skills: T.arrayOf(T.string),
         characterSetting: T.string,
+        relationships: T.arrayOf(
+            T.object({
+                relationshipType: T.string,
+                relatedCharacterName: T.string,
+            })
+        ),
         isSelected: T.boolean,
     }
 
@@ -341,6 +477,7 @@ export class CharacterCardShapeUtil extends BaseBoxShapeUtil<ICharacterCardShape
             personalityTags: [],
             skills: [],
             characterSetting: '',
+            relationships: [],
             isSelected: false,
         }
     }
