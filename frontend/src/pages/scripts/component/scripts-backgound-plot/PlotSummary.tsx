@@ -21,6 +21,7 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
     const [inputMessage, setInputMessage] = useState<string>('');
     const [isStreaming, setIsStreaming] = useState<boolean>(false);
     // const [, setSaving] = useState<boolean>(false);
+    const timerIdsRef = React.useRef<number[]>([]);
 
     // 初始化session_id和对话历史
     useEffect(() => {
@@ -39,6 +40,13 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
         onContentChange(leftContent);
     }, [leftContent, onContentChange]);
 
+    useEffect(() => {
+        return () => {
+            timerIdsRef.current.forEach((id) => window.clearTimeout(id));
+            timerIdsRef.current = [];
+        };
+    }, []);
+
     /*@ts-ignore*/
     // const handleSave = async () => {
     //     if (!project?.id) return;
@@ -56,17 +64,26 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
     //     }
     // };
 
-    const handleSendToAI = () => {
-        if (!inputMessage.trim()) return;
+    const handleCancel = () => {
+        timerIdsRef.current.forEach((id) => window.clearTimeout(id));
+        timerIdsRef.current = [];
+        setIsStreaming(false);
+        setAiThoughts([]);
+        setAiThoughtChains([]);
+    };
+
+    const handleSendToAI = (messageText: string) => {
+        const trimmed = messageText.trim();
+        if (!trimmed) return;
 
         // 添加用户消息到对话历史
-        const userMessage = createDefaultMessage(inputMessage, 'user');
+        const userMessage = createDefaultMessage(trimmed, 'user');
         setAiMessages(prev => [...prev, userMessage]);
         setInputMessage('');
         setIsStreaming(true);
 
         // 模拟AI思考过程
-        setTimeout(() => {
+        timerIdsRef.current.push(window.setTimeout(() => {
             const thought1 = {
                 id: `thought-${Date.now()}-1`,
                 content: '分析剧情梗概的结构完整性...',
@@ -82,10 +99,10 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
             };
             
             setAiThoughts([thought1, thought2]);
-        }, 300);
+        }, 300));
 
         // 模拟AI执行链
-        setTimeout(() => {
+        timerIdsRef.current.push(window.setTimeout(() => {
             const thoughtChain = {
                 id: `chain-${Date.now()}`,
                 thoughts: [
@@ -111,12 +128,12 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
             };
             
             setAiThoughtChains([thoughtChain]);
-        }, 800);
+        }, 800));
 
         // 模拟AI最终响应
-        setTimeout(() => {
+        timerIdsRef.current.push(window.setTimeout(() => {
             const aiResponse = createDefaultMessage(
-                `关于 "${inputMessage}" 的剧情梗概，我为您提供以下专业建议：
+                `关于 "${trimmed}" 的剧情梗概，我为您提供以下专业建议：
 
 🎯 **结构优化建议**
 - 建议采用经典的三幕式结构
@@ -136,14 +153,13 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
             setIsStreaming(false);
             setAiThoughts([]);
             setAiThoughtChains([]);
-        }, 1500);
+        }, 1500));
     };
 
     const handleClearHistory = () => {
         setAiMessages([]);
         setAiThoughts([]);
         setAiThoughtChains([]);
-        message.success('对话历史已清空');
     };
 
     const handleConversationSelect = (conversationId: string) => {
@@ -202,6 +218,7 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
                         inputMessage={inputMessage}
                         onInputChange={setInputMessage}
                         onSend={handleSendToAI}
+                        onCancel={handleCancel}
                         onClearHistory={handleClearHistory}
                         onConversationSelect={handleConversationSelect}
                         disabledSend={!inputMessage.trim()}

@@ -11,6 +11,7 @@ import {
     createDefaultMessage,
     createDefaultConversation
 } from '@/api/types/ai-chat-types.ts';
+import {streamBrainstormingChat} from '@/api/service/brainstorming-chat.ts';
 
 interface BackgroundSettingProps {
     project: ScriptProject | null;
@@ -28,6 +29,10 @@ const BackgroundSetting: React.FC<BackgroundSettingProps> = ({project, onContent
     const [isStreaming, setIsStreaming] = useState<boolean>(false);
     const [sessionId, setSessionId] = useState<string>('');
     // const [, setSaving] = useState<boolean>(false);
+    const abortRef = React.useRef<AbortController | null>(null);
+    const assistantMessageIdRef = React.useRef<string | null>(null);
+    const pendingDeltaRef = React.useRef<string>('');
+    const flushHandleRef = React.useRef<number | null>(null);
 
     // 初始化session_id和对话历史
     useEffect(() => {
@@ -46,6 +51,17 @@ const BackgroundSetting: React.FC<BackgroundSettingProps> = ({project, onContent
         onContentChange(leftContent);
     }, [leftContent, onContentChange]);
 
+    useEffect(() => {
+        return () => {
+            abortRef.current?.abort();
+            abortRef.current = null;
+            if (flushHandleRef.current !== null) {
+                window.clearTimeout(flushHandleRef.current);
+                flushHandleRef.current = null;
+            }
+        };
+    }, []);
+
     /*@ts-ignore*/
     // const handleSave = async () => {
     //     if (!project?.id) return;
@@ -63,90 +79,119 @@ const BackgroundSetting: React.FC<BackgroundSettingProps> = ({project, onContent
     //     }
     // };
 
-    const handleSendToAI = () => {
-        if (!inputMessage.trim()) return;
+    const scheduleFlush = () => {
+        if (flushHandleRef.current !== null) return;
+        flushHandleRef.current = window.setTimeout(() => {
+            flushHandleRef.current = null;
+            const delta = pendingDeltaRef.current;
+            if (!delta) return;
+            pendingDeltaRef.current = '';
+            const assistantId = assistantMessageIdRef.current;
+            if (!assistantId) return;
+            setAiMessages((prev) => {
+                const idx = prev.findIndex((item) => item.id === assistantId);
+                if (idx === -1) return prev;
+                const next = [...prev];
+                const current = next[idx];
+                next[idx] = {...current, text: `${current.text}${delta}`, status: 'received'};
+                return next;
+            });
+        }, 16);
+    };
 
-        // 添加用户消息到对话历史
-        const userMessage = createDefaultMessage(inputMessage, 'user');
-        setAiMessages(prev => [...prev, userMessage]);
+    const handleCancel = () => {
+        const controller = abortRef.current;
+        if (!controller) return;
+        controller.abort();
+        abortRef.current = null;
+        assistantMessageIdRef.current = null;
+        pendingDeltaRef.current = '';
+        if (flushHandleRef.current !== null) {
+            window.clearTimeout(flushHandleRef.current);
+            flushHandleRef.current = null;
+        }
+        setIsStreaming(false);
+    };
+
+    const handleSendToAI = async (messageText: string) => {
+        const trimmed = messageText.trim();
+        if (!trimmed) return;
+        if (!sessionId) {
+            message.error('会话尚未初始化');
+            return;
+        }
+
+        abortRef.current?.abort();
+        abortRef.current = new AbortController();
+
+        const userMessage = createDefaultMessage(trimmed, 'user');
+        const assistantMessage = createDefaultMessage('', 'assistant');
+        assistantMessageIdRef.current = assistantMessage.id;
+        setAiMessages((prev) => [...prev, userMessage, assistantMessage]);
+        setAiThoughts([]);
+        setAiThoughtChains([]);
         setInputMessage('');
         setIsStreaming(true);
+        pendingDeltaRef.current = '';
+        if (flushHandleRef.current !== null) {
+            window.clearTimeout(flushHandleRef.current);
+            flushHandleRef.current = null;
+        }
 
-        // 模拟AI思考过程
-        setTimeout(() => {
-            const thought1 = {
-                id: `thought-${Date.now()}-1`,
-                content: '分析用户输入的背景设定需求...',
-                type: 'analyzing' as const,
-                timestamp: Date.now()
-            };
-
-            const thought2 = {
-                id: `thought-${Date.now()}-2`,
-                content: '构思相关的创作建议和扩展方向...',
-                type: 'planning' as const,
-                timestamp: Date.now() + 500
-            };
-
-            setAiThoughts([thought1, thought2]);
-        }, 300);
-
-        // 模拟AI执行链
-        setTimeout(() => {
-            const thoughtChain = {
-                id: `chain-${Date.now()}`,
-                thoughts: [
-                    {
-                        id: `sub-thought-${Date.now()}-1`,
-                        content: '识别关键要素：世界观、时代背景、主要矛盾',
-                        type: 'analyzing' as const,
-                        timestamp: Date.now()
+        try {
+            await streamBrainstormingChat(
+                {
+                    conversationId: sessionId,
+                    message: trimmed,
+                    enableSearch: true,
+                },
+                {
+                    signal: abortRef.current.signal,
+                    timeoutMs: 15000,
+                    maxRetries: 2,
+                    retryDelayMs: 300,
+                    onDelta: (delta) => {
+                        pendingDeltaRef.current += delta;
+                        scheduleFlush();
                     },
-                    {
-                        id: `sub-thought-${Date.now()}-2`,
-                        content: '构建扩展框架：增加细节描述、深化主题内涵',
-                        type: 'planning' as const,
-                        timestamp: Date.now() + 200
-                    }
-                ],
-                finalAnswer: `基于您的背景设定"${inputMessage}"，我为您提供了以下创作建议：
-
-1. 可以进一步细化世界观设定
-2. 建议增加时代背景的具体描述
-3. 可以深入挖掘主要矛盾的核心要素`,
-                timestamp: Date.now() + 800
-            };
-
-            setAiThoughtChains([thoughtChain]);
-        }, 800);
-
-        // 模拟AI最终响应
-        setTimeout(() => {
-            const aiResponse = createDefaultMessage(
-                `感谢您的输入！关于 "${inputMessage}"，我理解这是一个重要的背景设定。
-
-根据您提供的信息，我建议可以从以下几个方面进行扩展：
-
-1. **世界观构建** - 可以增加更多细节描述
-2. **时代特色** - 强化背景的时代感和独特性
-3. **主题深化** - 挖掘更深层次的故事内核
-
-这样可以让您的背景设定更加丰富和有深度。`,
-                'assistant'
+                },
             );
-
-            setAiMessages(prev => [...prev, aiResponse]);
+            if (pendingDeltaRef.current) {
+                scheduleFlush();
+            }
+        } catch (error) {
+            const aborted =
+                (error instanceof DOMException && error.name === 'AbortError') ||
+                (error instanceof Error && error.name === 'AbortError') ||
+                abortRef.current?.signal.aborted;
+            if (!aborted) {
+                const assistantId = assistantMessageIdRef.current;
+                if (assistantId) {
+                    setAiMessages((prev) => {
+                        const idx = prev.findIndex((item) => item.id === assistantId);
+                        if (idx === -1) return prev;
+                        const next = [...prev];
+                        next[idx] = {...next[idx], text: '请求失败，请稍后重试', status: 'error'};
+                        return next;
+                    });
+                }
+            }
+        } finally {
             setIsStreaming(false);
-            setAiThoughts([]);
-            setAiThoughtChains([]);
-        }, 1500);
+            abortRef.current = null;
+            assistantMessageIdRef.current = null;
+            pendingDeltaRef.current = '';
+            if (flushHandleRef.current !== null) {
+                window.clearTimeout(flushHandleRef.current);
+                flushHandleRef.current = null;
+            }
+        }
     };
 
     const handleClearHistory = () => {
         setAiMessages([]);
         setAiThoughts([]);
         setAiThoughtChains([]);
-        message.success('对话历史已清空');
     };
 
     const handleConversationSelect = (conversationId: string) => {
@@ -203,6 +248,7 @@ const BackgroundSetting: React.FC<BackgroundSettingProps> = ({project, onContent
                         inputMessage={inputMessage}
                         onInputChange={setInputMessage}
                         onSend={handleSendToAI}
+                        onCancel={handleCancel}
                         onClearHistory={handleClearHistory}
                         onConversationSelect={handleConversationSelect}
                         disabledSend={!inputMessage.trim()}

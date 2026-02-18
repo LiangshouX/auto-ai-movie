@@ -54,7 +54,7 @@ export const appTheme = {
     avatar: {
       botGradientFrom: '#597EF7',
       botGradientTo: '#85A5FF',
-      size: 64,
+      size: 32,
       iconSize: 24,
       userPalette: [
         ['#34d399', '#06b6d4'],

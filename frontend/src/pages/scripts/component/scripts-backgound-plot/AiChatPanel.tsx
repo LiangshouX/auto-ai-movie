@@ -1,10 +1,11 @@
 import React from 'react';
-import {Card, Flex, Tag, Typography} from 'antd';
-import {XProvider, Bubble, Welcome, Actions, Conversations, Think, ThoughtChain} from '@ant-design/x';
+import {Card, Flex, message, Tag, Typography} from 'antd';
+import {XProvider, Bubble, Welcome, Actions, Conversations, Think, ThoughtChain, Sender} from '@ant-design/x';
 import {SendOutlined, HistoryOutlined, ClearOutlined} from '@ant-design/icons';
 import {ClassNames, keyframes, useTheme} from '@emotion/react';
 import {AiMessage, AiThought, AiThoughtChain, ConversationSession} from '@/api/types/ai-chat-types.ts';
 import type {AppTheme} from '@/theme';
+import {clearBrainstormingConversation} from '@/api/service/brainstorming-chat.ts';
 
 const {Title, Text} = Typography;
 
@@ -18,7 +19,8 @@ interface AiChatPanelProps {
     conversations?: ConversationSession[];
     inputMessage: string;
     onInputChange: (value: string) => void;
-    onSend: () => void;
+    onSend: (message: string) => void;
+    onCancel?: () => void;
     onClearHistory?: () => void;
     onConversationSelect?: (conversationId: string) => void;
     disabledSend?: boolean;
@@ -41,20 +43,32 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
         // onClearHistory, // 暂时注释未使用的参数
         // onConversationSelect, // 暂时注释未使用的参数
         disabledSend = false,
-        // isStreaming = false // 暂时注释未使用的参数
+        isStreaming = false,
         currentUserName,
         userAvatarUrl,
+        onCancel,
+        onClearHistory,
     }
 ) => {
     const theme = useTheme() as AppTheme;
     const activeTab = 'chat'; // 固定显示聊天界面
+    const senderRef = React.useRef<any>(null);
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            onSend();
-        }
-    };
+    React.useEffect(() => {
+        const focusId = window.setTimeout(() => {
+            const ref = senderRef.current;
+            if (!ref) return;
+            if (typeof ref.focus === 'function') {
+                ref.focus();
+                return;
+            }
+            const inputEl = ref.inputElement;
+            if (inputEl && typeof inputEl.focus === 'function') {
+                inputEl.focus();
+            }
+        }, 0);
+        return () => window.clearTimeout(focusId);
+    }, []);
 
     const headerTextEn = theme.aiChat.header.subLineEn;
 
@@ -114,6 +128,22 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
             messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
         }
     }, [messages, thoughts, thoughtChains]);
+
+    const handleClearHistoryClick = async () => {
+        if (!sessionId) {
+            onClearHistory?.();
+            message.success('对话历史已清空');
+            return;
+        }
+
+        try {
+            await clearBrainstormingConversation(sessionId);
+            onClearHistory?.();
+            message.success('对话历史已清空');
+        } catch {
+            message.error('清空失败，请稍后重试');
+        }
+    };
 
     const getUserInitial = () => {
         const base = currentUserName && currentUserName.trim().length > 0 ? currentUserName.trim() : 'U';
@@ -333,7 +363,7 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
                         )}
                     </ClassNames>
                 }
-                style={{height: '100%'}}
+                style={{height: '100%', position: 'relative'}}
                 extra={
                     <Actions
                         items={[
@@ -347,7 +377,7 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
                                 key: 'clear',
                                 icon: <ClearOutlined/>,
                                 label: '清空历史',
-                                // onClick: onClearHistory, // 暂时注释
+                                onItemClick: handleClearHistoryClick,
                                 danger: true,
                             },
                         ]}
@@ -416,7 +446,6 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
                                                     type="button"
                                                     className={css({
                                                         height: theme.aiChat.welcome.buttonHeight,
-                                                        padding: '0 24px',
                                                         borderRadius: theme.radius.lg,
                                                         border: 'none',
                                                         cursor: 'pointer',
@@ -497,44 +526,31 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
                     </div>
 
                     {/* 输入区域 */}
-                    <Flex gap={8}>
-                        <textarea
+                    <Flex gap={8} style={{width: '100%'}}>
+                        <Sender
+                            ref={senderRef}
                             value={inputMessage}
-                            onChange={(e) => onInputChange(e.target.value)}
-                            onKeyDown={handleKeyDown}
+                            onChange={(value) => onInputChange(value)}
+                            onSubmit={(msg) => {
+                                if (isStreaming) return;
+                                onSend(msg);
+                            }}
+                            onCancel={onCancel}
                             placeholder="输入您的问题或想法..."
-                            rows={3}
-                            style={{
-                                flex: 1,
-                                padding: '12px',
-                                border: '1px solid #d9d9d9',
-                                borderRadius: '8px',
-                                resize: 'vertical',
-                                fontFamily: 'inherit',
-                                fontSize: '14px',
-                                lineHeight: '1.5'
-                            }}
-                            aria-label="AI对话输入框"
+                            disabled={false}
+                            loading={isStreaming}
+                            autoSize={{minRows: 2, maxRows: 2}}
+                            style={{width: '100%', maxWidth: '100%'}}
+                            suffix={(_ori, {components}) => (
+                                <Flex gap={8} align="center">
+                                    {isStreaming ? (
+                                        <components.LoadingButton />
+                                    ) : (
+                                        <components.SendButton icon={<SendOutlined />} disabled={disabledSend} />
+                                    )}
+                                </Flex>
+                            )}
                         />
-                        <button
-                            onClick={onSend}
-                            disabled={disabledSend}
-                            style={{
-                                padding: '12px 24px',
-                                backgroundColor: disabledSend ? '#f5f5f5' : '#1677ff',
-                                color: disabledSend ? '#bfbfbf' : 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: disabledSend ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                fontWeight: 500
-                            }}
-                        >
-                            <SendOutlined/>
-                            发送
-                        </button>
                     </Flex>
                 </Flex>
             </Card>
@@ -542,4 +558,3 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
     );
 };
 
-// export default AiChatPanel;
