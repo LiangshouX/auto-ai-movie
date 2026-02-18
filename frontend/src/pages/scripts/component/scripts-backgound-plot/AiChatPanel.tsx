@@ -69,20 +69,6 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
         }, 0);
         return () => window.clearTimeout(focusId);
     }, []);
-
-    const headerTextEn = theme.aiChat.header.subLineEn;
-
-    const headerFadeIn = keyframes`
-        from {
-            opacity: 0;
-            transform: translateY(4px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    `;
-
     const botAvatarPulse = keyframes`
         0% {
             transform: scale(1);
@@ -161,38 +147,6 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
         const index = Math.abs(hash) % palette.length;
         return palette[index];
     };
-
-    const renderAnimatedLine = (text: string, baseDelay: number) => {
-        const duration = theme.motion.headerFadeInDuration;
-        const charDelay = theme.motion.headerCharDelay;
-        return (
-            <ClassNames>
-                {({css}) => (
-                    <span>
-                        {Array.from(text).map((char, index) => {
-                            if (char === ' ') {
-                                return ' ';
-                            }
-                            return (
-                                <span
-                                    key={`${char}-${index}-${baseDelay}`}
-                                    className={css({
-                                        display: 'inline-block',
-                                        opacity: 0,
-                                        animation: `${headerFadeIn} ${duration}ms ${theme.motion.easingEaseOutCubic} forwards`,
-                                        animationDelay: `${baseDelay + index * charDelay}ms`,
-                                    })}
-                                >
-                                    {char}
-                                </span>
-                            );
-                        })}
-                    </span>
-                )}
-            </ClassNames>
-        );
-    };
-
     const renderBotAvatarSvg = () => {
         const size = theme.aiChat.avatar.size;
         const iconSize = theme.aiChat.avatar.iconSize;
@@ -348,17 +302,6 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
                                         </Text>
                                     )}
                                 </Flex>
-                                <div
-                                    className={css({
-                                        marginTop: theme.spacing.sm,
-                                        fontSize: theme.typography.headerSubtitleSize,
-                                        fontWeight: theme.typography.headerWeightMedium,
-                                        color: theme.color.textSecondary,
-                                        lineHeight: 1.6,
-                                    })}
-                                >
-                                    {renderAnimatedLine(headerTextEn, 0)}
-                                </div>
                             </div>
                         )}
                     </ClassNames>
