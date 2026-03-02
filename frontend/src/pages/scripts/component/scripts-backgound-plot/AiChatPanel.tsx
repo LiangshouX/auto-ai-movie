@@ -1,11 +1,18 @@
 import React from 'react';
-import {Card, Flex, message, Tag, Typography} from 'antd';
+import {Card, Flex, Input, message, Modal, Tag, Typography} from 'antd';
 import {XProvider, Bubble, Welcome, Actions, Conversations, Think, ThoughtChain, Sender} from '@ant-design/x';
 import {SendOutlined, HistoryOutlined, ClearOutlined} from '@ant-design/icons';
 import {ClassNames, keyframes, useTheme} from '@emotion/react';
 import {AiMessage, AiThought, AiThoughtChain, ConversationSession} from '@/api/types/ai-chat-types.ts';
 import type {AppTheme} from '@/theme';
 import {clearBrainstormingConversation} from '@/api/service/brainstorming-chat.ts';
+import {
+    deleteConversation,
+    listConversations,
+    markConversationRead,
+    renameConversation,
+} from '@/api/service/conversations.ts';
+import type {ConversationSummary} from '@/api/types/conversation-types.ts';
 
 const {Title, Text} = Typography;
 
@@ -36,12 +43,11 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
         messages,
         thoughts = [],
         thoughtChains = [],
-        conversations = [],
         inputMessage,
         onInputChange,
         onSend,
         // onClearHistory, // 暂时注释未使用的参数
-        // onConversationSelect, // 暂时注释未使用的参数
+        onConversationSelect,
         disabledSend = false,
         isStreaming = false,
         currentUserName,
@@ -51,8 +57,15 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
     }
 ) => {
     const theme = useTheme() as AppTheme;
-    const activeTab = 'chat'; // 固定显示聊天界面
     const senderRef = React.useRef<any>(null);
+    const [expandedMap, setExpandedMap] = React.useState<Record<string, boolean>>({});
+    const maxInlineChars = 5000;
+    const [historyOpen, setHistoryOpen] = React.useState(false);
+    const [historyLoading, setHistoryLoading] = React.useState(false);
+    const [historyError, setHistoryError] = React.useState<string | null>(null);
+    const [historyItems, setHistoryItems] = React.useState<ConversationSummary[]>([]);
+    const [draftItems, setDraftItems] = React.useState<ConversationSummary[]>([]);
+    const [activeConversationId, setActiveConversationId] = React.useState<string | undefined>(sessionId);
 
     React.useEffect(() => {
         const focusId = window.setTimeout(() => {
@@ -115,6 +128,99 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
         }
     }, [messages, thoughts, thoughtChains]);
 
+    React.useEffect(() => {
+        setActiveConversationId(sessionId);
+    }, [sessionId]);
+
+    const refreshHistory = React.useCallback(async () => {
+        setHistoryLoading(true);
+        setHistoryError(null);
+        try {
+            const resp = await listConversations({page: 1, size: 50});
+            setHistoryItems(resp.items ?? []);
+            setDraftItems((prev) => {
+                const ids = new Set((resp.items ?? []).map((i) => i.id));
+                return prev.filter((d) => !ids.has(d.id));
+            });
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : '加载失败';
+            setHistoryError(msg);
+            message.error('历史对话加载失败');
+        } finally {
+            setHistoryLoading(false);
+        }
+    }, []);
+
+    React.useEffect(() => {
+        void refreshHistory();
+    }, [refreshHistory]);
+
+    const formatTime = (iso: string | null) => {
+        if (!iso) return '暂无消息';
+        const date = new Date(iso);
+        if (Number.isNaN(date.getTime())) return '暂无消息';
+        return date.toLocaleString();
+    };
+
+    const generateConversationId = () => {
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            return crypto.randomUUID();
+        }
+        return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    };
+
+    const visibleConversations = React.useMemo(() => {
+        const ids = new Set(historyItems.map((i) => i.id));
+        return [...draftItems.filter((d) => !ids.has(d.id)), ...historyItems];
+    }, [draftItems, historyItems]);
+
+    const toggleExpanded = React.useCallback((messageId: string) => {
+        setExpandedMap((prev) => ({...prev, [messageId]: !prev[messageId]}));
+    }, []);
+
+    const renderMessageContent = React.useCallback(
+        (text: string, messageId: string) => {
+            const normalized = text ?? '';
+            const isLong = normalized.length > maxInlineChars;
+            const expanded = expandedMap[messageId] ?? false;
+            const display = isLong && !expanded ? `${normalized.slice(0, maxInlineChars)}…` : normalized;
+            return (
+                <div style={{whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'anywhere'}}>
+                    {display}
+                    {isLong && (
+                        <div style={{marginTop: 8}}>
+                            <Typography.Link onClick={() => toggleExpanded(messageId)}>
+                                {expanded ? '收起' : '展开'}
+                            </Typography.Link>
+                            {!expanded && (
+                                <Text type="secondary" style={{marginLeft: 8}}>
+                                    {maxInlineChars}/{normalized.length} 字符
+                                </Text>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        },
+        [expandedMap, toggleExpanded],
+    );
+
+    const bubbleItems = React.useMemo(() => {
+        type XMessageStatus = 'local' | 'loading' | 'updating' | 'success' | 'error' | 'abort';
+        const toStatus = (s?: AiMessage['status']): XMessageStatus | undefined => {
+            if (!s) return undefined;
+            if (s === 'sending') return 'loading';
+            if (s === 'error') return 'error';
+            return 'success';
+        };
+        return messages.map((m) => ({
+            key: m.id,
+            role: m.role === 'assistant' ? 'ai' : 'user',
+            content: m.text,
+            status: toStatus(m.status),
+        }));
+    }, [messages]);
+
     const handleClearHistoryClick = async () => {
         if (!sessionId) {
             onClearHistory?.();
@@ -129,6 +235,73 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
         } catch {
             message.error('清空失败，请稍后重试');
         }
+    };
+
+    const handleCreateConversation = async () => {
+        const id = generateConversationId();
+        setDraftItems((prev) => [
+            {id, title: '新对话', lastMessageAt: null, unreadCount: 0},
+            ...prev,
+        ]);
+        setHistoryOpen(true);
+        setActiveConversationId(id);
+        onConversationSelect?.(id);
+    };
+
+    const handleRenameConversation = async (id: string, currentTitle: string) => {
+        let nextTitle = currentTitle;
+        Modal.confirm({
+            title: '重命名会话',
+            content: (
+                <Input
+                    defaultValue={currentTitle}
+                    maxLength={60}
+                    onChange={(e) => {
+                        nextTitle = e.target.value;
+                    }}
+                />
+            ),
+            okText: '确认',
+            cancelText: '取消',
+            onOk: async () => {
+                const trimmed = nextTitle.trim();
+                if (!trimmed) {
+                    message.error('标题不能为空');
+                    throw new Error('empty');
+                }
+                const exists = historyItems.some((item) => item.id === id);
+                if (exists) {
+                    await renameConversation(id, trimmed);
+                    await refreshHistory();
+                } else {
+                    setDraftItems((prev) => prev.map((d) => (d.id === id ? {...d, title: trimmed} : d)));
+                }
+            },
+        });
+    };
+
+    const handleDeleteConversation = async (id: string) => {
+        Modal.confirm({
+            title: '删除会话',
+            content: '删除后将无法恢复，确认继续？',
+            okText: '删除',
+            cancelText: '取消',
+            okButtonProps: {danger: true},
+            onOk: async () => {
+                const exists = historyItems.some((item) => item.id === id);
+                if (exists) {
+                    await deleteConversation(id);
+                    await refreshHistory();
+                } else {
+                    setDraftItems((prev) => prev.filter((d) => d.id !== id));
+                }
+                if (activeConversationId === id) {
+                    const next = visibleConversations.find((item) => item.id !== id)?.id;
+                    setActiveConversationId(next);
+                    if (next) onConversationSelect?.(next);
+                }
+            },
+        });
     };
 
     const getUserInitial = () => {
@@ -306,7 +479,16 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
                         )}
                     </ClassNames>
                 }
-                style={{height: '100%', position: 'relative'}}
+                style={{height: '100%', position: 'relative', display: 'flex', flexDirection: 'column'}}
+                styles={{
+                    body: {
+                        flex: 1,
+                        minHeight: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden',
+                    },
+                }}
                 extra={
                     <Actions
                         items={[
@@ -314,7 +496,7 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
                                 key: 'history',
                                 icon: <HistoryOutlined/>,
                                 label: '对话历史',
-                                // onClick: () => setActiveTab('history'), // 暂时注释
+                                onItemClick: () => setHistoryOpen((v) => !v),
                             },
                             {
                                 key: 'clear',
@@ -327,22 +509,85 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
                     />
                 }
             >
-                <Flex vertical style={{
-                    height: 'calc(100% - 80px)',
-                    justifyContent: 'space-between'
-                }}>
-                    {/* 主要内容区域 */}
-                    <div 
-                        ref={messagesContainerRef}
-                        style={{
-                            flex: 1,
-                            overflowY: 'auto',
-                            marginBottom: 16,
-                            minHeight: 'calc(100vh - 300px)',
-                            maxHeight: 'calc(100vh - 300px)'
-                        }}>
-                        {activeTab === 'chat' ? (
-                            messages.length === 0 ? (
+                <Flex style={{flex: 1, minHeight: 0, gap: 16, overflow: 'hidden'}}>
+                    {historyOpen && (
+                        <div style={{width: 320, minWidth: 260, height: '100%', overflow: 'auto'}}>
+                            <Flex justify="space-between" align="center" style={{marginBottom: 12}}>
+                                <Text strong>历史对话</Text>
+                                <Typography.Link onClick={handleCreateConversation}>新建</Typography.Link>
+                            </Flex>
+                            {historyError ? (
+                                <Welcome title="加载失败" description={historyError} icon={renderBotAvatar()} />
+                            ) : visibleConversations.length === 0 ? (
+                                <Welcome title="暂无历史对话" description="点击右上角“新建”开始新的会话。" icon={renderBotAvatar()} />
+                            ) : (
+                                <Conversations
+                                    activeKey={activeConversationId}
+                                    items={visibleConversations.map((c) => ({
+                                        key: c.id,
+                                        label: (
+                                            <Flex justify="space-between" align="center" style={{width: '100%'}}>
+                                                <div style={{minWidth: 0}}>
+                                                    <Text ellipsis style={{display: 'block'}}>
+                                                        {c.title}
+                                                    </Text>
+                                                    <Text type="secondary" style={{fontSize: 12}}>
+                                                        {formatTime(c.lastMessageAt)}
+                                                    </Text>
+                                                </div>
+                                                {c.unreadCount > 0 && (
+                                                    <Tag color="red" style={{marginInlineStart: 8}}>
+                                                        {c.unreadCount}
+                                                    </Tag>
+                                                )}
+                                            </Flex>
+                                        ),
+                                    }))}
+                                    menu={(conversation) => ({
+                                        items: [
+                                            {key: 'rename', label: '重命名'},
+                                            {key: 'delete', label: '删除', danger: true},
+                                        ],
+                                        onClick: ({key}) => {
+                                            const id = conversation.key;
+                                            const found = visibleConversations.find((x) => x.id === id);
+                                            const currentTitle = found?.title ?? '未命名对话';
+                                            if (key === 'rename') {
+                                                void handleRenameConversation(id, currentTitle);
+                                            }
+                                            if (key === 'delete') {
+                                                void handleDeleteConversation(id);
+                                            }
+                                        },
+                                    })}
+                                    onActiveChange={async (id) => {
+                                        setActiveConversationId(id);
+                                        try {
+                                            await markConversationRead(id);
+                                            await refreshHistory();
+                                        } catch {
+                                            void 0;
+                                        }
+                                        onConversationSelect?.(id);
+                                    }}
+                                    styles={{
+                                        creation: {display: 'none'},
+                                    }}
+                                />
+                            )}
+                            {historyLoading && (
+                                <Text type="secondary" style={{display: 'block', marginTop: 8}}>
+                                    加载中…
+                                </Text>
+                            )}
+                        </div>
+                    )}
+                    <Flex vertical style={{flex: 1, minWidth: 0, minHeight: 0, justifyContent: 'space-between'}}>
+                        <div
+                            ref={messagesContainerRef}
+                            style={{flex: 1, overflowY: 'auto', marginBottom: 16, minHeight: 0}}
+                        >
+                            {messages.length === 0 ? (
                                 <ClassNames>
                                     {({css}) => (
                                         <Welcome
@@ -416,84 +661,67 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
                                     )}
                                 </ClassNames>
                             ) : (
-                                <Flex vertical gap={16}>
-                                    {messages.map((message) => (
-                                        <Bubble
-                                            key={message.id}
-                                            placement={message.role === 'user' ? 'end' : 'start'}
-                                            avatar={message.role === 'assistant' ? renderBotAvatar() : renderUserAvatar()}
-                                            content={message.text}
-                                            variant={message.role === 'user' ? 'filled' : 'outlined'}
+                                <Flex vertical gap={16} style={{minHeight: 0}}>
+                                    <div style={{display: 'flex', flexDirection: 'column', minHeight: 0}}>
+                                        <Bubble.List
+                                            autoScroll
+                                            items={bubbleItems}
+                                            role={{
+                                                ai: {
+                                                    placement: 'start',
+                                                    avatar: renderBotAvatar(),
+                                                    variant: 'outlined',
+                                                    contentRender: (content, info) =>
+                                                        renderMessageContent(String(content ?? ''), String(info.key ?? '')),
+                                                },
+                                                user: {
+                                                    placement: 'end',
+                                                    avatar: renderUserAvatar(),
+                                                    variant: 'filled',
+                                                    contentRender: (content, info) =>
+                                                        renderMessageContent(String(content ?? ''), String(info.key ?? '')),
+                                                },
+                                            }}
                                         />
-                                    ))}
+                                    </div>
 
-                                    {/* 渲染思考过程 */}
                                     {thoughts.map((thought) => (
-                                        <Think
-                                            key={thought.id}
-                                            content={thought.content}
-                                            // type={thought.type} // 暂时移除type属性，使用默认值
-                                            // timestamp={thought.timestamp} // 暂时移除timestamp属性
-                                        />
+                                        <Think key={thought.id} content={thought.content} />
                                     ))}
 
-                                    {/* 渲染执行链 */}
                                     {thoughtChains.map((chain) => (
-                                        <ThoughtChain
-                                            key={chain.id}
-                                            // thoughts={chain.thoughts} // 暂时移除thoughts属性
-                                            content={chain.finalAnswer}
-                                            // timestamp={chain.timestamp} // 暂时移除timestamp属性
-                                        />
+                                        <ThoughtChain key={chain.id} content={chain.finalAnswer} />
                                     ))}
-                                </Flex>
-                            )
-                        ) : (
-                            /* 对话历史管理 */
-                            <Conversations
-                                items={conversations.map(conv => ({
-                                    key: conv.id,
-                                    title: conv.title,
-                                    description: `${conv.messageCount} 条消息`,
-                                    datetime: new Date(conv.updatedAt).toLocaleString(),
-                                }))}
-                                onSelect={(keys) => {
-                                    if (Array.isArray(keys) && keys.length > 0) {
-                                        // onConversationSelect?.(keys[0]); // 暂时注释
-                                        console.log('Selected conversation:', keys[0]);
-                                    }
-                                }}
-                                activeKey={sessionId}
-                            />
-                        )}
-                    </div>
-
-                    {/* 输入区域 */}
-                    <Flex gap={8} style={{width: '100%'}}>
-                        <Sender
-                            ref={senderRef}
-                            value={inputMessage}
-                            onChange={(value) => onInputChange(value)}
-                            onSubmit={(msg) => {
-                                if (isStreaming) return;
-                                onSend(msg);
-                            }}
-                            onCancel={onCancel}
-                            placeholder="输入您的问题或想法..."
-                            disabled={false}
-                            loading={isStreaming}
-                            autoSize={{minRows: 2, maxRows: 2}}
-                            style={{width: '100%', maxWidth: '100%'}}
-                            suffix={(_ori, {components}) => (
-                                <Flex gap={8} align="center">
-                                    {isStreaming ? (
-                                        <components.LoadingButton />
-                                    ) : (
-                                        <components.SendButton icon={<SendOutlined />} disabled={disabledSend} />
-                                    )}
                                 </Flex>
                             )}
-                        />
+                        </div>
+
+                        <Flex gap={8} style={{width: '100%'}}>
+                            <Sender
+                                ref={senderRef}
+                                value={inputMessage}
+                                onChange={(value) => onInputChange(value)}
+                                onSubmit={(msg) => {
+                                    if (isStreaming) return;
+                                    onSend(msg);
+                                }}
+                                onCancel={onCancel}
+                                placeholder="输入您的问题或想法..."
+                                disabled={false}
+                                loading={isStreaming}
+                                autoSize={{minRows: 2, maxRows: 6}}
+                                style={{width: '100%', maxWidth: '100%'}}
+                                suffix={(_ori, {components}) => (
+                                    <Flex gap={8} align="center">
+                                        {isStreaming ? (
+                                            <components.LoadingButton />
+                                        ) : (
+                                            <components.SendButton icon={<SendOutlined />} disabled={disabledSend} />
+                                        )}
+                                    </Flex>
+                                )}
+                            />
+                        </Flex>
                     </Flex>
                 </Flex>
             </Card>

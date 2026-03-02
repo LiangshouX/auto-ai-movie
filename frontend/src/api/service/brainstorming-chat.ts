@@ -2,6 +2,8 @@ export type BrainstormingChatStreamRequest = {
     conversationId: string;
     message: string;
     enableSearch?: boolean;
+    projectId?: string;
+    conversationTitle?: string;
 };
 
 export type BrainstormingChatStreamOptions = {
@@ -66,7 +68,7 @@ export const consumeBrainstormingStream = async (
     const decoder = new TextDecoder();
     let buffer = '';
 
-    while (true) {
+    for (;;) {
         if (signal.aborted) {
             throw new DOMException('Aborted', 'AbortError');
         }
@@ -80,7 +82,7 @@ export const consumeBrainstormingStream = async (
         }
 
         buffer += chunk;
-        while (true) {
+        for (;;) {
             const sepIndex = buffer.indexOf('\n\n');
             if (sepIndex === -1) break;
             const rawEvent = buffer.slice(0, sepIndex);
@@ -120,6 +122,8 @@ export const fetchBrainstormingChatStream = async (
             conversationId: request.conversationId,
             message: request.message,
             enableSearch: request.enableSearch ?? true,
+            projectId: request.projectId,
+            conversationTitle: request.conversationTitle,
         }),
         signal,
     });
@@ -134,7 +138,7 @@ export const streamBrainstormingChat = async (
     const retryDelayMs = options.retryDelayMs ?? 300;
 
     let attempt = 0;
-    while (true) {
+    for (;;) {
         if (options.signal.aborted) {
             throw new DOMException('Aborted', 'AbortError');
         }

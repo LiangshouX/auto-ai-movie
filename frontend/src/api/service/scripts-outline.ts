@@ -10,15 +10,15 @@ import {
 
 const sanitizeSections = (sections: any[]) =>
   (sections || []).map((section) => {
-    const { createdAt, updatedAt, ...sectionRest } = section || {};
+    const { createdAt: _createdAt, updatedAt: _updatedAt, ...sectionRest } = section || {};
     return {
       ...sectionRest,
       chapters: (sectionRest.chapters || []).map((chapter: any) => {
-        const { createdAt: cAt, updatedAt: uAt, ...chapterRest } = chapter || {};
+        const { createdAt: _cAt, updatedAt: _uAt, ...chapterRest } = chapter || {};
         return {
           ...chapterRest,
           episodes: (chapterRest.episodes || []).map((episode: any) => {
-            const { createdAt: eAt, updatedAt: eUt, ...episodeRest } = episode || {};
+            const { createdAt: _eAt, updatedAt: _eUt, ...episodeRest } = episode || {};
             return episodeRest;
           })
         };

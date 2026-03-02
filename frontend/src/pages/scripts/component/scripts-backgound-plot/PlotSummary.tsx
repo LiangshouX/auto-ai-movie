@@ -3,7 +3,9 @@ import {Col, message, Row} from 'antd';
 import {ScriptProject} from '@/api/types/project-types.ts';
 import {AiChatPanel} from './AiChatPanel.tsx';
 import {TextEditorPanel} from './TextEditorPanel.tsx';
-import {AiMessage, AiThought, AiThoughtChain, ConversationSession, createDefaultMessage, createDefaultConversation} from '@/api/types/ai-chat-types.ts';
+import {AiMessage, AiThought, AiThoughtChain, createDefaultMessage} from '@/api/types/ai-chat-types.ts';
+import {streamBrainstormingChat} from '@/api/service/brainstorming-chat.ts';
+import {getConversationMessages, markConversationRead} from '@/api/service/conversations.ts';
 
 interface PlotSummaryProps {
     project: ScriptProject | null;
@@ -17,23 +19,32 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
     const [aiMessages, setAiMessages] = useState<AiMessage[]>([]);
     const [aiThoughts, setAiThoughts] = useState<AiThought[]>([]);
     const [aiThoughtChains, setAiThoughtChains] = useState<AiThoughtChain[]>([]);
-    const [conversations, setConversations] = useState<ConversationSession[]>([]);
     const [inputMessage, setInputMessage] = useState<string>('');
     const [isStreaming, setIsStreaming] = useState<boolean>(false);
     // const [, setSaving] = useState<boolean>(false);
-    const timerIdsRef = React.useRef<number[]>([]);
+    const abortRef = React.useRef<AbortController | null>(null);
+    const assistantMessageIdRef = React.useRef<string | null>(null);
+    const pendingDeltaRef = React.useRef<string>('');
+    const flushHandleRef = React.useRef<number | null>(null);
 
-    // 初始化session_id和对话历史
+    // 初始化session_id
     useEffect(() => {
-        if (project?.id) {
-            const sessionId = `${project.id}-${Date.now()}`;
-            setSessionId(sessionId);
-            
-            // 创建初始对话
-            const initialConversation = createDefaultConversation(project.id, '剧情梗概讨论');
-            setConversations([initialConversation]);
-        }
+        if (!project?.id) return () => {};
+        setSessionId('');
+        setAiMessages([]);
+        setAiThoughts([]);
+        setAiThoughtChains([]);
+        setInputMessage('');
+        setIsStreaming(false);
+        return () => {};
     }, [project]);
+
+    const generateConversationId = () => {
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            return crypto.randomUUID();
+        }
+        return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    };
 
     // 当左侧内容变化时，通知父组件
     useEffect(() => {
@@ -42,8 +53,12 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
 
     useEffect(() => {
         return () => {
-            timerIdsRef.current.forEach((id) => window.clearTimeout(id));
-            timerIdsRef.current = [];
+            abortRef.current?.abort();
+            abortRef.current = null;
+            if (flushHandleRef.current !== null) {
+                window.clearTimeout(flushHandleRef.current);
+                flushHandleRef.current = null;
+            }
         };
     }, []);
 
@@ -64,96 +79,113 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
     //     }
     // };
 
-    const handleCancel = () => {
-        timerIdsRef.current.forEach((id) => window.clearTimeout(id));
-        timerIdsRef.current = [];
-        setIsStreaming(false);
-        setAiThoughts([]);
-        setAiThoughtChains([]);
+    const scheduleFlush = () => {
+        if (flushHandleRef.current !== null) return;
+        flushHandleRef.current = window.setTimeout(() => {
+            flushHandleRef.current = null;
+            const delta = pendingDeltaRef.current;
+            if (!delta) return;
+            pendingDeltaRef.current = '';
+            const assistantId = assistantMessageIdRef.current;
+            if (!assistantId) return;
+            setAiMessages((prev) => {
+                const idx = prev.findIndex((item) => item.id === assistantId);
+                if (idx === -1) return prev;
+                const next = [...prev];
+                const current = next[idx];
+                next[idx] = {...current, text: `${current.text}${delta}`, status: 'received'};
+                return next;
+            });
+        }, 16);
     };
 
-    const handleSendToAI = (messageText: string) => {
+    const handleCancel = () => {
+        const controller = abortRef.current;
+        if (!controller) return;
+        controller.abort();
+        abortRef.current = null;
+        assistantMessageIdRef.current = null;
+        pendingDeltaRef.current = '';
+        if (flushHandleRef.current !== null) {
+            window.clearTimeout(flushHandleRef.current);
+            flushHandleRef.current = null;
+        }
+        setIsStreaming(false);
+    };
+
+    const handleSendToAI = async (messageText: string) => {
         const trimmed = messageText.trim();
         if (!trimmed) return;
+        const conversationId = sessionId || generateConversationId();
+        if (!sessionId) setSessionId(conversationId);
 
-        // 添加用户消息到对话历史
+        abortRef.current?.abort();
+        abortRef.current = new AbortController();
+
         const userMessage = createDefaultMessage(trimmed, 'user');
-        setAiMessages(prev => [...prev, userMessage]);
+        const assistantMessage = createDefaultMessage('', 'assistant');
+        assistantMessageIdRef.current = assistantMessage.id;
+        setAiMessages((prev) => [...prev, userMessage, assistantMessage]);
         setInputMessage('');
+        setAiThoughts([]);
+        setAiThoughtChains([]);
         setIsStreaming(true);
+        pendingDeltaRef.current = '';
+        if (flushHandleRef.current !== null) {
+            window.clearTimeout(flushHandleRef.current);
+            flushHandleRef.current = null;
+        }
 
-        // 模拟AI思考过程
-        timerIdsRef.current.push(window.setTimeout(() => {
-            const thought1 = {
-                id: `thought-${Date.now()}-1`,
-                content: '分析剧情梗概的结构完整性...',
-                type: 'analyzing' as const,
-                timestamp: Date.now()
-            };
-            
-            const thought2 = {
-                id: `thought-${Date.now()}-2`,
-                content: '评估故事节奏和吸引力...',
-                type: 'planning' as const,
-                timestamp: Date.now() + 500
-            };
-            
-            setAiThoughts([thought1, thought2]);
-        }, 300));
-
-        // 模拟AI执行链
-        timerIdsRef.current.push(window.setTimeout(() => {
-            const thoughtChain = {
-                id: `chain-${Date.now()}`,
-                thoughts: [
-                    {
-                        id: `sub-thought-${Date.now()}-1`,
-                        content: '检查三幕式结构：开端、发展、结局',
-                        type: 'analyzing' as const,
-                        timestamp: Date.now()
+        try {
+            await streamBrainstormingChat(
+                {
+                    conversationId,
+                    message: trimmed,
+                    enableSearch: true,
+                    projectId: project?.id ?? undefined,
+                    conversationTitle: '剧情梗概讨论'
+                },
+                {
+                    signal: abortRef.current.signal,
+                    timeoutMs: 15000,
+                    maxRetries: 2,
+                    retryDelayMs: 300,
+                    onDelta: (delta) => {
+                        pendingDeltaRef.current += delta;
+                        scheduleFlush();
                     },
-                    {
-                        id: `sub-thought-${Date.now()}-2`,
-                        content: '优化情节转折点的设置',
-                        type: 'planning' as const,
-                        timestamp: Date.now() + 200
-                    }
-                ],
-                finalAnswer: `您的剧情梗概结构清晰，建议加强以下几点：
-
-1. 明确主要冲突的核心
-2. 强化关键转折点的戏剧性
-3. 完善结局的情感共鸣`,
-                timestamp: Date.now() + 800
-            };
-            
-            setAiThoughtChains([thoughtChain]);
-        }, 800));
-
-        // 模拟AI最终响应
-        timerIdsRef.current.push(window.setTimeout(() => {
-            const aiResponse = createDefaultMessage(
-                `关于 "${trimmed}" 的剧情梗概，我为您提供以下专业建议：
-
-🎯 **结构优化建议**
-- 建议采用经典的三幕式结构
-- 强化开篇的钩子设计
-- 完善高潮部分的戏剧张力
-
-⚡ **节奏把控**
-- 合理分配各部分篇幅
-- 设置适当的悬念节点
-- 保持叙事节奏的紧凑性
-
-这样的调整能让您的剧情更加引人入胜！`,
-                'assistant'
+                },
             );
-            
-            setAiMessages(prev => [...prev, aiResponse]);
+            if (pendingDeltaRef.current) {
+                scheduleFlush();
+            }
+        } catch (error) {
+            const aborted =
+                (error instanceof DOMException && error.name === 'AbortError') ||
+                (error instanceof Error && error.name === 'AbortError') ||
+                abortRef.current?.signal.aborted;
+            if (!aborted) {
+                const assistantId = assistantMessageIdRef.current;
+                if (assistantId) {
+                    setAiMessages((prev) => {
+                        const idx = prev.findIndex((item) => item.id === assistantId);
+                        if (idx === -1) return prev;
+                        const next = [...prev];
+                        next[idx] = {...next[idx], text: '请求失败，请稍后重试', status: 'error'};
+                        return next;
+                    });
+                }
+            }
+        } finally {
             setIsStreaming(false);
-            setAiThoughts([]);
-            setAiThoughtChains([]);
-        }, 1500));
+            abortRef.current = null;
+            assistantMessageIdRef.current = null;
+            pendingDeltaRef.current = '';
+            if (flushHandleRef.current !== null) {
+                window.clearTimeout(flushHandleRef.current);
+                flushHandleRef.current = null;
+            }
+        }
     };
 
     const handleClearHistory = () => {
@@ -162,9 +194,28 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
         setAiThoughtChains([]);
     };
 
-    const handleConversationSelect = (conversationId: string) => {
-        // 切换对话会话的逻辑
-        message.info(`切换到会话: ${conversationId}`);
+    const handleConversationSelect = async (conversationId: string) => {
+        handleCancel();
+        setSessionId(conversationId);
+        setAiThoughts([]);
+        setAiThoughtChains([]);
+        setIsStreaming(false);
+        setInputMessage('');
+        try {
+            const history = await getConversationMessages(conversationId);
+            setAiMessages(
+                history.map((m, idx) => ({
+                    id: `hist-${conversationId}-${idx}`,
+                    role: m.role === 'assistant' ? 'assistant' : 'user',
+                    text: m.content ?? '',
+                    timestamp: m.timestamp || Date.now(),
+                    status: m.role === 'assistant' ? 'received' : 'sent',
+                })),
+            );
+            await markConversationRead(conversationId);
+        } catch {
+            message.error('加载会话失败');
+        }
     };
 
 
@@ -214,7 +265,6 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
                         messages={aiMessages}
                         thoughts={aiThoughts}
                         thoughtChains={aiThoughtChains}
-                        conversations={conversations}
                         inputMessage={inputMessage}
                         onInputChange={setInputMessage}
                         onSend={handleSendToAI}

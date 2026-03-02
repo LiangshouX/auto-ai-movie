@@ -71,6 +71,7 @@ const saveSaveQueue = (items: SaveQueueItem[]) => {
   try {
     localStorage.setItem(SAVE_QUEUE_KEY, JSON.stringify(items.slice(0, SAVE_QUEUE_MAX)));
   } catch {
+    void 0;
   }
 };
 
@@ -197,7 +198,7 @@ const EpisodeEditorDrawer: React.FC<EpisodeEditorDrawerProps> = ({
         updatedAt: data.updatedAt
       });
       setSaveStatus('saved');
-    } catch (error: any) {
+    } catch {
       if (controller.signal.aborted) return;
       message.warning('获取桥段内容失败，将以草稿模式打开');
       const title = normalizeString(episode.episodeTitle);

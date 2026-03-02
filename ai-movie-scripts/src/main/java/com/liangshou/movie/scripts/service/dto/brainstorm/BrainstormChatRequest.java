@@ -7,4 +7,6 @@ public class BrainstormChatRequest {
     private String conversationId;
     private String message;
     private Boolean enableSearch;
+    private String projectId;
+    private String conversationTitle;
 }

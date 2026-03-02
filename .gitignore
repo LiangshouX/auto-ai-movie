@@ -36,3 +36,4 @@ replay_pid*
 */package-lock.json
 */dist
 *.iml
+*/storybook-static

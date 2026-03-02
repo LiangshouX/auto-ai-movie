@@ -34,7 +34,13 @@ public class CreativeIdeaBrainstormingController {
                 : UUID.randomUUID().toString();
         boolean enableSearch = request.getEnableSearch() == null || request.getEnableSearch();
 
-        String result = brainstormingAgent.chat(conversationId, request.getMessage(), enableSearch);
+        String result = brainstormingAgent.chat(
+                conversationId,
+                request.getMessage(),
+                enableSearch,
+                request.getProjectId(),
+                request.getConversationTitle()
+        );
 
         Map<String, Object> resp = new HashMap<>();
         resp.put("conversationId", conversationId);
@@ -57,7 +63,13 @@ public class CreativeIdeaBrainstormingController {
             return emitter;
         }
 
-        Flux<String> flux = brainstormingAgent.chatStream(conversationId, request.getMessage(), enableSearch);
+        Flux<String> flux = brainstormingAgent.chatStream(
+                conversationId,
+                request.getMessage(),
+                enableSearch,
+                request.getProjectId(),
+                request.getConversationTitle()
+        );
         flux.subscribe(
                 chunk -> {
                     try {

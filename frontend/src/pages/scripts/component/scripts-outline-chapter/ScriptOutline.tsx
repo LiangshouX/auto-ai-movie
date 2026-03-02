@@ -288,7 +288,7 @@ const ScriptOutline: React.FC<ScriptOutlineProps> = ({projectTitle}) => {
                 if (!response.success) {
                     throw new Error('更新大纲失败');
                 }
-            } catch (error) {
+            } catch {
                 try {
                     await scriptsEpisodeApi.deleteEpisode({id: updatedEpisode.id});
                 } catch { /* empty */ }

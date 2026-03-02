@@ -105,7 +105,7 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
             if (!ep) return;
             setEpisodeContent(ep.episodeContent || '');
             setWordCount(typeof ep.wordCount === 'number' ? ep.wordCount : 0);
-        } catch (error) {
+        } catch {
             const aborted = abortRef.current?.signal?.aborted;
             if (!aborted) message.warning('加载桥段内容失败');
         }
@@ -169,7 +169,7 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
                                 episodeContent: episodeContent,
                                 wordCount: wordCount
                             });
-                        } catch (error) {
+                        } catch {
                             message.error('更新桥段内容失败');
                             setLoading(false);
                             return;
@@ -181,7 +181,7 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
             onSave(updatedData);
             message.success('保存成功');
             onClose();
-        } catch (error) {
+        } catch {
             message.error('保存失败');
         } finally {
             setLoading(false);
@@ -216,7 +216,7 @@ const NodeEditorDrawer: React.FC<NodeEditorDrawerProps> = (
                 message.success('子节点创建成功');
                 onClose();
             }
-        } catch (error) {
+        } catch {
             message.error('创建子节点失败');
         } finally {
             setLoading(false);

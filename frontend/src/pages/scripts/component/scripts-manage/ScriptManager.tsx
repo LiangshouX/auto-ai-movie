@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useProjectApi} from '@/hooks/useApi.ts';
 import {ProjectStatus, ScriptProject, ScriptProjectType} from '@/api/types/project-types.ts';
 import {Button, Col, Form, message, Modal, Row, Space} from 'antd';
@@ -31,11 +31,7 @@ const ScriptManager = () => {
     const [operationLoading, setOperationLoading] = useState<boolean>(false);
     const [form] = Form.useForm();
 
-    useEffect(() => {
-        fetchProjects();
-    }, []);
-
-    const fetchProjects = async () => {
+    const fetchProjects = useCallback(async () => {
         setLoading(true);
         setError(null);
 
@@ -73,7 +69,7 @@ const ScriptManager = () => {
                         // 优先使用ScriptProjectType.fromApiResponse，如果失败则手动映射
                         try {
                             return ScriptProjectType.fromApiResponse(item);
-                        } catch (error) {
+                        } catch {
                             // 如果fromApiResponse失败，回退到手动映射
                             return {
                                 id: item.id || item._id || null,
@@ -102,7 +98,11 @@ const ScriptManager = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [getAllProjects]);
+
+    useEffect(() => {
+        void fetchProjects();
+    }, [fetchProjects]);
 
     const handleCreateProject = async () => {
         if (!newProjectName.trim()) {
