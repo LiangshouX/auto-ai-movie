@@ -1,245 +1,64 @@
-import React, {useState} from 'react';
-import {Card, Typography, Tag, Button, Drawer, Form, Input, Select, Divider} from 'antd';
-import {EditOutlined, DeleteOutlined, EyeOutlined} from '@ant-design/icons';
-import {ScriptProject, ProjectStatus} from '@/api';
-import {projectApi} from '@/api/service/scripts-project.ts';
-import {useNavigate} from "react-router-dom";
+import React from 'react';
+import {Avatar, Button, Card, Space, Typography} from 'antd';
+import {ArrowRightOutlined} from '@ant-design/icons';
+import {ScriptProject} from '@/api/types/project-types.ts';
 
 const {Title, Text} = Typography;
 
-interface ProjectCardProps {
+export interface ProjectCardProps {
     project: ScriptProject;
-    operationLoading: boolean;
-    onClick: () => void;
-    onDelete: (id: string, projectName: string) => void;
+    disabled: boolean;
+    onEnter: (project: ScriptProject) => void;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = (
-    {
-        project,
-        operationLoading,
-        onClick,
-        onDelete
+const getDisplayTime = (project: ScriptProject) => {
+    const source = project.updatedAt || project.createdAt;
+    if (!source) {
+        return '暂无时间';
     }
-) => {
-    const navigate = useNavigate();
-    const [drawerVisible, setDrawerVisible] = useState(false);
-    const [form] = Form.useForm();
-    const [updateLoading, setUpdateLoading] = useState(false);
+    const date = new Date(source);
+    if (Number.isNaN(date.getTime())) {
+        return '暂无时间';
+    }
+    return date.toLocaleString();
+};
 
-    const handleDeleteClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onDelete(project.id!, project.title || '未命名项目');
-    };
+const getInitials = (name: string) => {
+    const safeName = name.trim();
+    if (!safeName) {
+        return 'AI';
+    }
+    return safeName.slice(0, 2).toUpperCase();
+};
 
-    // 处理项目卡片点击事件
-    const handleScriptsEditClick = (projectId: string) => {
-        navigate(`/scripts/editor/${projectId}`);
-    };
-
-    const showDrawer = () => {
-        form.setFieldsValue({
-            id: project.id,
-            title: project.title,
-            description: project.description,
-            status: project.status,
-            theme: project.theme,
-            summary: project.summary,
-        });
-        setDrawerVisible(true);
-    };
-
-    const closeDrawer = () => {
-        setDrawerVisible(false);
-    };
-
-    const handleUpdate = async (values: any) => {
-        setUpdateLoading(true);
-        try {
-            await projectApi.updateProject(project.id!, {
-                title: values.title,
-                description: values.description,
-                status: values.status,
-            });
-            // 关闭抽屉并刷新数据
-            setDrawerVisible(false);
-        } catch (error) {
-            console.error('更新项目失败:', error);
-        } finally {
-            setUpdateLoading(false);
-        }
-    };
-
+const ProjectCard: React.FC<ProjectCardProps> = ({project, disabled, onEnter}) => {
     return (
-        <Card
-            hoverable
-            className={`script-project-card${operationLoading ? ' script-project-card-disabled' : ''}`}
-            onClick={onClick}
-            cover={
-                <div className="script-project-card-cover">
-                    <div className="script-project-card-frame" />
-                </div>
-            }
-        >
-            <div style={{
-                flexGrow: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                height: 180
-            }}>
-                <Title
-                    level={4}
-                    style={{
-                        margin: '0 0 10px 0',
-                        whiteSpace: 'normal',
-                        wordBreak: 'break-word',
-                        fontSize: '16px',
-                        lineHeight: '1.4em'
-                    }}
-                >
+        <Card className="workspace-project-card" hoverable>
+            <div className="workspace-project-cover"/>
+            <div className="workspace-project-body">
+                <Title level={4} className="workspace-project-title">
                     {project.title || '未命名项目'}
                 </Title>
-                <Text
-                    style={{
-                        marginBottom: 10,
-                        flex: 1,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        lineHeight: '1.4em',
-                        color: 'rgba(0, 0, 0, 0.65)'
-                    }}
-                    ellipsis={{tooltip: project.description}}
-                >
-                    {project.description || '暂无描述'}
+                <Text type="secondary" className="workspace-project-time">
+                    更新时间：{getDisplayTime(project)}
                 </Text>
-                <Tag
-                    color={
-                        project.status === ProjectStatus.COMPLETED ? 'green' :
-                            project.status === ProjectStatus.IN_PROGRESS ? 'blue' :
-                                project.status === ProjectStatus.ARCHIVED ? 'orange' :
-                                    'default'
-                    }
-                    style={{marginBottom: 10}}
+                <Space size={0} className="workspace-project-members">
+                    <Avatar className="workspace-member-avatar">{getInitials(project.title)}</Avatar>
+                    <Avatar className="workspace-member-avatar">UI</Avatar>
+                    <Avatar className="workspace-member-avatar">DEV</Avatar>
+                </Space>
+                <Button
+                    type="primary"
+                    icon={<ArrowRightOutlined/>}
+                    disabled={disabled || !project.id}
+                    onClick={() => onEnter(project)}
+                    block
                 >
-                    状态: {project.status || '未知'}
-                </Tag>
-
-
-                <div style={{borderTop: '1px solid #eee', paddingTop: 10, marginTop: 'auto'}}>
-                    <Text type="secondary" style={{fontSize: '12px'}}>
-                        更新时间: {new Date(project.updatedAt || project.createdAt || '').toLocaleString()}
-                    </Text>
-                </div>
-
-                <div style={{marginTop: 10, display: 'flex', gap: 8}}>
-                    <Button
-                        type="primary"
-                        size="small"
-                        icon={<EyeOutlined/>}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleScriptsEditClick(project.id!);
-                        }}
-                    >
-                        剧本设计
-                    </Button>
-
-                    <Button
-                        size="small"
-                        icon={<EditOutlined/>}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            showDrawer();
-                        }}
-                    >
-                        编辑
-                    </Button>
-
-                    <Button
-                        danger
-                        size="small"
-                        icon={<DeleteOutlined/>}
-                        loading={operationLoading}
-                        onClick={handleDeleteClick}
-                    >
-                        {operationLoading ? '...' : '删除'}
-                    </Button>
-                </div>
-
-                <Drawer
-                    title={`编辑项目: ${project.title || '未命名项目'}`}
-                    size={700}
-                    onClose={closeDrawer}
-                    open={drawerVisible}
-                    styles={{body: {paddingBottom: 80}}}
-                    footer={
-                        <div style={{textAlign: 'right'}}>
-                            <Button onClick={closeDrawer} style={{marginRight: 8}}>
-                                取消
-                            </Button>
-                            <Button onClick={() => form.submit()} type="primary" loading={updateLoading}>
-                                保存
-                            </Button>
-                        </div>
-                    }
-                >
-                    <Form
-                        form={form}
-                        layout="vertical"
-                        onFinish={handleUpdate}
-                        initialValues={{
-                            title: project.title,
-                            description: project.description,
-                            status: project.status,
-                        }}
-                    >
-                        <Form.Item name="id" label="项目ID">
-                            <Input disabled value={`${project.id}`}/>
-                        </Form.Item>
-
-                        <Form.Item name="title" label="标题" rules={[{required: true, message: '请输入标题'}]}>
-                            <Input placeholder="请输入项目标题"/>
-                        </Form.Item>
-
-                        <Form.Item name="description" label="描述">
-                            <Input.TextArea rows={4} placeholder="请输入项目描述"/>
-                        </Form.Item>
-
-                        <Form.Item name="status" label="状态" rules={[{required: true, message: '请选择状态'}]}>
-                            <Select
-                                placeholder="请选择项目状态"
-                                options={[
-                                    {value: ProjectStatus.CREATED, label: '已创建'},
-                                    {value: ProjectStatus.DRAFT, label: '草稿'},
-                                    {value: ProjectStatus.IN_PROGRESS, label: '进行中'},
-                                    {value: ProjectStatus.REVIEW, label: '审核中'},
-                                    {value: ProjectStatus.COMPLETED, label: '已完成'},
-                                    {value: ProjectStatus.ARCHIVED, label: '已归档'},
-                                    {value: ProjectStatus.DELETED, label: '已删除'},
-                                ]}
-                            />
-                        </Form.Item>
-
-                        <Divider orientation="horizontal">只读信息</Divider>
-                        <Form.Item label="主题背景">
-                            <Input disabled value={project.theme || '暂无'} placeholder="需要编辑请前往剧本设计"/>
-                        </Form.Item>
-
-                        <Form.Item label="剧情梗概">
-                            <Input.TextArea
-                                rows={4}
-                                disabled
-                                value={project.summary || '暂无'}
-                                placeholder="需要编辑请前往剧本设计"
-                            />
-                        </Form.Item>
-                    </Form>
-                </Drawer>
+                    进入项目
+                </Button>
             </div>
         </Card>
     );
 };
 
-export default ProjectCard;
+export default React.memo(ProjectCard);

@@ -1,28 +1,108 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {useProjectApi} from '@/hooks/useApi.ts';
-import {ProjectStatus, ScriptProject, ScriptProjectType} from '@/api/types/project-types.ts';
-import {Button, Col, Form, message, Modal, Row, Space} from 'antd';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {ApiResponse} from '@/api/request.ts';
+import {projectApi} from '@/api/service/scripts-project.ts';
+import {CreateScriptProjectData, ProjectStatus, ScriptProject} from '@/api/types/project-types.ts';
+import {Button, Card, Form, message, Skeleton, Space} from 'antd';
+import {useNavigate} from 'react-router-dom';
 
 import '../../style/ScriptManagerStyle.css';
 import ProjectCard from './ProjectCard.tsx';
-import LoadingSpinner from './LoadingSpinner.tsx';
 import ErrorMessage from './ErrorMessage.tsx';
 import EmptyState from './EmptyState.tsx';
 import CreateProjectModal from './CreateProjectModal.tsx';
 import BaseLayout from '../../layout/BaseLayout.tsx';
 import AppHeader from '../../layout/AppHeader.tsx';
+import {workspaceStore} from '@/store/workspace-store.ts';
+
+type UnknownRecord = Record<string, unknown>;
+
+const isRecord = (value: unknown): value is UnknownRecord => {
+    return typeof value === 'object' && value !== null;
+};
+
+const readString = (value: unknown) => {
+    return typeof value === 'string' ? value : '';
+};
+
+const mapStatus = (value: unknown): ProjectStatus => {
+    const candidate = readString(value);
+    const statuses = Object.values(ProjectStatus);
+    return statuses.includes(candidate as ProjectStatus) ? candidate as ProjectStatus : ProjectStatus.DRAFT;
+};
+
+const mapProject = (value: unknown): ScriptProject => {
+    if (!isRecord(value)) {
+        return {
+            id: null,
+            title: '未命名项目',
+            description: '',
+            theme: '',
+            summary: '',
+            status: ProjectStatus.DRAFT,
+            authorId: null,
+            createdAt: null,
+            updatedAt: null
+        };
+    }
+
+    const id = readString(value.id) || readString(value._id);
+
+    return {
+        id: id || null,
+        title: readString(value.title) || readString(value.name) || readString(value.projectName) || '未命名项目',
+        description: readString(value.description) || readString(value.desc),
+        theme: readString(value.theme) || readString(value.projectTheme),
+        summary: readString(value.summary) || readString(value.projectSummary),
+        status: mapStatus(value.status || value.projectStatus),
+        authorId: readString(value.authorId) || readString(value.userId) || readString(value.creatorId) || null,
+        createdAt: readString(value.createdAt) || readString(value.created_at) || readString(value.createTime) || null,
+        updatedAt: readString(value.updatedAt) || readString(value.updated_at) || readString(value.updateTime) || null
+    };
+};
+
+const pickProjectArray = (payload: unknown): unknown[] => {
+    if (Array.isArray(payload)) {
+        return payload;
+    }
+    if (!isRecord(payload)) {
+        return [];
+    }
+    if (Array.isArray(payload.items)) {
+        return payload.items;
+    }
+    if (Array.isArray(payload.data)) {
+        return payload.data;
+    }
+    if (isRecord(payload.data) && Array.isArray(payload.data.items)) {
+        return payload.data.items;
+    }
+    if (isRecord(payload.data) && Array.isArray(payload.data.data)) {
+        return payload.data.data;
+    }
+    return [];
+};
+
+const getFriendlyError = (input: unknown) => {
+    if (isRecord(input) && typeof input.message === 'string') {
+        const lowerMessage = input.message.toLowerCase();
+        if (lowerMessage.includes('timeout')) {
+            return '网络超时，请检查网络后重试';
+        }
+        return input.message;
+    }
+    if (typeof input === 'string') {
+        if (input.toLowerCase().includes('timeout')) {
+            return '网络超时，请检查网络后重试';
+        }
+        return input;
+    }
+    return '获取项目列表失败，请稍后重试';
+};
 
 const ScriptManager = () => {
-    const {
-        loading: apiLoading,
-        error: apiError,
-        getAllProjects,
-        createProject,
-        deleteProject
-    } = useProjectApi();
-
+    const navigate = useNavigate();
     const [projects, setProjects] = useState<ScriptProject[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
@@ -34,71 +114,23 @@ const ScriptManager = () => {
     const fetchProjects = useCallback(async () => {
         setLoading(true);
         setError(null);
-
         try {
-            await getAllProjects(
-                (response: any) => {
-                    console.log('API Response:', response); // 调试日志
-
-                    // 正确处理API响应数据
-                    let projectList;
-
-                    // 检查响应是否是标准API响应格式
-                    if (response && typeof response === 'object') {
-                        if (Array.isArray(response)) {
-                            // 如果直接是数组
-                            projectList = response;
-                        } else if (response.data && Array.isArray(response.data)) {
-                            // 如果是 { data: [...] } 格式
-                            projectList = response.data;
-                        } else if (response.items && Array.isArray(response.items)) {
-                            // 如果是 { items: [...] } 格式
-                            projectList = response.items;
-                        } else {
-                            // 尝试将整个响应作为数组
-                            projectList = [];
-                        }
-                    } else {
-                        projectList = [];
-                    }
-
-                    console.log('Project List:', projectList); // 调试日志
-
-                    // 映射到ScriptProject类型，使用ScriptProjectType.fromApiResponse辅助函数
-                    const mappedProjects = projectList.map((item: any) => {
-                        // 优先使用ScriptProjectType.fromApiResponse，如果失败则手动映射
-                        try {
-                            return ScriptProjectType.fromApiResponse(item);
-                        } catch {
-                            // 如果fromApiResponse失败，回退到手动映射
-                            return {
-                                id: item.id || item._id || null,
-                                title: item.title || item.name || item.projectName || '未命名项目',
-                                description: item.description || item.desc || '',
-                                theme: item.theme || item.projectTheme || '',
-                                summary: item.summary || item.projectSummary || '',
-                                status: item.status || item.projectStatus || ProjectStatus.DRAFT,
-                                authorId: item.authorId || item.userId || item.creatorId || null,
-                                createdAt: item.createdAt || item.created_at || item.createTime || null,
-                                updatedAt: item.updatedAt || item.updated_at || item.updateTime || null
-                            };
-                        }
-                    });
-
-                    console.log('Mapped Projects:', mappedProjects); // 调试日志
-                    setProjects(mappedProjects);
-                },
-                (error: any) => {
-                    setError(error.message || '获取项目列表失败');
-                }
-            );
-        } catch (err: any) {
-            setError(err.message || '获取项目列表失败');
-            console.error('Error fetching projects:', err);
+            const response = await projectApi.getAllProjects() as ApiResponse<unknown>;
+            if (!response.success) {
+                setProjects([]);
+                setError(getFriendlyError(response.message));
+                return;
+            }
+            const projectList = pickProjectArray(response.data);
+            const safeList = Array.isArray(projectList) ? projectList : [];
+            setProjects(safeList.map(mapProject));
+        } catch (err: unknown) {
+            setProjects([]);
+            setError(getFriendlyError(err));
         } finally {
             setLoading(false);
         }
-    }, [getAllProjects]);
+    }, []);
 
     useEffect(() => {
         void fetchProjects();
@@ -114,103 +146,86 @@ const ScriptManager = () => {
         setError(null);
 
         try {
-            const newProject = {
+            const newProject: CreateScriptProjectData = {
                 title: newProjectName,
                 description: newProjectDescription,
-                status: 'DRAFT' as ProjectStatus // 使用大写状态值，与ProjectStatus保持一致
+                status: ProjectStatus.DRAFT
             };
-
-            await createProject(
-                newProject,
-                () => {
-                    setNewProjectName('');
-                    setNewProjectDescription('');
-                    setShowCreateModal(false);
-                    form.resetFields(); // 重置表单
-                    fetchProjects(); // 重新获取项目列表
-                    message.success('项目创建成功！');
-                },
-                (error: any) => {
-                    setError(error.message || '创建项目失败');
-                    message.error(error.message || '创建项目失败');
-                }
-            );
-        } catch (err: any) {
-            setError(err.message || '创建项目失败');
-            message.error(err.message || '创建项目失败');
-            console.error('Error creating project:', err);
+            const response = await projectApi.createProject(newProject) as ApiResponse<unknown>;
+            if (!response.success) {
+                const errorMessage = getFriendlyError(response.message || '创建项目失败');
+                setError(errorMessage);
+                message.error(errorMessage);
+                return;
+            }
+            setNewProjectName('');
+            setNewProjectDescription('');
+            setShowCreateModal(false);
+            form.resetFields();
+            message.success('项目创建成功！');
+            await fetchProjects();
+        } catch (err: unknown) {
+            const errorMessage = getFriendlyError(err);
+            setError(errorMessage);
+            message.error(errorMessage);
         } finally {
             setOperationLoading(false);
         }
     };
 
-    const handleDeleteProject = async (id: string, projectName: string) => {
-        Modal.confirm({
-            title: '确认删除',
-            content: `确定要删除项目 "${projectName}" 吗？此操作不可撤销。`,
-            okText: '确定',
-            cancelText: '取消',
-            onOk: async () => {
-                setOperationLoading(true);
-                setError(null);
+    const handleEnterProject = (project: ScriptProject) => {
+        if (!project.id) {
+            message.warning('当前项目缺少 ID，无法进入');
+            return;
+        }
+        workspaceStore.setCurrentProject(project);
+        navigate(`/workspace/${project.id}/script`);
+    };
 
-                try {
-                    await deleteProject(
-                        id,
-                        () => {
-                            fetchProjects(); // 重新获取项目列表
-                            message.success('项目删除成功！');
-                        },
-                        (error: any) => {
-                            setError(error.message || '删除项目失败');
-                            message.error(error.message || '删除项目失败');
-                        }
-                    );
-                } catch (err: any) {
-                    setError(err.message || '删除项目失败');
-                    message.error(err.message || '删除项目失败');
-                    console.error('Error deleting project:', err);
-                } finally {
-                    setOperationLoading(false);
-                }
-            }
+    const filteredProjects = useMemo(() => {
+        const normalizedKeyword = searchTerm.trim().toLowerCase();
+        const sourceList = Array.isArray(projects) ? projects : [];
+        if (!normalizedKeyword) {
+            return sourceList;
+        }
+        return sourceList.filter((project) => {
+            const title = (project.title || '').toLowerCase();
+            const summary = (project.summary || '').toLowerCase();
+            const description = (project.description || '').toLowerCase();
+            return title.includes(normalizedKeyword) || summary.includes(normalizedKeyword) || description.includes(normalizedKeyword);
         });
-    };
+    }, [projects, searchTerm]);
 
-    // 过滤项目列表
-    const filteredProjects = projects.filter(project =>
-        (project.title && project.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (project.summary && project.summary.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-
-
-    // 处理项目卡片删除事件
-    const handleProjectDelete = (id: string, projectName: string) => {
-        handleDeleteProject(id, projectName);
-    };
-
-    // 处理创建项目模态框关闭
     const handleCloseModal = () => {
         setShowCreateModal(false);
         setError(null);
         form.resetFields();
     };
 
-    // 处理项目名称输入变化
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNewProjectName(e.target.value);
-        if ((error || apiError) && e.target.value.trim()) {
+        if (error && e.target.value.trim()) {
             setError(null);
         }
     };
 
-    // 处理项目描述输入变化
     const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setNewProjectDescription(e.target.value);
     };
 
-    // 使用公共布局组件
+    const renderSkeletonCards = () => {
+        return (
+            <div className="workspace-project-grid">
+                {Array.from({length: 8}, (_, index) => (
+                    <Card key={`skeleton-${index}`} className="workspace-project-card">
+                        <Skeleton.Image active style={{width: '100%', height: 120}}/>
+                        <Skeleton active paragraph={{rows: 3}} style={{marginTop: 16}}/>
+                    </Card>
+                ))}
+            </div>
+        );
+    };
+
     return (
         <BaseLayout
             header={
@@ -224,10 +239,8 @@ const ScriptManager = () => {
                             <Button
                                 type="default"
                                 size="large"
-                                onClick={() => {
-                                    fetchProjects();
-                                }}
-                                disabled={operationLoading || apiLoading}
+                                onClick={fetchProjects}
+                                disabled={operationLoading || loading}
                             >
                                 刷新
                             </Button>
@@ -238,48 +251,38 @@ const ScriptManager = () => {
                                     setShowCreateModal(true);
                                     setError(null);
                                 }}
-                                disabled={operationLoading || apiLoading}
+                                disabled={operationLoading || loading}
                             >
-                                {operationLoading || apiLoading ? '处理中...' : '+ 新建项目'}
+                                {operationLoading || loading ? '处理中...' : '+ 新建项目'}
                             </Button>
                         </Space>
                     }
                 />
             }
-            contentStyle={{
-                minWidth: 'max(1500px, calc(100vw - 200px))'
-            }}
         >
-            {(loading || apiLoading) ? (
-                <LoadingSpinner/>
-            ) : (error || apiError) ? (
+            {loading ? (
+                renderSkeletonCards()
+            ) : error ? (
                 <ErrorMessage
-                    error={error || apiError}
+                    error={error}
                     onRetry={fetchProjects}
                 />
             ) : filteredProjects.length > 0 ? (
-                <>
-                    <div className="card-scroll-container">
-                        <Row gutter={[16, 16]} style={{marginBottom: 30, marginTop: 30, width: '100%'}}>
-                            {filteredProjects.map((project) => (
-                                <Col xs={24} sm={12} md={8} lg={6} key={project.id}>
-                                    <ProjectCard
-                                        project={project}
-                                        operationLoading={operationLoading}
-                                        onClick={() => {
-                                        }}
-                                        onDelete={handleProjectDelete}
-                                    />
-                                </Col>
-                            ))}
-                        </Row>
-                    </div>
-                </>
+                <div className="workspace-project-grid">
+                    {(Array.isArray(filteredProjects) ? filteredProjects : []).map((project) => (
+                        <ProjectCard
+                            key={project.id || `${project.title}-${project.createdAt}`}
+                            project={project}
+                            disabled={operationLoading}
+                            onEnter={handleEnterProject}
+                        />
+                    ))}
+                </div>
             ) : (
                 <EmptyState
                     searchTerm={searchTerm}
                     operationLoading={operationLoading}
-                    apiLoading={apiLoading}
+                    apiLoading={loading}
                     onCreateProject={() => {
                         setShowCreateModal(true);
                         setError(null);
@@ -291,7 +294,7 @@ const ScriptManager = () => {
             <CreateProjectModal
                 open={showCreateModal}
                 operationLoading={operationLoading}
-                apiLoading={apiLoading}
+                apiLoading={loading}
                 error={error}
                 newProjectName={newProjectName}
                 newProjectDescription={newProjectDescription}

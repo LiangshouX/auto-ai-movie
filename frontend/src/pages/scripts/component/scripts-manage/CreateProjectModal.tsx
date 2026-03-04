@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal, Form, Input, Button, Typography } from 'antd';
+import {FormInstance} from 'antd/es/form';
 
 const { Text } = Typography;
 
@@ -10,7 +11,7 @@ interface CreateProjectModalProps {
   error: string | null;
   newProjectName: string;
   newProjectDescription: string;
-  form: any;
+  form: FormInstance;
   onClose: () => void;
   onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDescriptionChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;

@@ -23,6 +23,64 @@
   padding: 0 8px;
 }
 
+.workspace-project-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  align-items: stretch;
+}
+
+.workspace-project-card {
+  border-radius: 16px;
+  overflow: hidden;
+  height: 100%;
+}
+
+.workspace-project-cover {
+  height: 120px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1f64ff 0%, #13c2c2 100%);
+}
+
+.workspace-project-body {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workspace-project-title.ant-typography {
+  margin: 0;
+  min-height: 56px;
+}
+
+.workspace-project-time.ant-typography {
+  margin: 0;
+}
+
+.workspace-project-members {
+  margin-bottom: 8px;
+}
+
+.workspace-member-avatar {
+  margin-right: -6px;
+  border: 2px solid #fff;
+  background-color: #2f54eb;
+}
+
+@media (max-width: 1199px) {
+  .workspace-project-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .workspace-project-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .project-card-wrapper {
   display: inline-block;
   vertical-align: top;

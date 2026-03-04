@@ -2,9 +2,10 @@ import React from 'react';
 import { Layout, Space, Button, Typography, Input } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import {workspaceStore} from '@/store/workspace-store.ts';
 
 const { Header } = Layout;
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { Search } = Input;
 
 interface AppHeaderProps {
@@ -28,6 +29,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   searchPlaceholder = "搜索...",
 }) => {
   const navigate = useNavigate();
+  const handlePortalClick = () => {
+    workspaceStore.clearCurrentProject();
+    navigate('/portal');
+  };
 
   return (
     <Header
@@ -49,8 +54,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       }}
     >
       <Space size="large">
+        <Text
+          onClick={handlePortalClick}
+          style={{fontWeight: 700, cursor: 'pointer', fontSize: 18, color: '#111827'}}
+        >
+          Auto AI Movie
+        </Text>
         {showHome && (
-          <Button onClick={() => navigate('/')} type="text" size="large">
+          <Button onClick={handlePortalClick} type="text" size="large">
             <HomeOutlined /> 首页
           </Button>
         )}

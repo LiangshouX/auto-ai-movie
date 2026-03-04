@@ -1,0 +1,49 @@
+.portal-page {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background:
+            radial-gradient(circle at 20% 20%, rgba(36, 96, 188, 0.22), transparent 35%),
+            radial-gradient(circle at 80% 70%, rgba(112, 18, 176, 0.2), transparent 40%),
+            #050912;
+}
+
+.portal-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.portal-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    z-index: 1;
+}
+
+.portal-title {
+    color: #d8e8ff;
+    font-size: clamp(32px, 5vw, 56px);
+    letter-spacing: 2px;
+    font-weight: 700;
+    text-shadow: 0 0 22px rgba(98, 168, 255, 0.46);
+}
+
+.portal-enter-btn {
+    height: 48px;
+    padding: 0 36px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #1c7dff, #8a45ff);
+    border: none;
+    box-shadow: 0 10px 28px rgba(28, 125, 255, 0.38);
+}
+
+.portal-enter-btn:hover {
+    transform: translateY(-1px);
+}
