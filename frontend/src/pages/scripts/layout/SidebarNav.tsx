@@ -27,7 +27,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onTabChange }) => {
 
   return (
     <Sider
-      width={240}
+      width={140}
       theme="light"
       style={{
         backgroundColor: '#fff',
