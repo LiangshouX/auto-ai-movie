@@ -62,3 +62,8 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.w-e-full-screen-container {
+  z-index: 999 !important;
+  overflow: hidden !important;
+}
