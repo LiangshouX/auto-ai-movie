@@ -299,7 +299,7 @@ const CharacterCardCanvas = ({projectId, project}: CharacterCardDemoProps) => {
         <>
             <Flex vertical style={{
                 minHeight: 'calc(100vh - 64px)',
-                minWidth: 'max(1200px, calc(100vw - 340px))'
+                minWidth: 'max(1200px, calc(100vw - 450px))'
             }}>
                 <Flex vertical style={{position: 'sticky', top: 0, zIndex: 1, background: '#fff'}}>
                     <Flex justify="space-between" align="center" style={{marginBottom: 0}}>
