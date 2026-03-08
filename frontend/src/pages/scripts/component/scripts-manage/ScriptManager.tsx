@@ -230,7 +230,7 @@ const ScriptManager = () => {
         <BaseLayout
             header={
                 <AppHeader
-                    title="AI 剧本管理"
+                    title="项目管理"
                     onSearch={setSearchTerm}
                     searchValue={searchTerm}
                     searchPlaceholder="搜索项目..."

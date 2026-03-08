@@ -1,11 +1,11 @@
 import React from 'react';
-import { Layout, Space, Button, Typography, Input } from 'antd';
+import { Button, Input, Layout, Space, Typography } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import {workspaceStore} from '@/store/workspace-store.ts';
+import { workspaceStore } from '@/store/workspace-store.ts';
 
 const { Header } = Layout;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Search } = Input;
 
 interface AppHeaderProps {
@@ -54,21 +54,22 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       }}
     >
       <Space size="large">
-        <Text
-          onClick={handlePortalClick}
-          style={{fontWeight: 700, cursor: 'pointer', fontSize: 18, color: '#111827'}}
-        >
-          Auto AI Movie
-        </Text>
         {showHome && (
-          <Button onClick={handlePortalClick} type="text" size="large">
-            <HomeOutlined /> 首页
+          <Button onClick={handlePortalClick} type="text" size="large" style={{fontWeight: 700, cursor: 'pointer', fontSize: 18, color: '#111827'}}>
+            <HomeOutlined /> Auto AI Movie Home
           </Button>
         )}
-        <Title level={2} style={{ margin: 0, color: 'rgba(0, 0, 0, 0.88)' }}>
-          {title}
-        </Title>
       </Space>
+
+      <Title level={2} style={{ 
+        margin: 0, 
+        color: 'rgba(0, 0, 0, 0.88)',
+        position: 'absolute',
+        left: '50%',
+        transform: 'translateX(-50%)'
+      }}>
+        {title}
+      </Title>
 
       <Space>
         {onSearch && (
