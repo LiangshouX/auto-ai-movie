@@ -10,6 +10,7 @@ interface BaseLayoutProps {
   contentStyle?: React.CSSProperties;
   layoutStyle?: React.CSSProperties;
   className?: string;
+  embedded?: boolean;
 }
 
 /**
@@ -21,12 +22,20 @@ const BaseLayout: React.FC<BaseLayoutProps> = ({
   children, 
   contentStyle,
   layoutStyle,
-  className
+  className,
+  embedded = false
 }) => {
   return (
-    <Layout style={{ height: '100vh', ...layoutStyle }} className={className}>
+    <Layout style={{ height: embedded ? '100%' : '100vh', ...layoutStyle }} className={className}>
       {header}
-      <Layout hasSider style={{ marginTop: header ? 64 : 0, height: header ? 'calc(100vh - 64px)' : '100vh' }}>
+      <Layout
+        hasSider
+        style={
+          embedded
+            ? { flex: 1, minHeight: 0 }
+            : { marginTop: header ? 64 : 0, height: header ? 'calc(100vh - 64px)' : '100vh' }
+        }
+      >
         {sidebar}
         <Content
           style={{
@@ -38,6 +47,7 @@ const BaseLayout: React.FC<BaseLayoutProps> = ({
             flexDirection: 'column',
             width: '100%',
             backgroundColor: '#f9f9f9',
+            minHeight: 0,
             ...contentStyle,
           }}
         >

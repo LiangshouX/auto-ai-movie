@@ -184,6 +184,7 @@ const ScriptEditor = () => {
   if (loading) {
     return (
       <BaseLayout
+        embedded
         header={
           <EditorHeader
             title="剧本创作"
@@ -193,6 +194,9 @@ const ScriptEditor = () => {
             onSaveClick={handleSave}
             onCancelClick={handleCancelClick}
             onExportClick={handleExportClick}
+            showNavButtons={false}
+            mode="sub"
+            stickyTop={64}
           />
         }
       >
@@ -207,6 +211,7 @@ const ScriptEditor = () => {
   if (error) {
     return (
       <BaseLayout
+        embedded
         header={
           <EditorHeader
             title="剧本创作"
@@ -216,6 +221,9 @@ const ScriptEditor = () => {
             onSaveClick={handleSave}
             onCancelClick={handleCancelClick}
             onExportClick={handleExportClick}
+            showNavButtons={false}
+            mode="sub"
+            stickyTop={64}
           />
         }
       >
@@ -234,6 +242,7 @@ const ScriptEditor = () => {
 
   return (
     <BaseLayout
+      embedded
       header={
         <EditorHeader
           title="剧本创作"
@@ -243,6 +252,9 @@ const ScriptEditor = () => {
           onSaveClick={handleSave}
           onCancelClick={handleCancelClick}
           onExportClick={handleExportClick}
+          showNavButtons={false}
+          mode="sub"
+          stickyTop={64}
         />
       }
       sidebar={
