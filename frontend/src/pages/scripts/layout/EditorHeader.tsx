@@ -93,7 +93,7 @@ const EditorHeader: React.FC<EditorHeaderProps> = (
             <div style={{textAlign: 'center', flex: 1}}>
                 {/*<Title level={3} style={{margin: 0}}>{}</Title>*/}
                 <Text type="secondary" style={{display: 'block'}}>
-                  {title}-正在编辑：{projectTitle || '未命名项目'}
+                  {title}-正在编辑：【{projectTitle || '未命名项目'}】
                 </Text>
             </div>
 
