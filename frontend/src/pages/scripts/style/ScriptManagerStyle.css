@@ -6,8 +6,7 @@
 
 .script-manager-content {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden auto;
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -89,19 +88,19 @@
   padding-inline: 10px;
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .workspace-project-actions {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 1199px) {
+@media (width <= 1199px) {
   .workspace-project-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .workspace-project-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
