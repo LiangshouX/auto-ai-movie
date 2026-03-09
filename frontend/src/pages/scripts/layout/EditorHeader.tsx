@@ -3,7 +3,7 @@ import { Button, Layout, Space, Typography } from 'antd';
 import { BackwardOutlined, HomeOutlined } from '@ant-design/icons';
 
 const {Header} = Layout;
-const {Title, Text} = Typography;
+const {Text} = Typography;
 
 interface EditorHeaderProps {
     title: string;
@@ -42,7 +42,7 @@ const EditorHeader: React.FC<EditorHeaderProps> = (
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            height: 64,
+            height: 40,
             position: 'sticky',
             top: stickyTop,
             borderBottom: '1px solid var(--color-border)'
@@ -91,9 +91,9 @@ const EditorHeader: React.FC<EditorHeaderProps> = (
             )}
 
             <div style={{textAlign: 'center', flex: 1}}>
-                <Title level={3} style={{margin: 0}}>{title}</Title>
+                {/*<Title level={3} style={{margin: 0}}>{}</Title>*/}
                 <Text type="secondary" style={{display: 'block'}}>
-                    正在编辑：{projectTitle || '未命名项目'}
+                  {title}-正在编辑：{projectTitle || '未命名项目'}
                 </Text>
             </div>
 
