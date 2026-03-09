@@ -17,7 +17,7 @@ const ThemeSwitch: React.FC = () => {
                 className="app-theme-switch"
                 aria-label="主题切换"
                 title="主题切换"
-                style={{minWidth: 56, minHeight: 32}}
+                style={{minWidth: 56, minHeight: 16}}
             />
         </Tooltip>
     );
