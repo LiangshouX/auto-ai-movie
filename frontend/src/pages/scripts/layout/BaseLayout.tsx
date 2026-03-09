@@ -46,7 +46,7 @@ const BaseLayout: React.FC<BaseLayoutProps> = ({
             display: 'flex',
             flexDirection: 'column',
             width: '100%',
-            backgroundColor: '#f9f9f9',
+            backgroundColor: 'var(--color-bg-page)',
             minHeight: 0,
             ...contentStyle,
           }}

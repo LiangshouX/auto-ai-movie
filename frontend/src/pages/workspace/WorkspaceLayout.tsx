@@ -10,6 +10,8 @@ import {
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { workspaceStore } from '@/store/workspace-store.ts';
+import ThemeSwitch from '@/components/ThemeSwitch.tsx';
+import { useAppThemeMode } from '@/theme-provider.tsx';
 
 const { Header, Sider, Content } = Layout;
 
@@ -28,6 +30,7 @@ const WorkspaceLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { projectId = '' } = useParams<{ projectId: string }>();
+  const { resolvedThemeMode } = useAppThemeMode();
 
   const selectedKey = useMemo(() => {
     const segments = location.pathname.split('/').filter(Boolean);
@@ -49,7 +52,7 @@ const WorkspaceLayout = () => {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout style={{ minHeight: '100vh', background: 'var(--color-bg-page)' }}>
       <Header
         style={{
           height: 64,
@@ -58,8 +61,8 @@ const WorkspaceLayout = () => {
           top: 0,
           zIndex: 200,
           padding: '0 20px',
-          background: '#0b1220',
-          borderBottom: '1px solid rgba(96, 140, 188, 0.25)',
+          background: 'var(--color-header-bg)',
+          borderBottom: '1px solid var(--color-border)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -70,7 +73,7 @@ const WorkspaceLayout = () => {
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed((prev) => !prev)}
-            style={{ color: '#d6e4ff' }}
+            style={{ color: 'var(--color-text-primary)' }}
           />
           <Button
             type="default"
@@ -86,21 +89,24 @@ const WorkspaceLayout = () => {
             <BackwardOutlined />项目管理
           </Button>
         </div>
-        <Dropdown
-          menu={{
-            items: [
-              {
-                key: 'logout',
-                icon: <LogoutOutlined />,
-                label: '退出',
-                onClick: goPortal,
-              },
-            ],
-          }}
-          trigger={['click']}
-        >
-          <Avatar style={{ cursor: 'pointer', backgroundColor: '#2f54eb' }} icon={<UserOutlined />} />
-        </Dropdown>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <ThemeSwitch />
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: 'logout',
+                  icon: <LogoutOutlined />,
+                  label: '退出',
+                  onClick: goPortal,
+                },
+              ],
+            }}
+            trigger={['click']}
+          >
+            <Avatar style={{ cursor: 'pointer', backgroundColor: 'var(--color-primary)' }} icon={<UserOutlined />} />
+          </Dropdown>
+        </div>
       </Header>
       <Layout style={{ marginTop: 64 }}>
         <Sider
@@ -109,8 +115,8 @@ const WorkspaceLayout = () => {
           collapsed={collapsed}
           trigger={null}
           style={{
-            background: '#0f1728',
-            borderRight: '1px solid rgba(96, 140, 188, 0.25)',
+            background: 'var(--color-bg-elevated)',
+            borderRight: '1px solid var(--color-border)',
             overflow: 'auto',
             height: 'calc(100vh - 64px)',
             position: 'sticky',
@@ -124,13 +130,13 @@ const WorkspaceLayout = () => {
             onClick={handleMenuChange}
             items={menuItems}
             style={{ height: '100%', borderInlineEnd: 0, paddingTop: 12 }}
-            theme="dark"
+            theme={resolvedThemeMode === 'dark' ? 'dark' : 'light'}
           />
         </Sider>
         <Content
           style={{
             padding: selectedKey === 'script' ? '8px 16px' : 24,
-            background: '#f3f5f9',
+            background: 'var(--color-bg-page)',
             minHeight: 'calc(100vh - 64px)',
           }}
         >

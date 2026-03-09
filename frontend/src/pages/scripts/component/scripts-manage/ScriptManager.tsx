@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ApiResponse} from '@/api/request.ts';
 import {projectApi} from '@/api/service/scripts-project.ts';
 import {CreateScriptProjectData, ProjectStatus, ScriptProject} from '@/api/types/project-types.ts';
-import {Button, Card, Form, message, Skeleton, Space} from 'antd';
+import {Button, Card, Form, message, Modal, Skeleton, Space} from 'antd';
 import {useNavigate} from 'react-router-dom';
 
 import '../../style/ScriptManagerStyle.css';
@@ -109,6 +109,10 @@ const ScriptManager = () => {
     const [newProjectName, setNewProjectName] = useState<string>('');
     const [newProjectDescription, setNewProjectDescription] = useState<string>('');
     const [operationLoading, setOperationLoading] = useState<boolean>(false);
+    const [activeProjectAction, setActiveProjectAction] = useState<{
+        projectId: string;
+        action: 'delete' | 'rename';
+    } | null>(null);
     const [form] = Form.useForm();
 
     const fetchProjects = useCallback(async () => {
@@ -181,6 +185,86 @@ const ScriptManager = () => {
         workspaceStore.setCurrentProject(project);
         navigate(`/workspace/${project.id}/script`);
     };
+
+    const handleRenameProject = useCallback(async (project: ScriptProject, nextTitle: string) => {
+        if (!project.id) {
+            return '当前项目缺少 ID，无法重命名';
+        }
+        const normalized = nextTitle.trim();
+        if (!normalized) {
+            return '项目名称不能为空';
+        }
+        const duplicated = projects.some((item) => {
+            if (item.id === project.id) {
+                return false;
+            }
+            return (item.title || '').trim().toLowerCase() === normalized.toLowerCase();
+        });
+        if (duplicated) {
+            return '项目名称已存在，请更换';
+        }
+        setActiveProjectAction({projectId: project.id, action: 'rename'});
+        try {
+            const response = await projectApi.updateProject(project.id, {...project, title: normalized}) as ApiResponse<unknown>;
+            if (!response.success) {
+                const errorMessage = getFriendlyError(response.message || '重命名失败');
+                message.error(errorMessage);
+                return errorMessage;
+            }
+            setProjects((prev) => prev.map((item) => {
+                if (item.id !== project.id) {
+                    return item;
+                }
+                return {
+                    ...item,
+                    title: normalized,
+                    updatedAt: new Date().toISOString()
+                };
+            }));
+            message.success('项目重命名成功');
+            return null;
+        } catch (err: unknown) {
+            const errorMessage = getFriendlyError(err);
+            message.error(errorMessage);
+            return errorMessage;
+        } finally {
+            setActiveProjectAction(null);
+        }
+    }, [projects]);
+
+    const handleDeleteProject = useCallback((project: ScriptProject) => {
+        if (!project.id) {
+            message.warning('当前项目缺少 ID，无法删除');
+            return;
+        }
+        Modal.confirm({
+            title: '确认删除项目',
+            content: `删除后不可恢复，确认删除「${project.title || '未命名项目'}」吗？`,
+            okText: '确认删除',
+            cancelText: '取消',
+            okButtonProps: {danger: true},
+            onOk: async () => {
+                setActiveProjectAction({projectId: project.id!, action: 'delete'});
+                try {
+                    const response = await projectApi.deleteProject(project.id!) as ApiResponse<unknown>;
+                    if (!response.success) {
+                        const errorMessage = getFriendlyError(response.message || '删除项目失败');
+                        message.error(errorMessage);
+                        return Promise.reject(new Error(errorMessage));
+                    }
+                    setProjects((prev) => prev.filter((item) => item.id !== project.id));
+                    message.success('项目删除成功');
+                    return Promise.resolve();
+                } catch (err: unknown) {
+                    const errorMessage = getFriendlyError(err);
+                    message.error(errorMessage);
+                    return Promise.reject(new Error(errorMessage));
+                } finally {
+                    setActiveProjectAction(null);
+                }
+            }
+        });
+    }, []);
 
     const filteredProjects = useMemo(() => {
         const normalizedKeyword = searchTerm.trim().toLowerCase();
@@ -273,8 +357,11 @@ const ScriptManager = () => {
                         <ProjectCard
                             key={project.id || `${project.title}-${project.createdAt}`}
                             project={project}
-                            disabled={operationLoading}
+                            disabled={operationLoading || loading || !!activeProjectAction}
                             onEnter={handleEnterProject}
+                            onDelete={handleDeleteProject}
+                            onRename={handleRenameProject}
+                            activeAction={activeProjectAction?.projectId === project.id ? activeProjectAction.action : null}
                         />
                     ))}
                 </div>
@@ -290,7 +377,6 @@ const ScriptManager = () => {
                 />
             )}
 
-            {/* 创建项目模态框 */}
             <CreateProjectModal
                 open={showCreateModal}
                 operationLoading={operationLoading}

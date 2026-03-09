@@ -12,7 +12,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  background-color: #f9f9f9;
+  background-color: var(--color-bg-page);
   min-height: calc(100vh - 64px);
 }
 
@@ -35,12 +35,15 @@
   border-radius: 16px;
   overflow: hidden;
   height: 100%;
+  background-color: var(--color-bg-container);
+  border: 1px solid var(--color-border-soft);
+  box-shadow: var(--shadow-sm);
 }
 
 .workspace-project-cover {
   height: 120px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #1f64ff 0%, #13c2c2 100%);
+  background: linear-gradient(135deg, var(--project-accent-from) 0%, var(--project-accent-to) 100%);
 }
 
 .workspace-project-body {
@@ -65,8 +68,31 @@
 
 .workspace-member-avatar {
   margin-right: -6px;
-  border: 2px solid #fff;
-  background-color: #2f54eb;
+  border: 2px solid var(--color-bg-container);
+  background-color: var(--color-primary);
+}
+
+.workspace-project-error.ant-typography {
+  display: block;
+  margin: 0;
+}
+
+.workspace-project-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.workspace-project-action-btn {
+  min-height: 44px;
+  padding-inline: 10px;
+}
+
+@media (max-width: 768px) {
+  .workspace-project-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 1199px) {
@@ -115,12 +141,12 @@
   display: flex;
   flex-direction: column;
 
-  --script-card-accent-from: #1677ff;
-  --script-card-accent-to: #13c2c2;
-  --script-card-accent-from-hover: #0958d9;
-  --script-card-accent-to-hover: #08979c;
-  --script-card-accent-from-active: #003eb3;
-  --script-card-accent-to-active: #006d75;
+  --script-card-accent-from: var(--color-primary);
+  --script-card-accent-to: var(--project-accent-to);
+  --script-card-accent-from-hover: var(--color-primary-hover);
+  --script-card-accent-to-hover: var(--project-accent-to);
+  --script-card-accent-from-active: var(--color-primary-active);
+  --script-card-accent-to-active: var(--project-accent-to);
 }
 
 .script-project-card .ant-card-body {
@@ -171,14 +197,14 @@
 }
 
 .script-project-card-disabled {
-  --script-card-accent-from: #8c8c8c;
-  --script-card-accent-to: #bfbfbf;
+  --script-card-accent-from: var(--color-disabled);
+  --script-card-accent-to: var(--color-disabled-bg);
 }
 
 .script-project-card-disabled.ant-card-hoverable:hover,
 .script-project-card-disabled.ant-card-hoverable:active {
-  --script-card-accent-from: #8c8c8c;
-  --script-card-accent-to: #bfbfbf;
+  --script-card-accent-from: var(--color-disabled);
+  --script-card-accent-to: var(--color-disabled-bg);
 }
 
 .script-project-card-disabled::before {

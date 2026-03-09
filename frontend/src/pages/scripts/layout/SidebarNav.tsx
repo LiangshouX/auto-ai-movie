@@ -30,8 +30,8 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onTabChange }) => {
       width={140}
       theme="light"
       style={{
-        backgroundColor: '#fff',
-        borderRight: '1px solid #f0f0f0',
+        backgroundColor: 'var(--color-bg-container)',
+        borderRight: '1px solid var(--color-border-soft)',
         height: '100%',
         position: 'relative',
         zIndex: 1,
@@ -43,7 +43,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onTabChange }) => {
           fontSize: 16,
           fontWeight: 600,
           padding: '0 24px 16px',
-          color: '#333'
+          color: 'var(--color-text-primary)'
         }}>
           编辑内容
         </div>
