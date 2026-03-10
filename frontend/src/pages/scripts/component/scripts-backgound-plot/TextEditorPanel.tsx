@@ -90,6 +90,7 @@ export const TextEditorPanel: React.FC<TextEditorPanelProps> = (
                     border: '1px solid #ccc',
                     zIndex: 100,
                     height: '100%',
+                    maxHeight: '100%',
                     minHeight: 0,
                     display: 'flex',
                     flexDirection: 'column',

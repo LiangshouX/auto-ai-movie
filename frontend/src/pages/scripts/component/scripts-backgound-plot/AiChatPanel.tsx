@@ -220,7 +220,7 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
                         )}
                     </ClassNames>
                 }
-                style={{height: '100%', position: 'relative', display: 'flex', flexDirection: 'column'}}
+                style={{height: '100%', maxHeight: '100%', position: 'relative', display: 'flex', flexDirection: 'column'}}
                 styles={{
                     body: {
                         flex: 1,

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Avatar, Button, Card, Input, Space, Typography} from 'antd';
+import {Avatar, Button, Card, Input, InputRef, Space, Typography} from 'antd';
 import {ArrowRightOutlined, CheckOutlined, CloseOutlined, DeleteOutlined, EditOutlined} from '@ant-design/icons';
 import {ScriptProject} from '@/api/types/project-types.ts';
 
@@ -39,7 +39,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({project, disabled, onEnter, on
     const [draftName, setDraftName] = React.useState(project.title || '');
     const [renameError, setRenameError] = React.useState('');
     const [saving, setSaving] = React.useState(false);
-    const inputRef = React.useRef<HTMLInputElement>(null);
+    const inputRef = React.useRef<InputRef>(null);
 
     React.useEffect(() => {
         setDraftName(project.title || '');

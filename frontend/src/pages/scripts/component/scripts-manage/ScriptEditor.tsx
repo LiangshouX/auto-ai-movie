@@ -184,7 +184,7 @@ const ScriptEditor = () => {
   if (loading) {
     return (
       <BaseLayout
-        embedded
+        embedded={false}
         header={
           <EditorHeader
             title="剧本创作"
@@ -211,7 +211,7 @@ const ScriptEditor = () => {
   if (error) {
     return (
       <BaseLayout
-        embedded
+        embedded={false}
         header={
           <EditorHeader
             title="剧本创作"
@@ -242,7 +242,8 @@ const ScriptEditor = () => {
 
   return (
     <BaseLayout
-      embedded
+      embedded={false}
+      fixedHeader={false}
       header={
         <EditorHeader
           title="剧本创作"
@@ -262,6 +263,11 @@ const ScriptEditor = () => {
           activeTab={activeTab} 
           onTabChange={setActiveTab} 
         />
+      }
+      contentStyle={
+          activeTab === 'summary' 
+              ? { overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '12px 24px' } 
+              : undefined
       }
     >
       {renderContent()}

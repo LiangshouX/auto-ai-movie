@@ -11,6 +11,7 @@ interface BaseLayoutProps {
   layoutStyle?: React.CSSProperties;
   className?: string;
   embedded?: boolean;
+  fixedHeader?: boolean;
 }
 
 /**
@@ -23,7 +24,8 @@ const BaseLayout: React.FC<BaseLayoutProps> = ({
   contentStyle,
   layoutStyle,
   className,
-  embedded = false
+  embedded = false,
+  fixedHeader = true
 }) => {
   return (
     <Layout style={{ height: embedded ? '100%' : '100vh', ...layoutStyle }} className={className}>
@@ -33,7 +35,9 @@ const BaseLayout: React.FC<BaseLayoutProps> = ({
         style={
           embedded
             ? { flex: 1, minHeight: 0 }
-            : { marginTop: header ? 64 : 0, height: header ? 'calc(100vh - 64px)' : '100vh' }
+            : (header && fixedHeader)
+                ? { marginTop: 64, height: 'calc(100vh - 64px)' }
+                : { flex: 1, minHeight: 0 }
         }
       >
         {sidebar}

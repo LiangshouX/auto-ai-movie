@@ -242,7 +242,7 @@ const PlotSummary: React.FC<PlotSummaryProps> = ({project, onContentChange}) => 
                     }
                 }
             `}</style>
-            <Row className="bg-row" gutter={[24, 24]} style={{flex: 1, height: '100%', width: '100%', minHeight: 0, alignItems: 'stretch'}}>
+            <Row className="bg-row" gutter={[24, 0]} style={{flex: 1, width: '100%', minHeight: 0, alignItems: 'stretch'}}>
                 {/* 左侧文本编辑区 */}
                 <Col xs={24} md={12} style={{height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
                     <TextEditorPanel
