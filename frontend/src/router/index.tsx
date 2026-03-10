@@ -1,102 +1,142 @@
-import {createBrowserRouter, Navigate} from 'react-router-dom';
-import Home from '../pages/Home.tsx';
-import {BasicExample, CharacterCardCanvasWithLayout, ScriptManager} from '../pages/scripts/';
-import Movies from '../pages/movie/Movies.tsx';
-import Search from '../pages/search/Search.tsx';
-import NotFound from '../pages/NotFound.tsx';
-import Portal from '../pages/portal/Portal.tsx';
-import WorkspaceLayout from '../pages/workspace/WorkspaceLayout.tsx';
-import WorkspacePlaceholder from '../pages/workspace/WorkspacePlaceholder.tsx';
-import ScriptCreationLayout from '../pages/workspace/ScriptCreationLayout.tsx';
-import LegacyScriptRedirect from '../pages/workspace/LegacyScriptRedirect.tsx';
+import React, { lazy, Suspense } from 'react';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
+import LoadingSpinner from '../pages/scripts/component/scripts-manage/LoadingSpinner.tsx';
+import ErrorBoundary from '../components/ErrorBoundary.tsx';
+
+// Lazy load components
+const Home = lazy(() => import('../pages/Home.tsx'));
+const Movies = lazy(() => import('../pages/movie/Movies.tsx'));
+const Search = lazy(() => import('../pages/search/Search.tsx'));
+const NotFound = lazy(() => import('../pages/NotFound.tsx'));
+const Portal = lazy(() => import('../pages/portal/Portal.tsx'));
+const WorkspaceLayout = lazy(() => import('../pages/workspace/WorkspaceLayout.tsx'));
+const WorkspacePlaceholder = lazy(() => import('../pages/workspace/WorkspacePlaceholder.tsx'));
+const ScriptCreationLayout = lazy(() => import('../pages/workspace/ScriptCreationLayout.tsx'));
+const LegacyScriptRedirect = lazy(() => import('../pages/workspace/LegacyScriptRedirect.tsx'));
+
+// Import directly to avoid barrel file issues with lazy loading
+const ScriptManager = lazy(() => import('../pages/scripts/component/scripts-manage/ScriptManager.tsx'));
+const CharacterCardCanvasWithLayout = lazy(() => import('../pages/scripts/component/scripts-character-role/canvas/CharacterCardCanvasWithLayout.tsx'));
+const BasicExample = lazy(() => import('../pages/scripts/component/scripts-character-role/canvas/TLDrawBasic.tsx'));
+
+const withSuspense = (Component: React.LazyExoticComponent<any>) => (
+    <Suspense fallback={<LoadingSpinner />}>
+        <Component />
+    </Suspense>
+);
+
+const withSuspenseAndProps = (Component: React.LazyExoticComponent<any>, props: any) => (
+    <Suspense fallback={<LoadingSpinner />}>
+        <Component {...props} />
+    </Suspense>
+);
 
 const router = createBrowserRouter([
     {
         path: '/',
-        element: <Navigate to="/portal" replace/>
+        element: <Navigate to="/portal" replace />,
+        errorElement: <ErrorBoundary />
     },
     {
         path: '/portal',
-        element: <Portal/>
+        element: withSuspense(Portal),
+        errorElement: <ErrorBoundary />
     },
     {
         path: '/workspace',
-        element: <ScriptManager/>
+        element: withSuspense(ScriptManager),
+        errorElement: <ErrorBoundary />
     },
     {
         path: '/workspace/:projectId',
-        element: <WorkspaceLayout/>,
+        element: withSuspense(WorkspaceLayout),
+        errorElement: <ErrorBoundary />,
         children: [
             {
                 index: true,
-                element: <Navigate to="script" replace/>
+                element: <Navigate to="script" replace />
             },
             {
                 path: 'script/*',
-                element: <ScriptCreationLayout/>
+                element: withSuspense(ScriptCreationLayout),
+                errorElement: <ErrorBoundary />
             },
             {
                 path: 'characters',
-                element: <WorkspacePlaceholder title="角色设计"/>
+                element: withSuspenseAndProps(WorkspacePlaceholder, { title: "角色设计" }),
+                errorElement: <ErrorBoundary />
             },
             {
                 path: 'storyboard',
-                element: <WorkspacePlaceholder title="画面分镜"/>
+                element: withSuspenseAndProps(WorkspacePlaceholder, { title: "画面分镜" }),
+                errorElement: <ErrorBoundary />
             },
             {
                 path: 'voice',
-                element: <WorkspacePlaceholder title="人物配音"/>
+                element: withSuspenseAndProps(WorkspacePlaceholder, { title: "人物配音" }),
+                errorElement: <ErrorBoundary />
             },
             {
                 path: 'bgm',
-                element: <WorkspacePlaceholder title="BGM"/>
+                element: withSuspenseAndProps(WorkspacePlaceholder, { title: "BGM" }),
+                errorElement: <ErrorBoundary />
             },
             {
                 path: 'compose',
-                element: <WorkspacePlaceholder title="视频合成"/>
+                element: withSuspenseAndProps(WorkspacePlaceholder, { title: "视频合成" }),
+                errorElement: <ErrorBoundary />
             },
             {
                 path: 'monitor',
-                element: <WorkspacePlaceholder title="数据监控"/>
+                element: withSuspenseAndProps(WorkspacePlaceholder, { title: "数据监控" }),
+                errorElement: <ErrorBoundary />
             }
         ]
     },
     {
         path: '/scripts',
-        element: <Navigate to="/workspace" replace/>
+        element: <Navigate to="/workspace" replace />,
+        errorElement: <ErrorBoundary />
     },
     {
         path: '/scripts/editor/:projectId',
-        element: <LegacyScriptRedirect/>
+        element: withSuspense(LegacyScriptRedirect),
+        errorElement: <ErrorBoundary />
     },
     {
         path: '/scripts/outline/:projectId',
-        element: <LegacyScriptRedirect/>
+        element: withSuspense(LegacyScriptRedirect),
+        errorElement: <ErrorBoundary />
     },
     {
         path: 'characters',
-        element: <CharacterCardCanvasWithLayout/>
+        element: withSuspense(CharacterCardCanvasWithLayout),
+        errorElement: <ErrorBoundary />
     },
     {
         path: 'tlDemo',
-        // element: <CharacterCardCanvasWithLayout/>
-        element: <BasicExample/>
+        element: withSuspense(BasicExample),
+        errorElement: <ErrorBoundary />
     },
     {
         path: '/movies',
-        element: <Movies/>,
+        element: withSuspense(Movies),
+        errorElement: <ErrorBoundary />
     },
     {
         path: '/search',
-        element: <Search/>,
+        element: withSuspense(Search),
+        errorElement: <ErrorBoundary />
     },
     {
         path: '/home',
-        element: <Home/>
+        element: withSuspense(Home),
+        errorElement: <ErrorBoundary />
     },
     {
         path: '*',
-        element: <NotFound/>,
+        element: withSuspense(NotFound),
+        errorElement: <ErrorBoundary />
     }
 ]);
 
