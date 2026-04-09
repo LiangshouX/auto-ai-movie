@@ -87,7 +87,8 @@ export const TextEditorPanel: React.FC<TextEditorPanelProps> = (
             <div
                 data-wangeditor-scope={scopeAttrValue}
                 style={{
-                    border: '1px solid #ccc',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-md, 8px)',
                     zIndex: 100,
                     height: '100%',
                     maxHeight: '100%',
@@ -95,14 +96,25 @@ export const TextEditorPanel: React.FC<TextEditorPanelProps> = (
                     display: 'flex',
                     flexDirection: 'column',
                     overflow: 'hidden',
+                    boxShadow: 'var(--shadow-sm)'
                 }}
             >
                 <style>{`
+                    [data-wangeditor-scope="${scopeAttrValue}"] {
+                        --w-e-textarea-bg-color: var(--color-bg-container);
+                        --w-e-textarea-color: var(--color-text-primary);
+                        --w-e-toolbar-bg-color: var(--color-bg-elevated);
+                        --w-e-toolbar-color: var(--color-text-primary);
+                        --w-e-toolbar-active-bg-color: var(--color-border-soft);
+                        --w-e-toolbar-active-color: var(--color-primary);
+                    }
                     [data-wangeditor-scope="${scopeAttrValue}"] .w-e-text-container {
                         height: 100%;
                         overflow: hidden;
                         display: flex;
                         flex-direction: column;
+                        background-color: var(--color-bg-container);
+                        color: var(--color-text-primary);
                     }
                     [data-wangeditor-scope="${scopeAttrValue}"] .w-e-text-container .w-e-scroll{
                         flex: 1;
@@ -113,19 +125,33 @@ export const TextEditorPanel: React.FC<TextEditorPanelProps> = (
                         -webkit-overflow-scrolling: touch;
                     }
                     [data-wangeditor-scope="${scopeAttrValue}"] .w-e-text-container [data-slate-editor]{
-                        font-family: "SimSun", "宋体", serif;
-                        font-size: 22px;
+                        font-family: 'Outfit', "SimSun", "宋体", serif;
+                        font-size: 18px;
+                        line-height: 1.8;
                         box-sizing: border-box;
+                        color: var(--color-text-primary);
                     }
                     [data-wangeditor-scope="${scopeAttrValue}"] .w-e-text-container [data-slate-editor] p{
                         text-indent: 2em;
+                        margin-bottom: 1em;
+                    }
+                    [data-wangeditor-scope="${scopeAttrValue}"] .w-e-toolbar {
+                        background-color: var(--color-bg-elevated);
+                        border-bottom: 1px solid var(--color-border) !important;
+                    }
+                    [data-wangeditor-scope="${scopeAttrValue}"] .w-e-bar-item button {
+                        color: var(--color-text-secondary);
+                    }
+                    [data-wangeditor-scope="${scopeAttrValue}"] .w-e-bar-item button:hover {
+                        color: var(--color-primary);
+                        background-color: var(--color-border-soft);
                     }
                 `}</style>
                 <Toolbar
                     editor={editor}
                     defaultConfig={toolbarConfig}
                     mode="default"
-                    style={{borderBottom: '1px solid #ccc'}}
+                    style={{borderBottom: '1px solid var(--color-border)'}}
                 />
                 <Editor
                     defaultConfig={editorConfig}

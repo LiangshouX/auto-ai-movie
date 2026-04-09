@@ -88,7 +88,7 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
     const xTheme = {
         token: {
             colorPrimary: theme.color.primary,
-            colorBgContainer: theme.color.backgroundLight,
+            colorBgContainer: theme.color.backgroundContainer,
             colorText: theme.color.textPrimary,
             fontSize: theme.typography.headerSubtitleSize,
             borderRadius: theme.radius.md,
@@ -96,11 +96,11 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = (
         components: {
             Bubble: {
                 colorUser: theme.color.primary,
-                colorAssistant: '#f0f0f0',
+                colorAssistant: theme.mode === 'dark' ? '#1e1e2f' : '#f0f0f0',
                 borderRadius: theme.radius.lg,
             },
             Welcome: {
-                colorBg: theme.color.glassLightBackground,
+                colorBg: theme.mode === 'dark' ? theme.color.glassDarkBackground : theme.color.glassLightBackground,
                 colorText: theme.color.textSecondary,
             },
         },

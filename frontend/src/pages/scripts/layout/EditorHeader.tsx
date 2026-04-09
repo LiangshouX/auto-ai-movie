@@ -35,28 +35,32 @@ const EditorHeader: React.FC<EditorHeaderProps> = (
     const headerStyle: React.CSSProperties = mode === 'sub'
         ? {
             backgroundColor: 'var(--color-header-bg)',
-            padding: '0 24px',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            padding: '0 16px',
             boxShadow: 'var(--shadow-sm)',
             zIndex: 150,
             width: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            height: 40,
+            height: 48,
             position: 'sticky',
             top: stickyTop,
             borderBottom: '1px solid var(--color-border)'
         }
         : {
             backgroundColor: 'var(--color-header-bg)',
-            padding: '0 24px',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            padding: '0 16px',
             boxShadow: 'var(--shadow-sm)',
             zIndex: 100,
             width: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            height: 64,
+            height: 56,
             position: 'fixed',
             top: 0,
             left: 0,
@@ -70,18 +74,20 @@ const EditorHeader: React.FC<EditorHeaderProps> = (
             style={headerStyle}
         >
             {showNavButtons ? (
-                <Space size="middle">
+                <Space size="small">
                     <Button
                         onClick={onBackClick}
                         icon=<BackwardOutlined/>
-                        type="default"
+                        type="text"
+                        size="small"
                     >
                         返回
                     </Button>
                     <Button
                         onClick={onHomeClick}
                         icon=<HomeOutlined/>
-                        type="default"
+                        type="text"
+                        size="small"
                     >
                         首页
                     </Button>
@@ -91,29 +97,30 @@ const EditorHeader: React.FC<EditorHeaderProps> = (
             )}
 
             <div style={{textAlign: 'center', flex: 1}}>
-                {/*<Title level={3} style={{margin: 0}}>{}</Title>*/}
-                <Text type="secondary" style={{display: 'block'}}>
-                  {title}-正在编辑：【{projectTitle || '未命名项目'}】
+                <Text type="secondary" style={{display: 'block', fontSize: 13}}>
+                  <span style={{color: 'var(--color-text-primary)', fontWeight: 600}}>{title}</span> <span style={{opacity: 0.5}}>|</span> {projectTitle || '未命名项目'}
                 </Text>
             </div>
 
             <Space size="small">
-                {/*<ThemeSwitch/>*/}
                 <Button
                     onClick={onExportClick}
-                    type="default"
+                    type="text"
+                    size="small"
                 >
-                    导出剧本
+                    导出
                 </Button>
                 <Button
                     onClick={onCancelClick}
                     type="default"
+                    size="small"
                 >
                     取消
                 </Button>
                 <Button
                     onClick={onSaveClick}
                     type="primary"
+                    size="small"
                 >
                     保存
                 </Button>

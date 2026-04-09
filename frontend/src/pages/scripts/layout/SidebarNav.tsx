@@ -7,6 +7,7 @@ import {
   OrderedListOutlined 
 } from '@ant-design/icons';
 import Sider from "antd/es/layout/Sider";
+import { useAppThemeMode } from '@/theme-provider.tsx';
 
 interface SidebarNavProps {
   activeTab: string;
@@ -14,6 +15,7 @@ interface SidebarNavProps {
 }
 
 const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onTabChange }) => {
+  const { resolvedThemeMode } = useAppThemeMode();
   const tabs = [
     { key: 'background', label: '背景设定', icon: <SettingOutlined /> },
     { key: 'summary', label: '剧情梗概', icon: <FileTextOutlined /> },
@@ -27,37 +29,31 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ activeTab, onTabChange }) => {
 
   return (
     <Sider
-      width={140}
-      theme="light"
+      width={72}
+      theme={resolvedThemeMode === 'dark' ? 'dark' : 'light'}
       style={{
         backgroundColor: 'var(--color-bg-container)',
-        borderRight: '1px solid var(--color-border-soft)',
+        borderRight: '1px solid var(--color-border)',
         height: '100%',
         position: 'relative',
         zIndex: 1,
         overflowY: 'auto'
       }}
     >
-      <div style={{ padding: '16px 0' }}>
-        <div style={{
-          fontSize: 16,
-          fontWeight: 600,
-          padding: '0 24px 16px',
-          color: 'var(--color-text-primary)'
-        }}>
-          编辑内容
-        </div>
-        
+      <div style={{ padding: '24px 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Menu
           mode="inline"
+          theme={resolvedThemeMode === 'dark' ? 'dark' : 'light'}
           selectedKeys={[activeTab]}
           onClick={handleMenuClick}
+          className="editor-sidebar-menu"
           items={tabs.map(tab => ({
             key: tab.key,
             icon: tab.icon,
-            label: tab.label
+            label: tab.label,
+            title: tab.label
           }))}
-          style={{ borderInlineEnd: 'none' }}
+          style={{ borderInlineEnd: 'none', backgroundColor: 'transparent', width: '100%' }}
         />
       </div>
     </Sider>

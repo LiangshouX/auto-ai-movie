@@ -36,7 +36,7 @@ const BaseLayout: React.FC<BaseLayoutProps> = ({
           embedded
             ? { flex: 1, minHeight: 0 }
             : (header && fixedHeader)
-                ? { marginTop: 64, height: 'calc(100vh - 64px)' }
+                ? { marginTop: 56, height: 'calc(100vh - 56px)' }
                 : { flex: 1, minHeight: 0 }
         }
       >
@@ -50,7 +50,7 @@ const BaseLayout: React.FC<BaseLayoutProps> = ({
             display: 'flex',
             flexDirection: 'column',
             width: '100%',
-            backgroundColor: 'var(--color-bg-page)',
+            backgroundColor: 'transparent',
             minHeight: 0,
             ...contentStyle,
           }}

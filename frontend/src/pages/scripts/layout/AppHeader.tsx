@@ -39,6 +39,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     <Header
       style={{
         backgroundColor: 'var(--color-header-bg)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
         padding: '0 24px',
         boxShadow: 'var(--shadow-sm)',
         zIndex: 100,
@@ -47,7 +49,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         alignItems: 'center',
         position: 'fixed',
         justifyContent: 'space-between',
-        height: 64,
+        height: 56,
         top: 0,
         left: 0,
         right: 0,
@@ -56,18 +58,20 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     >
       <Space size="large">
         {showHome && (
-          <Button onClick={handlePortalClick} type="text" size="large" style={{fontWeight: 700, cursor: 'pointer', fontSize: 18, color: 'var(--color-text-primary)'}}>
-            <HomeOutlined /> Auto AI Movie Home
+          <Button onClick={handlePortalClick} type="text" style={{fontWeight: 700, cursor: 'pointer', fontSize: 16, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center'}}>
+            <HomeOutlined style={{ fontSize: 18 }} /> Auto AI Movie
           </Button>
         )}
       </Space>
 
-      <Title level={2} style={{ 
+      <Title level={4} style={{ 
         margin: 0, 
         color: 'var(--color-text-primary)',
         position: 'absolute',
         left: '50%',
-        transform: 'translateX(-50%)'
+        transform: 'translateX(-50%)',
+        fontFamily: 'Syne, sans-serif',
+        fontWeight: 700
       }}>
         {title}
       </Title>

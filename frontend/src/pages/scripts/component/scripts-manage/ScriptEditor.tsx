@@ -196,7 +196,7 @@ const ScriptEditor = () => {
             onExportClick={handleExportClick}
             showNavButtons={false}
             mode="sub"
-            stickyTop={64}
+            stickyTop={56}
           />
         }
       >
@@ -223,7 +223,7 @@ const ScriptEditor = () => {
             onExportClick={handleExportClick}
             showNavButtons={false}
             mode="sub"
-            stickyTop={64}
+            stickyTop={56}
           />
         }
       >
@@ -255,7 +255,7 @@ const ScriptEditor = () => {
           onExportClick={handleExportClick}
           showNavButtons={false}
           mode="sub"
-          stickyTop={64}
+          stickyTop={56}
         />
       }
       sidebar={

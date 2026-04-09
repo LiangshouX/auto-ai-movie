@@ -1,4 +1,4 @@
-/* ScriptManager 布局修复样式 */
+/* ScriptManager Layout & Neon Noir Aesthetics */
 .script-manager-container {
   width: 100%;
   min-height: 100vh;
@@ -11,7 +11,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  background-color: var(--color-bg-page);
+  background-color: transparent;
   min-height: calc(100vh - 64px);
 }
 
@@ -34,15 +34,30 @@
   border-radius: 16px;
   overflow: hidden;
   height: 100%;
-  background-color: var(--color-bg-container);
-  border: 1px solid var(--color-border-soft);
+  background: var(--color-bg-container);
+  border: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.workspace-project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md), inset 0 0 0 1px var(--color-primary);
 }
 
 .workspace-project-cover {
   height: 120px;
   border-radius: 12px;
   background: linear-gradient(135deg, var(--project-accent-from) 0%, var(--project-accent-to) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.workspace-project-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(11, 11, 18, 0.8) 100%);
 }
 
 .workspace-project-body {
@@ -55,10 +70,14 @@
 .workspace-project-title.ant-typography {
   margin: 0;
   min-height: 56px;
+  font-family: 'Syne', sans-serif;
+  color: var(--color-text-primary);
 }
 
 .workspace-project-time.ant-typography {
   margin: 0;
+  color: var(--color-text-tertiary);
+  font-family: 'Outfit', sans-serif;
 }
 
 .workspace-project-members {
@@ -86,6 +105,15 @@
 .workspace-project-action-btn {
   min-height: 44px;
   padding-inline: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-text-secondary);
+}
+
+.workspace-project-action-btn:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: var(--color-primary);
 }
 
 @media (width <= 768px) {
@@ -119,7 +147,6 @@
   padding: 16px;
 }
 
-/* 确保卡片间距正确 */
 .ant-row {
   width: 100%;
 }
@@ -128,7 +155,6 @@
   padding: 8px;
 }
 
-/* 修复删除按钮点击区域 */
 .project-card-button {
   margin-top: 10px;
 }
@@ -139,6 +165,12 @@
   width: 320px;
   display: flex;
   flex-direction: column;
+  background: var(--color-bg-container) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
   --script-card-accent-from: var(--color-primary);
   --script-card-accent-to: var(--project-accent-to);
@@ -159,14 +191,14 @@
 .script-project-card::before {
   content: '';
   position: absolute;
-  top: 12px;
-  bottom: 12px;
+  top: 0;
+  bottom: 0;
   left: 0;
   width: 4px;
-  border-radius: 6px;
   background: linear-gradient(180deg, var(--script-card-accent-from), var(--script-card-accent-to));
   opacity: 0.9;
   pointer-events: none;
+  transition: all 0.3s ease;
 }
 
 .script-project-card-cover {
@@ -180,12 +212,14 @@
 .script-project-card-frame {
   position: absolute;
   inset: 10px;
-  border: 1px solid rgb(255 255 255 / 40%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   pointer-events: none;
 }
 
 .script-project-card.ant-card-hoverable:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md), inset 0 0 0 1px var(--color-primary) !important;
   --script-card-accent-from: var(--script-card-accent-from-hover);
   --script-card-accent-to: var(--script-card-accent-to-hover);
 }
@@ -202,10 +236,12 @@
 
 .script-project-card-disabled.ant-card-hoverable:hover,
 .script-project-card-disabled.ant-card-hoverable:active {
+  transform: none;
+  box-shadow: none;
   --script-card-accent-from: var(--color-disabled);
   --script-card-accent-to: var(--color-disabled-bg);
 }
 
 .script-project-card-disabled::before {
-  opacity: 0.55;
+  opacity: 0.3;
 }

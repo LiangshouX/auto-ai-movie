@@ -52,23 +52,26 @@ const WorkspaceLayout = () => {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh', background: 'var(--color-bg-page)' }}>
+    <Layout style={{ minHeight: '100vh', background: 'transparent' }}>
       <Header
         style={{
-          height: 64,
+          height: 56,
           position: 'fixed',
           insetInline: 0,
           top: 0,
           zIndex: 200,
-          padding: '0 20px',
+          padding: '0 16px',
           background: 'var(--color-header-bg)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
           borderBottom: '1px solid var(--color-border)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          boxShadow: 'var(--shadow-sm)'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -76,20 +79,21 @@ const WorkspaceLayout = () => {
             style={{ color: 'var(--color-text-primary)' }}
           />
           <Button
-            type="default"
+            type="text"
             onClick={goPortal}
-            // style={{color: '#d6e4ff', fontWeight: 700, paddingInline: 0}}
+            style={{ fontWeight: 600, color: 'var(--color-text-primary)', fontFamily: 'Syne, sans-serif', fontSize: 15 }}
           >
-            <HomeOutlined />Auto AI Movie
+            <HomeOutlined /> Auto AI Movie
           </Button>
           <Button
-            type="default"
+            type="text"
             onClick={goWorkspaceList}
+            style={{ color: 'var(--color-text-secondary)' }}
           >
-            <BackwardOutlined />项目管理
+            <BackwardOutlined /> 项目管理
           </Button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <ThemeSwitch />
           <Dropdown
             menu={{
@@ -104,40 +108,47 @@ const WorkspaceLayout = () => {
             }}
             trigger={['click']}
           >
-            <Avatar style={{ cursor: 'pointer', backgroundColor: 'var(--color-primary)' }} icon={<UserOutlined />} />
+            <Avatar size="small" style={{ cursor: 'pointer', backgroundColor: 'var(--color-primary)' }} icon={<UserOutlined />} />
           </Dropdown>
         </div>
       </Header>
-      <Layout style={{ marginTop: 64 }}>
+      <Layout style={{ marginTop: 56 }}>
         <Sider
-          width={200}
+          width={180}
+          collapsedWidth={64}
           collapsible
           collapsed={collapsed}
           trigger={null}
           style={{
-            background: 'var(--color-bg-elevated)',
+            background: 'var(--color-header-bg)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
             borderRight: '1px solid var(--color-border)',
-            overflow: 'auto',
-            height: 'calc(100vh - 64px)',
+            overflow: 'hidden',
+            height: 'calc(100vh - 56px)',
             position: 'sticky',
-            top: 64,
+            top: 56,
             left: 0,
+            zIndex: 100
           }}
         >
-          <Menu
-            mode="inline"
-            selectedKeys={[selectedKey]}
-            onClick={handleMenuChange}
-            items={menuItems}
-            style={{ height: '100%', borderInlineEnd: 0, paddingTop: 12 }}
-            theme={resolvedThemeMode === 'dark' ? 'dark' : 'light'}
-          />
+          <div style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }} className="slim-scroll">
+            <Menu
+              mode="inline"
+              selectedKeys={[selectedKey]}
+              onClick={handleMenuChange}
+              items={menuItems}
+              style={{ borderInlineEnd: 0, paddingTop: 12, background: 'transparent' }}
+              className="workspace-menu"
+              theme={resolvedThemeMode === 'dark' ? 'dark' : 'light'}
+            />
+          </div>
         </Sider>
         <Content
           style={{
             padding: selectedKey === 'script' ? '8px 16px' : 24,
-            background: 'var(--color-bg-page)',
-            minHeight: 'calc(100vh - 64px)',
+            background: 'transparent',
+            minHeight: 'calc(100vh - 56px)',
           }}
         >
           <Outlet />
